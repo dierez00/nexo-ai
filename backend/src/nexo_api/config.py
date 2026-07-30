@@ -56,6 +56,16 @@ class Settings(BaseSettings):
     twilio_webhook_base_url: str = ""
 
     # ------------------------------------------------------------------
+    # Supabase (nuevo sistema de API keys: publishable/secret + JWKS)
+    # El backend usa la SECRET key (bypassa RLS); publishable es de frontend.
+    # ------------------------------------------------------------------
+    supabase_url: str = ""
+    supabase_publishable_key: str = ""
+    supabase_secret_key: SecretStr = SecretStr("")
+    supabase_jwks_url: str = ""
+    supabase_jwt_aud: str = "authenticated"
+
+    # ------------------------------------------------------------------
     # Modelos (aliases opcionales; se completan cuando haya proveedor)
     # ------------------------------------------------------------------
     openai_api_key: SecretStr = SecretStr("")
@@ -74,6 +84,10 @@ class Settings(BaseSettings):
     @property
     def twilio_configured(self) -> bool:
         return bool(self.twilio_account_sid and self.twilio_auth_token.get_secret_value())
+
+    @property
+    def supabase_configured(self) -> bool:
+        return bool(self.supabase_url and self.supabase_secret_key.get_secret_value())
 
 
 @lru_cache(maxsize=1)

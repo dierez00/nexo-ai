@@ -14,6 +14,7 @@ import json
 import logging
 import re
 import sys
+from collections.abc import MutableMapping
 from datetime import UTC, datetime
 from typing import Any
 
@@ -22,22 +23,32 @@ from typing import Any
 # ---------------------------------------------------------------------------
 _REDACT_KEYS: frozenset[str] = frozenset(
     {
-        "password", "passwd", "secret", "token", "api_key", "apikey",
-        "authorization", "jwt_secret", "twilio_auth_token", "private_key",
-        "client_secret", "access_token", "refresh_token",
+        "password",
+        "passwd",
+        "secret",
+        "token",
+        "api_key",
+        "apikey",
+        "authorization",
+        "jwt_secret",
+        "twilio_auth_token",
+        "private_key",
+        "client_secret",
+        "access_token",
+        "refresh_token",
     }
 )
 
 _PII_PATTERNS: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"\b\d{10}\b"), "[PHONE_REDACTED]"),           # teléfonos MX 10 dígitos
+    (re.compile(r"\b\d{10}\b"), "[PHONE_REDACTED]"),  # teléfonos MX 10 dígitos
     (re.compile(r"whatsapp:\+\d+"), "whatsapp:[REDACTED]"),
-    (re.compile(r"pii_ref:[^\s,\"']+"), "[PII_REF]"),           # referencias PII internas
+    (re.compile(r"pii_ref:[^\s,\"']+"), "[PII_REF]"),  # referencias PII internas
 ]
 
 _REDACTED = "[REDACTED]"
 
 
-def _redact(data: Any, _depth: int = 0) -> Any:
+def _redact(data: object, _depth: int = 0) -> object:
     """Redacta recursivamente claves sensibles y patrones PII en dicts/strings."""
     if _depth > 10:
         return data
@@ -69,10 +80,27 @@ class _JsonlFormatter(logging.Formatter):
         # Campos extra añadidos via log.info("msg", run_id=..., trace_id=...)
         for key, value in record.__dict__.items():
             if key not in {
-                "name", "msg", "args", "levelname", "levelno", "pathname",
-                "filename", "module", "exc_info", "exc_text", "stack_info",
-                "lineno", "funcName", "created", "msecs", "relativeCreated",
-                "thread", "threadName", "processName", "process", "message",
+                "name",
+                "msg",
+                "args",
+                "levelname",
+                "levelno",
+                "pathname",
+                "filename",
+                "module",
+                "exc_info",
+                "exc_text",
+                "stack_info",
+                "lineno",
+                "funcName",
+                "created",
+                "msecs",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "processName",
+                "process",
+                "message",
                 "taskName",
             }:
                 payload[key] = value
@@ -88,8 +116,8 @@ class _JsonlFormatter(logging.Formatter):
 # ---------------------------------------------------------------------------
 class _StructuredLogger(logging.LoggerAdapter[logging.Logger]):
     def process(
-        self, msg: str, kwargs: Any
-    ) -> tuple[str, dict[str, Any]]:
+        self, msg: str, kwargs: MutableMapping[str, Any]
+    ) -> tuple[str, MutableMapping[str, Any]]:
         extra = kwargs.pop("extra", {})
         # Campos pasados directamente como kwargs se mueven a extra
         for key in list(kwargs):

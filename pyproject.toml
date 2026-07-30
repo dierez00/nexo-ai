@@ -29,6 +29,8 @@ dev = [
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# .agents = skills/plantillas vendidas (no es código del workspace)
+extend-exclude = [".agents", ".venv"]
 
 [tool.ruff.lint]
 select = [
@@ -42,14 +44,24 @@ select = [
     "ANN", # anotaciones de tipo
 ]
 ignore = [
-    "ANN101", # self no necesita anotación
-    "ANN102", # cls no necesita anotación
-    "S101",   # assert en tests está bien
+    "S101", # assert en tests está bien
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S", "ANN"]
 "**/migrations/**" = ["ANN"]
+
+# FastAPI usa Depends/Query/etc. como valores por defecto de argumentos:
+# es el idiom del framework, no el bug que B008 busca.
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Header",
+    "fastapi.Body",
+    "fastapi.Security",
+]
 
 # =============================================================================
 # mypy — type checking compartido
@@ -62,6 +74,7 @@ warn_unused_ignores = true
 no_implicit_reexport = true
 explicit_package_bases = true
 mypy_path = "backend/src:integrations/src:observability/src"
+exclude = ['\.agents/', '\.venv/']
 
 # =============================================================================
 # pytest
