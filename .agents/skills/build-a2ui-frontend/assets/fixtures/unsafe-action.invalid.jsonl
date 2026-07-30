@@ -1,0 +1,2 @@
+{"version":"v0.9.1","createSurface":{"surfaceId":"unsafe-action","catalogId":"urn:nexo-ia:a2ui:catalog:citizen:v1"}}
+{"version":"v0.9.1","updateComponents":{"surfaceId":"unsafe-action","components":[{"id":"root","component":"Button","child":"label","action":{"handler":"alert(1)"}},{"id":"label","component":"Text","text":"Continuar"}]}}

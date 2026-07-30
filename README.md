@@ -33,3 +33,7 @@ Los comandos `docker compose up --build` y `./run.sh` son entregables futuros. N
 La raíz enlaza todos los módulos, pero no contiene lógica de uno en particular. Archivos ejemplo futuros: `compose.yaml`, `.env.example` y `run.sh`. Tareas iniciales: bootstrap, healthchecks, seed E2E y guion.
 
 Responsable de instalación futura: Dani. Todo el equipo valida alcance y demo. La raíz se considera terminada cuando una persona nueva puede comprender y ejecutar el proyecto sin ayuda.
+
+## Skill de frontend
+
+Usa `$build-a2ui-frontend` para preparar componentes, interfaces base y catálogos compatibles con A2UI v0.9.1. La skill versionada está en `.agents/skills/build-a2ui-frontend`.

@@ -1,0 +1,2 @@
+{"version":"v0.9.1","createSurface":{"surfaceId":"broken","catalogId":"urn:nexo-ia:a2ui:catalog:citizen:v1"}}
+{"version":"v0.9.1","updateComponents":{"surfaceId":"broken","components":[{"id":"root","component":"Column","children":["missing-component"]}]}}

@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:nexo-ia:a2ui:catalog:citizen:v1",
+  "title": "Nexo IA Citizen Catalog v1",
+  "description": "Catálogo cerrado para superficies ciudadanas de Nexo IA sobre A2UI v0.9.1.",
+  "catalogId": "urn:nexo-ia:a2ui:catalog:citizen:v1",
+  "components": {
+    "Text": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/Text"
+    },
+    "Image": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/Image"
+    },
+    "Icon": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/Icon"
+    },
+    "Video": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/Video"
+    },
+    "AudioPlayer": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/AudioPlayer"
+    },
+    "Row": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/Row"
+    },
+    "Column": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/Column"
+    },
+    "List": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/List"
+    },
+    "Card": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/Card"
+    },
+    "Tabs": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/Tabs"
+    },
+    "Divider": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/Divider"
+    },
+    "Modal": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/Modal"
+    },
+    "Button": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/Button"
+    },
+    "CheckBox": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/CheckBox"
+    },
+    "TextField": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/TextField"
+    },
+    "DateTimeInput": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/DateTimeInput"
+    },
+    "ChoicePicker": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/ChoicePicker"
+    },
+    "Slider": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/components/Slider"
+    },
+    "StatusBanner": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/ComponentCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "component": {
+              "const": "StatusBanner"
+            },
+            "title": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/DynamicString"
+            },
+            "message": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/DynamicString"
+            },
+            "tone": {
+              "enum": ["neutral", "info", "success", "warning", "danger"],
+              "default": "neutral"
+            }
+          },
+          "required": ["component", "title"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "SourceCitation": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/ComponentCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "component": {
+              "const": "SourceCitation"
+            },
+            "source": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/DynamicString"
+            },
+            "title": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/DynamicString"
+            },
+            "excerpt": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/DynamicString"
+            },
+            "url": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/DynamicString"
+            }
+          },
+          "required": ["component", "source", "title"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "Checklist": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/ComponentCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "component": {
+              "const": "Checklist"
+            },
+            "title": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/DynamicString"
+            },
+            "child": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/ComponentId"
+            },
+            "progress": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/DynamicNumber"
+            }
+          },
+          "required": ["component", "title", "child"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "ConfirmationSummary": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/ComponentCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "component": {
+              "const": "ConfirmationSummary"
+            },
+            "title": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/DynamicString"
+            },
+            "description": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/DynamicString"
+            },
+            "child": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/ComponentId"
+            },
+            "confirmLabel": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/DynamicString"
+            },
+            "action": {
+              "$ref": "https://a2ui.org/specification/v0_9/common_types.json#/$defs/Action"
+            }
+          },
+          "required": [
+            "component",
+            "title",
+            "child",
+            "confirmLabel",
+            "action"
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    }
+  },
+  "functions": {
+    "required": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/required"
+    },
+    "regex": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/regex"
+    },
+    "length": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/length"
+    },
+    "numeric": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/numeric"
+    },
+    "email": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/email"
+    },
+    "formatString": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/formatString"
+    },
+    "formatNumber": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/formatNumber"
+    },
+    "formatCurrency": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/formatCurrency"
+    },
+    "formatDate": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/formatDate"
+    },
+    "pluralize": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/pluralize"
+    },
+    "openUrl": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/openUrl"
+    },
+    "and": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/and"
+    },
+    "or": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/or"
+    },
+    "not": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/functions/not"
+    }
+  },
+  "$defs": {
+    "anyComponent": {
+      "oneOf": [
+        { "$ref": "#/components/Text" },
+        { "$ref": "#/components/Image" },
+        { "$ref": "#/components/Icon" },
+        { "$ref": "#/components/Video" },
+        { "$ref": "#/components/AudioPlayer" },
+        { "$ref": "#/components/Row" },
+        { "$ref": "#/components/Column" },
+        { "$ref": "#/components/List" },
+        { "$ref": "#/components/Card" },
+        { "$ref": "#/components/Tabs" },
+        { "$ref": "#/components/Divider" },
+        { "$ref": "#/components/Modal" },
+        { "$ref": "#/components/Button" },
+        { "$ref": "#/components/CheckBox" },
+        { "$ref": "#/components/TextField" },
+        { "$ref": "#/components/DateTimeInput" },
+        { "$ref": "#/components/ChoicePicker" },
+        { "$ref": "#/components/Slider" },
+        { "$ref": "#/components/StatusBanner" },
+        { "$ref": "#/components/SourceCitation" },
+        { "$ref": "#/components/Checklist" },
+        { "$ref": "#/components/ConfirmationSummary" }
+      ]
+    },
+    "anyFunction": {
+      "oneOf": [
+        { "$ref": "#/functions/required" },
+        { "$ref": "#/functions/regex" },
+        { "$ref": "#/functions/length" },
+        { "$ref": "#/functions/numeric" },
+        { "$ref": "#/functions/email" },
+        { "$ref": "#/functions/formatString" },
+        { "$ref": "#/functions/formatNumber" },
+        { "$ref": "#/functions/formatCurrency" },
+        { "$ref": "#/functions/formatDate" },
+        { "$ref": "#/functions/pluralize" },
+        { "$ref": "#/functions/openUrl" },
+        { "$ref": "#/functions/and" },
+        { "$ref": "#/functions/or" },
+        { "$ref": "#/functions/not" }
+      ]
+    },
+    "theme": {
+      "$ref": "https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json#/$defs/theme"
+    }
+  }
+}
