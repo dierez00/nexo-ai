@@ -20,4 +20,7 @@ Responsable: equipo; Dani/Diego revisan fronteras runtime y Daher persistencia.
 
 ## Archivos, tareas y terminado
 
-Dependencias permitidas: contratos, ADR y diagramas del sistema; el runtime no depende de esta carpeta. Ejemplos: `overview.md`, `data-model.md`, `security.md`. Crear solo cuando el detalle no quepa en `Nexo_IA_Arquitectura_y_Plan.md`. Terminado cuando coincide con código, contratos y despliegue.
+Dependencias permitidas: contratos, ADR y diagramas del sistema; el runtime no depende de esta carpeta.
+- [database_schema.md](file:///c:/Users/di3go/Downloads/metaphorce-retos/nexo-ai/docs/architecture/database_schema.md): Esquema completo de la base de datos (PostgreSQL/Supabase), migraciones, RLS, índices, funciones RPC y diagrama ERD.
+
+Ejemplos: `overview.md`, `database_schema.md`, `security.md`. Crear solo cuando el detalle no quepa en `Nexo_IA_Arquitectura_y_Plan.md`. Terminado cuando coincide con código, contratos y despliegue.
