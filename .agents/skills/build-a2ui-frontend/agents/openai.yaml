@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nexo A2UI Frontend"
+  short_description: "Crea interfaces modernas, responsivas y seguras"
+  default_prompt: "Usa $build-a2ui-frontend para preparar una interfaz de Nexo lista para A2UI."
