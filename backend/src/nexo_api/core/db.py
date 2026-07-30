@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from nexo_api.config import get_settings
+from nexo_api.core.config import get_settings
 
 
 @lru_cache(maxsize=1)

@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from nexo_observability.logging import get_logger
 from pydantic import BaseModel
 
-from nexo_api.db import check_database
+from nexo_api.core.db import check_database
 
 log = get_logger(__name__)
 router = APIRouter(tags=["health"])

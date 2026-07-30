@@ -1,6 +1,6 @@
 """Punto de entrada de la API FastAPI.
 
-Ejecutar en local:  uv run uvicorn nexo_api.main:app --reload --port 8000
+Ejecutar en local:  python -m uvicorn nexo_api.main:app --reload --port 8000
 """
 
 from __future__ import annotations
@@ -12,12 +12,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from nexo_observability.logging import configure_logging, get_logger
 
-from nexo_api import health
+from nexo_api.api import health
 from nexo_api.api.v1 import auth as auth_router
-from nexo_api.config import get_settings
-from nexo_api.db import dispose_engine
-from nexo_api.errors import ProblemException, problem_exception_handler
-from nexo_api.middleware import TraceIdMiddleware
+from nexo_api.api.v1 import conversations as conversations_router
+from nexo_api.api.v1 import runs as runs_router
+from nexo_api.core.config import get_settings
+from nexo_api.core.db import dispose_engine
+from nexo_api.core.errors import ProblemException, problem_exception_handler
+from nexo_api.core.middleware import TraceIdMiddleware
 
 log = get_logger(__name__)
 
@@ -58,6 +60,8 @@ def create_app() -> FastAPI:
 
     app.include_router(health.router)
     app.include_router(auth_router.router)
+    app.include_router(conversations_router.router)
+    app.include_router(runs_router.router)
     return app
 
 

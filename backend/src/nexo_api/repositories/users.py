@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from sqlalchemy import text
 
-from nexo_api.auth.schemas import UserProfile
-from nexo_api.db import get_sessionmaker
+from nexo_api.core.db import get_sessionmaker
+from nexo_api.schemas.auth import UserProfile
 
 _PROFILE_SQL = text("""
     select

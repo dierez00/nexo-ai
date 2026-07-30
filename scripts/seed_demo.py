@@ -18,7 +18,7 @@ from __future__ import annotations
 import os
 
 import anyio
-from nexo_api.config import get_settings
+from nexo_api.core.config import get_settings
 from nexo_integrations.supabase import create_supabase_client
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection, create_async_engine

@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from nexo_integrations.supabase import create_supabase_client
 
-from nexo_api.auth.repository import load_profile_by_auth_id
-from nexo_api.auth.schemas import LoginResponse, TokenPair
-from nexo_api.config import get_settings
-from nexo_api.errors import ProblemException
+from nexo_api.core.config import get_settings
+from nexo_api.core.errors import ProblemException
+from nexo_api.repositories.users import load_profile_by_auth_id
+from nexo_api.schemas.auth import LoginResponse, TokenPair
 
 
 async def authenticate(email: str, password: str) -> LoginResponse:

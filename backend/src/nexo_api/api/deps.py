@@ -10,29 +10,28 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 
 import jwt
-from fastapi import Depends
+from fastapi import Depends, Query, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from nexo_api.auth.repository import load_profile_by_auth_id
-from nexo_api.auth.schemas import UserProfile
-from nexo_api.auth.security import verify_supabase_jwt
-from nexo_api.errors import ProblemException
+from nexo_api.core.errors import ProblemException
+from nexo_api.core.security import verify_supabase_jwt
+from nexo_api.repositories.users import load_profile_by_auth_id
+from nexo_api.schemas.auth import UserProfile
+from nexo_api.services.orchestration import FakeOrchestrator, Orchestrator
+
+
+def get_orchestrator() -> Orchestrator:
+    """Provee el orquestador. Hoy fake; se cambia por el real de Diego sin tocar routers."""
+    return FakeOrchestrator()
+
 
 _bearer = HTTPBearer(auto_error=False)
 
 
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
-) -> UserProfile:
-    if credentials is None:
-        raise ProblemException(
-            status=401,
-            code="AUTHENTICATION_REQUIRED",
-            title="Falta el token de autenticación",
-            detail="Incluye el header 'Authorization: Bearer <token>'.",
-        )
+async def _profile_from_token(token: str) -> UserProfile:
+    """Valida el JWT de Supabase y resuelve el perfil. Compartido por header y SSE."""
     try:
-        payload = verify_supabase_jwt(credentials.credentials)
+        payload = verify_supabase_jwt(token)
     except jwt.PyJWTError as exc:
         raise ProblemException(
             status=401,
@@ -50,6 +49,40 @@ async def get_current_user(
             detail="El token es válido pero no hay registro en public.users.",
         )
     return profile
+
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
+) -> UserProfile:
+    if credentials is None:
+        raise ProblemException(
+            status=401,
+            code="AUTHENTICATION_REQUIRED",
+            title="Falta el token de autenticación",
+            detail="Incluye el header 'Authorization: Bearer <token>'.",
+        )
+    return await _profile_from_token(credentials.credentials)
+
+
+async def get_current_user_sse(
+    request: Request,
+    access_token: str | None = Query(default=None),
+) -> UserProfile:
+    """Auth para SSE: el `EventSource` del browser no manda header `Authorization`,
+    así que acepta el token por query param `?access_token=` o por el header."""
+    token = access_token
+    if token is None:
+        header = request.headers.get("Authorization", "")
+        if header.startswith("Bearer "):
+            token = header.removeprefix("Bearer ")
+    if not token:
+        raise ProblemException(
+            status=401,
+            code="AUTHENTICATION_REQUIRED",
+            title="Falta el token de autenticación",
+            detail="Usa '?access_token=<token>' o el header 'Authorization: Bearer <token>'.",
+        )
+    return await _profile_from_token(token)
 
 
 def require_permission(permission: str) -> Callable[[UserProfile], Awaitable[UserProfile]]:

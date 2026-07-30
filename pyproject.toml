@@ -50,6 +50,9 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S", "ANN"]
 "**/migrations/**" = ["ANN"]
+# Repositorios: SQL siempre parametrizado; los f-strings solo interpolan listas
+# de columnas constantes (nunca input de usuario) → S608 es ruido aquí.
+"**/repositories/**" = ["S608"]
 
 # FastAPI usa Depends/Query/etc. como valores por defecto de argumentos:
 # es el idiom del framework, no el bug que B008 busca.

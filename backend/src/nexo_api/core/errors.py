@@ -12,7 +12,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from nexo_api.middleware import TRACE_HEADER
+from nexo_api.core.middleware import TRACE_HEADER
 
 
 class ProblemDetail(BaseModel):

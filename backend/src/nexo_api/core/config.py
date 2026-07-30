@@ -7,15 +7,21 @@ Fuente única de verdad para variables de entorno. Los módulos importan
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Raíz del repo: core/ -> nexo_api -> src -> backend -> <raíz>. Permite cargar el
+# .env sin importar el CWD (uvicorn corre desde cualquier carpeta). En contenedor
+# el archivo no existe y pydantic-settings usa las variables de entorno reales.
+_REPO_ROOT = Path(__file__).resolve().parents[4]
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(_REPO_ROOT / ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",

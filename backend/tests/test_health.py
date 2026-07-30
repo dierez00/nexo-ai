@@ -28,7 +28,7 @@ def test_ready_ok_when_db_reachable(client: TestClient) -> None:
     async def _ok() -> bool:
         return True
 
-    with patch("nexo_api.health.check_database", _ok):
+    with patch("nexo_api.api.health.check_database", _ok):
         resp = client.get("/health/ready")
     assert resp.status_code == 200
     assert resp.json() == {"status": "ready", "checks": {"database": "ok"}}
@@ -38,7 +38,7 @@ def test_ready_503_when_db_down(client: TestClient) -> None:
     async def _fail() -> bool:
         raise RuntimeError("db down")
 
-    with patch("nexo_api.health.check_database", _fail):
+    with patch("nexo_api.api.health.check_database", _fail):
         resp = client.get("/health/ready")
     assert resp.status_code == 503
     assert resp.json()["checks"]["database"] == "error"

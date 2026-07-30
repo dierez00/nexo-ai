@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
-from nexo_api.auth.dependencies import get_current_user
-from nexo_api.auth.schemas import LoginRequest, LoginResponse, UserProfile
-from nexo_api.auth.service import authenticate
+
+from nexo_api.api.deps import get_current_user
+from nexo_api.schemas.auth import LoginRequest, LoginResponse, UserProfile
+from nexo_api.services.auth.login import authenticate
 
 router = APIRouter(prefix="/api/v1", tags=["auth"])
 

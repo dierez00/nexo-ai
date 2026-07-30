@@ -13,7 +13,7 @@ from typing import Any
 import jwt
 from jwt import PyJWKClient
 
-from nexo_api.config import get_settings
+from nexo_api.core.config import get_settings
 
 
 @lru_cache(maxsize=1)

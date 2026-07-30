@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-from nexo_api.auth.schemas import UserProfile
 from nexo_api.main import create_app
+from nexo_api.schemas.auth import UserProfile
 
 PROFILE = UserProfile(
     user_id="1",
@@ -37,9 +37,9 @@ def test_users_me_requires_token(client: TestClient) -> None:
 
 def test_users_me_ok_with_valid_token(client: TestClient) -> None:
     with (
-        patch("nexo_api.auth.dependencies.verify_supabase_jwt", return_value={"sub": "abc"}),
+        patch("nexo_api.api.deps.verify_supabase_jwt", return_value={"sub": "abc"}),
         patch(
-            "nexo_api.auth.dependencies.load_profile_by_auth_id",
+            "nexo_api.api.deps.load_profile_by_auth_id",
             new=AsyncMock(return_value=PROFILE),
         ),
     ):
@@ -51,9 +51,9 @@ def test_users_me_ok_with_valid_token(client: TestClient) -> None:
 
 def test_users_me_403_when_not_provisioned(client: TestClient) -> None:
     with (
-        patch("nexo_api.auth.dependencies.verify_supabase_jwt", return_value={"sub": "abc"}),
+        patch("nexo_api.api.deps.verify_supabase_jwt", return_value={"sub": "abc"}),
         patch(
-            "nexo_api.auth.dependencies.load_profile_by_auth_id",
+            "nexo_api.api.deps.load_profile_by_auth_id",
             new=AsyncMock(return_value=None),
         ),
     ):
@@ -66,7 +66,7 @@ def test_users_me_401_on_invalid_token(client: TestClient) -> None:
     import jwt
 
     with patch(
-        "nexo_api.auth.dependencies.verify_supabase_jwt",
+        "nexo_api.api.deps.verify_supabase_jwt",
         side_effect=jwt.InvalidTokenError("bad"),
     ):
         resp = client.get("/api/v1/users/me", headers={"Authorization": "Bearer bad"})
@@ -89,9 +89,9 @@ def test_login_ok(client: TestClient) -> None:
         return fake
 
     with (
-        patch("nexo_api.auth.service.create_supabase_client", new=_create),
+        patch("nexo_api.services.auth.login.create_supabase_client", new=_create),
         patch(
-            "nexo_api.auth.service.load_profile_by_auth_id",
+            "nexo_api.services.auth.login.load_profile_by_auth_id",
             new=AsyncMock(return_value=PROFILE),
         ),
     ):
@@ -109,7 +109,7 @@ def test_login_bad_credentials_401(client: TestClient) -> None:
     async def _create(url: str, key: str) -> Any:
         return fake
 
-    with patch("nexo_api.auth.service.create_supabase_client", new=_create):
+    with patch("nexo_api.services.auth.login.create_supabase_client", new=_create):
         resp = client.post(
             "/api/v1/auth/login",
             json={"email": "demo@nexo.local", "password": "wrong"},
