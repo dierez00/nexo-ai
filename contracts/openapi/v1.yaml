@@ -2573,6 +2573,109 @@ components:
       - facts
       title: VerifiedFacts
       type: object
+    VoicePendingAction:
+      description: 'Acción de escritura pendiente de confirmación, en forma apta para
+        voz.
+
+
+        Solo expone lo que el agente necesita para confirmar; nunca los parámetros
+
+        crudos ni el permiso (el resumen legible viaja en `answer`/`label`).'
+      properties:
+        action_id:
+          title: Action Id
+          type: string
+        expected_version:
+          title: Expected Version
+          type: integer
+        label:
+          title: Label
+          type: string
+        tool_name:
+          title: Tool Name
+          type: string
+      required:
+      - action_id
+      - tool_name
+      - expected_version
+      - label
+      title: VoicePendingAction
+      type: object
+    VoiceTurnRequest:
+      description: 'Un turno de la conversación por voz.
+
+
+        `conversation_id` es opcional: si falta, se crea una conversación de canal
+
+        `voice` y se devuelve para que el agente lo reenvíe en los turnos siguientes.
+
+        `audience`/`locale` son informativos (perfil declarado por la llamada) y se
+
+        guardan en la conversación al crearla.'
+      properties:
+        audience:
+          anyOf:
+          - maxLength: 40
+            type: string
+          - type: 'null'
+          title: Audience
+        conversation_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Conversation Id
+        locale:
+          anyOf:
+          - maxLength: 20
+            type: string
+          - type: 'null'
+          title: Locale
+        user_message:
+          maxLength: 8000
+          minLength: 1
+          title: User Message
+          type: string
+      required:
+      - user_message
+      title: VoiceTurnRequest
+      type: object
+    VoiceTurnResponse:
+      description: Respuesta síncrona de un turno de voz, lista para leerse en voz
+        alta.
+      properties:
+        answer:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Answer
+        conversation_id:
+          title: Conversation Id
+          type: string
+        pending_action:
+          anyOf:
+          - $ref: '#/components/schemas/VoicePendingAction'
+          - type: 'null'
+        questions:
+          items:
+            type: string
+          title: Questions
+          type: array
+        run_id:
+          title: Run Id
+          type: string
+        status:
+          $ref: '#/components/schemas/RunStatus'
+        warnings:
+          items:
+            type: string
+          title: Warnings
+          type: array
+      required:
+      - conversation_id
+      - run_id
+      - status
+      title: VoiceTurnResponse
+      type: object
   securitySchemes:
     HTTPBearer:
       scheme: bearer
@@ -3385,6 +3488,57 @@ paths:
       summary: Perfil del usuario actual
       tags:
       - auth
+  /api/v1/voice/turn:
+    post:
+      operationId: voice_turn_api_v1_voice_turn_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoiceTurnRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoiceTurnResponse'
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Recurso no encontrado (RESOURCE_NOT_FOUND)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Límite excedido (RATE_LIMITED / BUDGET_EXCEEDED)
+        '504':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Tiempo de ejecución agotado (RUN_TIMEOUT / TOOL_TIMEOUT)
+      security:
+      - HTTPBearer: []
+      summary: Turno de voz síncrono (acceso público)
+      tags:
+      - voice
   /health/live:
     get:
       operationId: live_health_live_get
@@ -3456,6 +3610,8 @@ tags:
   name: runs
 - description: Confirmación de acciones con idempotencia.
   name: actions
+- description: Turno de voz síncrono (ElevenLabs Conversational AI).
+  name: voice
 - description: Disponibilidad y holds de citas.
   name: appointments
 - description: Métricas, catálogo y config (rol admin).

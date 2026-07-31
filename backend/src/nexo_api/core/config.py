@@ -81,12 +81,25 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
 
     # ------------------------------------------------------------------
+    # ElevenLabs (canal de voz — Conversational AI)
+    #   ELEVENLABS_API_KEY -> secreto de backend (signed URLs, webhooks).
+    #   NEXT_PUBLIC_ELEVENLABS_AGENT_ID -> id público del agente (frontend).
+    # El id del agente NO es secreto; la API key sí.
+    # ------------------------------------------------------------------
+    elevenlabs_api_key: SecretStr = SecretStr("")
+    next_public_elevenlabs_agent_id: str = ""
+    elevenlabs_webhook_secret: SecretStr = SecretStr("")
+
+    # ------------------------------------------------------------------
     # OpenTelemetry (Pro)
     # ------------------------------------------------------------------
     otel_exporter_otlp_endpoint: str = ""
 
     # Ejecuci\u00f3n local de runs / idempotencia (MVP sin cola externa).
     run_shutdown_grace_seconds: int = Field(default=15, ge=1, le=120)
+    # Turno de voz síncrono: cuánto espera el endpoint a que el run termine antes
+    # de devolver 504. Debe caber en el timeout de la server-tool de ElevenLabs.
+    voice_turn_timeout_seconds: int = Field(default=20, ge=5, le=60)
     sse_poll_interval_ms: int = Field(default=500, ge=100, le=5000)
     sse_keepalive_seconds: int = Field(default=15, ge=1, le=60)
     idempotency_processing_ttl_seconds: int = Field(default=300, ge=30, le=3600)
