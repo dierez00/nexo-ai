@@ -25,3 +25,15 @@ compatibilidad del renderer.
 
 El trabajo restante no redefine A2UI: conecta
 `RunResult.surface.messages` con el transporte y renderer existentes.
+
+## Excepción registrada: rotación de huellas (2026-07-31)
+
+`fix(contracts): publish real JSON Schemas instead of opaque stubs` (fd2c7cd)
+reemplazó los siete JSON Schema A2UI referenciados por este freeze —eran stubs
+opacos, no el contrato real— después de que `freeze.json` congelara sus
+huellas. El catálogo, sus componentes, bindings, acciones y fixtures
+(`catalog.json` y `a2ui/fixtures/citizen/v1/`) no cambiaron. Se rotaron las
+siete huellas de `contracts/jsonschema/a2ui_*.v1.json` y
+`catalog_descriptor.v1.json`/`channel_fallback.v1.json` en `freeze.json` para
+reflejar el contenido real publicado; no hubo cambio de `catalog_id` ni de
+`protocol_version`.
