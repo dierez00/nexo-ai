@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-from nexo_api.api.deps import get_current_user
+from nexo_api.api.deps import get_action_executor, get_current_user
 from nexo_api.main import create_app
 from nexo_api.schemas.auth import UserProfile
 
@@ -69,16 +69,24 @@ def client() -> Iterator[TestClient]:
     c.app.dependency_overrides.clear()  # type: ignore[attr-defined]
 
 
+OWNER = {"trace_id": "trace_42", "owner_user_id": 1}
+
+
 def test_confirm_returns_canonical_action_result(client: TestClient) -> None:
     with (
         patch(
             "nexo_api.services.actions.service.pending_actions.get", new=AsyncMock(return_value=ROW)
         ),
         patch(
+            "nexo_api.services.actions.service.pending_actions.owner_context",
+            new=AsyncMock(return_value=OWNER),
+        ),
+        patch(
             "nexo_api.services.actions.service.idempotency.claim",
             new=AsyncMock(return_value=({"id": 1}, True)),
         ),
         patch("nexo_api.services.actions.service.pending_actions.complete", new=AsyncMock()),
+        patch("nexo_api.services.actions.service.runs_repo.set_status", new=AsyncMock()),
         patch("nexo_api.services.actions.service.idempotency_repo.complete", new=AsyncMock()),
     ):
         response = client.post(
@@ -98,6 +106,10 @@ def test_replay_returns_canonical_result_without_executor(client: TestClient) ->
             "nexo_api.services.actions.service.pending_actions.get", new=AsyncMock(return_value=ROW)
         ),
         patch(
+            "nexo_api.services.actions.service.pending_actions.owner_context",
+            new=AsyncMock(return_value=OWNER),
+        ),
+        patch(
             "nexo_api.services.actions.service.idempotency.claim",
             new=AsyncMock(return_value=({"id": 1, "response_body": replay}, False)),
         ),
@@ -109,6 +121,55 @@ def test_replay_returns_canonical_result_without_executor(client: TestClient) ->
         )
     assert response.status_code == 200
     assert response.json()["idempotency_replayed"] is True
+
+
+def test_confirm_denied_when_action_belongs_to_another_user(client: TestClient) -> None:
+    with (
+        patch(
+            "nexo_api.services.actions.service.pending_actions.get", new=AsyncMock(return_value=ROW)
+        ),
+        patch(
+            "nexo_api.services.actions.service.pending_actions.owner_context",
+            new=AsyncMock(return_value={"trace_id": "trace_42", "owner_user_id": 999}),
+        ),
+    ):
+        response = client.post(
+            "/api/v1/actions/act_5/confirm",
+            headers={"Idempotency-Key": KEY},
+            json={"consent": True, "expected_version": 1},
+        )
+    assert response.status_code == 403
+    assert response.json()["code"] == "PERMISSION_DENIED"
+
+
+def test_confirm_indeterminate_outcome_returns_503(client: TestClient) -> None:
+    class _Boom:
+        async def execute(self, action: ActionRequest, **_: object) -> ActionResult:
+            raise RuntimeError("proveedor no respondió")
+
+    with (
+        patch(
+            "nexo_api.services.actions.service.pending_actions.get", new=AsyncMock(return_value=ROW)
+        ),
+        patch(
+            "nexo_api.services.actions.service.pending_actions.owner_context",
+            new=AsyncMock(return_value=OWNER),
+        ),
+        patch(
+            "nexo_api.services.actions.service.idempotency.claim",
+            new=AsyncMock(return_value=({"id": 1}, True)),
+        ),
+        patch("nexo_api.services.actions.service.idempotency_repo.complete", new=AsyncMock()),
+    ):
+        client.app.dependency_overrides[get_action_executor] = lambda: _Boom()  # type: ignore[attr-defined]
+        response = client.post(
+            "/api/v1/actions/act_5/confirm",
+            headers={"Idempotency-Key": KEY},
+            json={"consent": True, "expected_version": 1},
+        )
+        client.app.dependency_overrides.pop(get_action_executor, None)  # type: ignore[attr-defined]
+    assert response.status_code == 503
+    assert response.json()["code"] == "UNKNOWN_OUTCOME"
 
 
 def test_confirm_rejects_client_parameters(client: TestClient) -> None:

@@ -96,7 +96,7 @@ async def create_hold(
         row = await appts_repo.create_hold(
             tenant_id=tenant_id,
             branch_id=body.branch_id,
-            user_id=int(user.user_id),
+            user_id=None if user.is_public else int(user.user_id),
             module_code=body.module_code,
             service_name=body.service_name,
             starts_at=_to_utc(body.starts_at),

@@ -17,6 +17,10 @@ dependencies = [
     "nexo-integrations",
     "nexo-observability",
     "nexo-orchestration",
+    "nexo-agents",
+    "nexo-mcp",
+    "nexo-rag",
+    "nexo-a2ui",
 ]
 
 [build-system]
@@ -31,3 +35,7 @@ nexo-contracts = { workspace = true }
 nexo-integrations = { workspace = true }
 nexo-observability = { workspace = true }
 nexo-orchestration = { workspace = true }
+nexo-agents = { workspace = true }
+nexo-mcp = { workspace = true }
+nexo-rag = { workspace = true }
+nexo-a2ui = { workspace = true }

@@ -43,6 +43,9 @@ class UserProfile(BaseModel):
     branch: Branch | None = None
     is_owner: bool = False
     preferences: dict[str, Any] = Field(default_factory=dict)
+    # Ciudadano anónimo (sin token). Los servicios no lo asocian a un user_id:
+    # sus escrituras (conversación, hold) quedan con `user_id = NULL`.
+    is_public: bool = False
 
 
 class LoginResponse(BaseModel):

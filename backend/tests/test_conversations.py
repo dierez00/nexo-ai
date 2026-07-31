@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-from nexo_api.api.deps import get_current_user
+from nexo_api.api.deps import get_user_or_public
 from nexo_api.main import create_app
 from nexo_api.schemas.auth import UserProfile
 
@@ -27,7 +27,7 @@ USER = UserProfile(
 @pytest.fixture
 def client() -> Iterator[TestClient]:
     app = create_app()
-    app.dependency_overrides[get_current_user] = lambda: USER
+    app.dependency_overrides[get_user_or_public] = lambda: USER
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
@@ -48,6 +48,28 @@ def test_create_conversation(client: TestClient) -> None:
         resp = client.post("/api/v1/conversations", json={"channel": "web"})
     assert resp.status_code == 201
     assert resp.json()["conversation_id"] == "conv_7"
+
+
+def test_create_conversation_public_without_token() -> None:
+    """Sin Authorization: se resuelve el ciudadano anónimo y user_id queda NULL."""
+    app = create_app()
+    row = {
+        "id": 8,
+        "channel": "web",
+        "status": "active",
+        "title": None,
+        "created_at": datetime.now(UTC),
+    }
+    create_mock = AsyncMock(return_value=row)
+    with (
+        TestClient(app) as c,
+        patch("nexo_api.api.deps.tenants_repo.id_by_slug", new=AsyncMock(return_value=1)),
+        patch("nexo_api.services.conversations.service.conv_repo.create", new=create_mock),
+    ):
+        resp = c.post("/api/v1/conversations", json={"channel": "web"})
+    assert resp.status_code == 201
+    assert create_mock.await_args is not None
+    assert create_mock.await_args.kwargs["user_id"] is None
 
 
 def test_post_message_returns_202_run_accepted(client: TestClient) -> None:

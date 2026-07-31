@@ -11,12 +11,20 @@ from nexo_contracts import (
     ActionStatus,
     ToolCallStatus,
     ToolConfirmation,
+    ToolPermissionContext,
     ToolResult,
 )
 
 
 class FakeActionExecutor:
-    async def execute(self, action: ActionRequest) -> ActionResult:
+    async def execute(
+        self,
+        action: ActionRequest,
+        *,
+        identity: ToolPermissionContext | None = None,
+        trace_id: str | None = None,
+    ) -> ActionResult:
+        del identity, trace_id  # el doble no revalida permisos ni correlaciona
         folio = f"FOLIO-{uuid4().hex[:8].upper()}"
         tool_call_id = f"tc_{uuid4().hex}"
         return ActionResult(

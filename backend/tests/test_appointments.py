@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-from nexo_api.api.deps import get_current_user
+from nexo_api.api.deps import get_user_or_public
 from nexo_api.main import create_app
 from nexo_api.schemas.auth import UserProfile
 from sqlalchemy.exc import IntegrityError
@@ -28,7 +28,7 @@ _RECORD = {"id": 1, "request_hash": "hash", "status": "processing"}
 
 def _client(user: UserProfile) -> TestClient:
     app = create_app()
-    app.dependency_overrides[get_current_user] = lambda: user
+    app.dependency_overrides[get_user_or_public] = lambda: user
     return TestClient(app)
 
 
@@ -59,6 +59,25 @@ def test_availability_marks_taken_slot(client: TestClient) -> None:
     slots = resp.json()
     assert slots[0]["available"] is False  # 09:00 ocupado
     assert slots[1]["available"] is True  # 09:30 libre
+
+
+def test_availability_public_without_token() -> None:
+    """Sin token: la ciudadanía consulta disponibilidad (permiso público de lectura)."""
+    app = create_app()
+    with (
+        TestClient(app) as c,
+        patch("nexo_api.api.deps.tenants_repo.id_by_slug", new=AsyncMock(return_value=1)),
+        patch(
+            "nexo_api.services.appointments.service.appts_repo.list_active_in_range",
+            new=AsyncMock(return_value=[]),
+        ),
+    ):
+        resp = c.get(
+            "/api/v1/appointments/availability",
+            params={"branch_id": 1, "module_code": "vehiculos", "date": "2026-08-01"},
+        )
+    assert resp.status_code == 200
+    assert len(resp.json()) > 0
 
 
 def test_create_hold_ok(client: TestClient) -> None:

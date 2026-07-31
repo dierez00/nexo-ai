@@ -23,7 +23,7 @@ def _to_conversation(row: RowMapping) -> Conversation:
 async def create_conversation(user: UserProfile, body: ConversationCreate) -> Conversation:
     row = await conv_repo.create(
         tenant_id=int(user.tenant_id),
-        user_id=int(user.user_id),
+        user_id=None if user.is_public else int(user.user_id),
         channel=body.channel,
         title=body.title,
     )
