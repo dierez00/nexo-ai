@@ -19,6 +19,7 @@ from nexo_api.api.v1 import appointments as appointments_router
 from nexo_api.api.v1 import auth as auth_router
 from nexo_api.api.v1 import conversations as conversations_router
 from nexo_api.api.v1 import runs as runs_router
+from nexo_api.api.v1 import voice as voice_router
 from nexo_api.core.config import get_settings
 from nexo_api.core.db import dispose_engine
 from nexo_api.core.errors import ProblemException, problem_exception_handler
@@ -84,6 +85,10 @@ def create_app() -> FastAPI:
             {"name": "conversations", "description": "Conversaciones, mensajes y disparo de runs."},
             {"name": "runs", "description": "Snapshot de runs y stream SSE de eventos."},
             {"name": "actions", "description": "Confirmación de acciones con idempotencia."},
+            {
+                "name": "voice",
+                "description": "Turno de voz síncrono (ElevenLabs Conversational AI).",
+            },
             {"name": "appointments", "description": "Disponibilidad y holds de citas."},
             {"name": "admin", "description": "Métricas, catálogo y config (rol admin)."},
             {"name": "webhooks", "description": "Webhooks firmados de Twilio (WhatsApp)."},
@@ -111,6 +116,7 @@ def create_app() -> FastAPI:
     app.include_router(conversations_router.router)
     app.include_router(runs_router.router)
     app.include_router(actions_router.router)
+    app.include_router(voice_router.router)
     app.include_router(appointments_router.router)
     app.include_router(admin_router.router)
     app.include_router(webhooks.router)
