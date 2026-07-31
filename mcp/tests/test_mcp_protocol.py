@@ -80,7 +80,9 @@ async def test_initialize_and_list_tools_over_the_protocol() -> None:
 
     names = {tool.name for tool in listed.tools}
     assert "vehiculos.consultar_adeudo" in names
-    assert len(names) == 9
+    assert "salud.localizar_unidad_salud" in names
+    assert "ganaderia.registrar_vacuna" not in names
+    assert len(names) == 17
 
 
 async def test_every_listed_tool_publishes_its_input_schema() -> None:

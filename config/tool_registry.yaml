@@ -5,7 +5,7 @@
 #
 # `enabled: false` es el default seguro: registrar una tool no la habilita.
 #
-# Las nueve del MVP están habilitadas desde F1.9: cada una tiene adapter mock,
+# Las nueve del MVP y las trece de Core están habilitadas: cada una tiene adapter mock,
 # contrato de entrada y salida, prueba de contrato y regla de permiso. Las de
 # escritura siguen exigiendo confirmación e idempotency key —eso lo impone el
 # contrato de `ToolMetadata`, no este archivo—, así que habilitarlas no las hace
@@ -13,7 +13,7 @@
 #
 # Schema: nexo_contracts.config.ToolRegistryConfig
 
-version: tools-2026-07-30
+version: tools-core-2026-07-30
 
 tools:
   # --- Vehículos (recorrido CAP-VEH-01) ---
@@ -70,4 +70,85 @@ tools:
     version: 1.0.0
     domain: ayuntamiento_empresas
     mode: write
+    enabled: true
+
+  # --- Registro Civil (recorrido CAP-RC-01) ---
+  - name: registro_civil.clasificar_tipo_correccion
+    version: 1.0.0
+    domain: registro_civil
+    mode: compute
+    enabled: true
+
+  - name: registro_civil.localizar_oficialia
+    version: 1.0.0
+    domain: registro_civil
+    mode: read
+    enabled: true
+
+  - name: registro_civil.consultar_disponibilidad
+    version: 1.0.0
+    domain: registro_civil
+    mode: read
+    enabled: true
+
+  - name: registro_civil.registrar_solicitud
+    version: 1.0.0
+    domain: registro_civil
+    mode: write
+    enabled: true
+
+  # --- Navegación de salud (recorrido CAP-SAL-01) ---
+  - name: salud.localizar_unidad_salud
+    version: 1.0.0
+    domain: salud
+    mode: read
+    enabled: true
+
+  - name: salud.consultar_servicios
+    version: 1.0.0
+    domain: salud
+    mode: read
+    enabled: true
+
+  - name: salud.consultar_requisitos
+    version: 1.0.0
+    domain: salud
+    mode: read
+    enabled: true
+
+  - name: salud.buscar_horarios
+    version: 1.0.0
+    domain: salud
+    mode: read
+    enabled: true
+
+  # --- Ganadería (recorrido CAP-GAN-01) ---
+  - name: ganaderia.consultar_animal
+    version: 1.0.0
+    domain: ganaderia
+    mode: read
+    enabled: true
+
+  - name: ganaderia.consultar_historial
+    version: 1.0.0
+    domain: ganaderia
+    mode: read
+    enabled: true
+
+  - name: ganaderia.registrar_vacuna
+    version: 1.0.0
+    domain: ganaderia
+    mode: write
+    enabled: true
+
+  - name: ganaderia.validar_movilizacion
+    version: 1.0.0
+    domain: ganaderia
+    mode: compute
+    enabled: true
+
+  - name: ganaderia.consultar_alertas
+    version: 1.0.0
+    domain: ganaderia
+    mode: read
     enabled: true

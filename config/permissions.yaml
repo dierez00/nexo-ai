@@ -9,7 +9,7 @@
 #
 # Schema: nexo_contracts.config.PermissionsConfig
 
-version: permissions-2026-07-30
+version: permissions-core-2026-07-30
 
 default_allow: false
 
@@ -27,6 +27,18 @@ rules:
     operations: [read, compute]
     allow: true
 
+  - institution_id: inst_demo
+    role: citizen
+    domain: registro_civil
+    operations: [read, compute]
+    allow: true
+
+  - institution_id: inst_demo
+    role: citizen
+    domain: salud
+    operations: [read]
+    allow: true
+
   # --- Escrituras: una por una, con tool nombrada ---
   - institution_id: inst_demo
     role: citizen
@@ -42,6 +54,13 @@ rules:
     operations: [write]
     allow: true
 
+  - institution_id: inst_demo
+    role: citizen
+    domain: registro_civil
+    tool: registro_civil.registrar_solicitud
+    operations: [write]
+    allow: true
+
   # --- Personal operativo: lectura ampliada, sin escritura adicional ---
   - institution_id: inst_demo
     role: operator
@@ -53,4 +72,43 @@ rules:
     role: operator
     domain: ayuntamiento_empresas
     operations: [read, compute]
+    allow: true
+
+  - institution_id: inst_demo
+    role: operator
+    domain: registro_civil
+    operations: [read, compute]
+    allow: true
+
+  - institution_id: inst_demo
+    role: operator
+    domain: salud
+    operations: [read]
+    allow: true
+
+  - institution_id: inst_demo
+    role: operator
+    domain: ganaderia
+    operations: [read, compute]
+    allow: true
+
+  - institution_id: inst_demo
+    role: operator
+    domain: ganaderia
+    tool: ganaderia.registrar_vacuna
+    operations: [write]
+    allow: true
+
+  # --- Productores: sólo el dominio ganadero y escritura nominativa ---
+  - institution_id: inst_demo
+    role: producer
+    domain: ganaderia
+    operations: [read, compute]
+    allow: true
+
+  - institution_id: inst_demo
+    role: producer
+    domain: ganaderia
+    tool: ganaderia.registrar_vacuna
+    operations: [write]
     allow: true

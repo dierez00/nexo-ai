@@ -1,4 +1,4 @@
-"""Las nueve tools mock del MVP (F1.9).
+"""Las tools mock del MVP y Core (F1.9 y F2).
 
 Cada tool declara **cuatro cosas juntas**: su metadata versionada, el contrato de
 entrada, el contrato de salida y su adapter mock. Están en el mismo sitio a
@@ -169,6 +169,141 @@ class RegistrarSolicitudOutput(NexoModel):
     estado: str = Field(max_length=40)
 
 
+class ClasificarCorreccionInput(NexoModel):
+    descripcion: str = Field(max_length=500)
+
+
+class ClasificarCorreccionOutput(NexoModel):
+    tipo: str = Field(pattern=r"^(copia|aclaracion|correccion)$")
+    requiere_pregunta: bool = False
+    pregunta: str | None = Field(default=None, max_length=300)
+
+
+class LocalizarOficialiaInput(NexoModel):
+    municipio: str = Field(max_length=100)
+
+
+class Oficialia(NexoModel):
+    oficialia_id: str = Field(max_length=64)
+    nombre: str = Field(max_length=160)
+    horario: str = Field(max_length=160)
+
+
+class LocalizarOficialiaOutput(NexoModel):
+    oficialias: Annotated[list[Oficialia], Field(max_length=20)]
+
+
+class DisponibilidadCivilInput(NexoModel):
+    oficialia_id: str = Field(max_length=64)
+    tramite: str = Field(max_length=80)
+
+
+class DisponibilidadCivilOutput(NexoModel):
+    horarios: Annotated[list[str], Field(max_length=20)]
+
+
+class SolicitudCivilInput(NexoModel):
+    acta_ref: str = Field(max_length=64)
+    tipo: str = Field(pattern=r"^(aclaracion|correccion)$")
+
+
+class SolicitudCivilOutput(NexoModel):
+    solicitud_id: str = Field(max_length=64)
+    estado: str = Field(max_length=40)
+
+
+class LocalizarUnidadInput(NexoModel):
+    municipio: str = Field(max_length=100)
+    afiliacion: str = Field(max_length=80)
+
+
+class UnidadSalud(NexoModel):
+    unidad_id: str = Field(max_length=64)
+    nombre: str = Field(max_length=160)
+    ubicacion_publica: str = Field(max_length=240)
+
+
+class LocalizarUnidadOutput(NexoModel):
+    unidades: Annotated[list[UnidadSalud], Field(max_length=20)]
+
+
+class ServicioSaludInput(NexoModel):
+    unidad_id: str = Field(max_length=64)
+
+
+class ServicioSaludOutput(NexoModel):
+    servicios: Annotated[list[str], Field(max_length=30)]
+
+
+class RequisitosSaludInput(NexoModel):
+    servicio: str = Field(max_length=100)
+    afiliacion: str = Field(max_length=80)
+
+
+class RequisitosSaludOutput(NexoModel):
+    requisitos: Annotated[list[str], Field(max_length=30)]
+
+
+class HorariosSaludInput(NexoModel):
+    unidad_id: str = Field(max_length=64)
+
+
+class HorariosSaludOutput(NexoModel):
+    horarios: Annotated[list[str], Field(max_length=20)]
+
+
+class ConsultarAnimalInput(NexoModel):
+    animal_ref: str = Field(max_length=64)
+
+
+class ConsultarAnimalOutput(NexoModel):
+    animal_ref: str = Field(max_length=64)
+    especie: str = Field(max_length=80)
+    estado_registro: str = Field(max_length=80)
+
+
+class HistorialAnimalInput(NexoModel):
+    animal_ref: str = Field(max_length=64)
+
+
+class HistorialAnimalOutput(NexoModel):
+    eventos: Annotated[list[str], Field(max_length=50)]
+
+
+class RegistrarVacunaInput(NexoModel):
+    animal_ref: str = Field(max_length=64)
+    vacuna: str = Field(max_length=120)
+    fecha_aplicacion: date
+    actor_ref: str = Field(max_length=64)
+    regla_id: str = Field(default="sanidad_demo_2026_01", max_length=80)
+
+
+class RegistrarVacunaOutput(NexoModel):
+    registro_id: str = Field(max_length=64)
+    animal_ref: str = Field(max_length=64)
+    actor_ref: str = Field(max_length=64)
+    regla_id: str = Field(max_length=80)
+
+
+class ValidarMovilizacionInput(NexoModel):
+    animal_ref: str = Field(max_length=64)
+    destino: str = Field(max_length=120)
+
+
+class ValidarMovilizacionOutput(NexoModel):
+    permitida: bool
+    regla_id: str = Field(max_length=80)
+    motivos: Annotated[list[str], Field(max_length=20)] = Field(default_factory=list)
+
+
+class AlertasGanaderasInput(NexoModel):
+    municipio: str = Field(max_length=100)
+
+
+class AlertasGanaderasOutput(NexoModel):
+    alertas: Annotated[list[str], Field(max_length=20)] = Field(default_factory=list)
+
+
 # ---------------------------------------------------------------------------
 # Adapters mock
 # ---------------------------------------------------------------------------
@@ -322,6 +457,124 @@ def _registrar_solicitud(payload: RegistrarSolicitudInput) -> RegistrarSolicitud
         solicitud_id=f"sol_{payload.tramite}",
         tramite=payload.tramite,
         estado="recibida",
+    )
+
+
+def _clasificar_correccion(payload: ClasificarCorreccionInput) -> ClasificarCorreccionOutput:
+    text = payload.descripcion.casefold()
+    if "copia" in text or "certificada" in text:
+        return ClasificarCorreccionOutput(tipo="copia")
+    if "ortograf" in text or "captura" in text:
+        return ClasificarCorreccionOutput(tipo="aclaracion")
+    if "dato" in text or "fecha" in text or "apellido" in text:
+        return ClasificarCorreccionOutput(tipo="correccion")
+    return ClasificarCorreccionOutput(
+        tipo="correccion",
+        requiere_pregunta=True,
+        pregunta="¿El acta tiene un error de captura o necesita cambiar un dato de fondo?",
+    )
+
+
+def _localizar_oficialia(payload: LocalizarOficialiaInput) -> LocalizarOficialiaOutput:
+    return LocalizarOficialiaOutput(
+        oficialias=[
+            Oficialia(
+                oficialia_id="oficialia_centro",
+                nombre=f"Oficialía Centro de {payload.municipio}",
+                horario="Lunes a viernes de 08:30 a 15:00",
+            )
+        ]
+    )
+
+
+def _disponibilidad_civil(payload: DisponibilidadCivilInput) -> DisponibilidadCivilOutput:
+    return DisponibilidadCivilOutput(
+        horarios=[
+            f"2026-08-04T09:00:00Z · {payload.oficialia_id}",
+            f"2026-08-05T11:00:00Z · {payload.tramite}",
+        ]
+    )
+
+
+def _registrar_solicitud_civil(payload: SolicitudCivilInput) -> SolicitudCivilOutput:
+    return SolicitudCivilOutput(
+        solicitud_id=f"sol_rc_{payload.tipo}_{payload.acta_ref[-8:]}",
+        estado="recibida",
+    )
+
+
+def _localizar_unidad(payload: LocalizarUnidadInput) -> LocalizarUnidadOutput:
+    return LocalizarUnidadOutput(
+        unidades=[
+            UnidadSalud(
+                unidad_id="unidad_centro_demo",
+                nombre=f"Centro de Salud Urbano de {payload.municipio}",
+                ubicacion_publica="Zona Centro, Durango (ubicación de demostración)",
+            )
+        ]
+    )
+
+
+def _consultar_servicios(payload: ServicioSaludInput) -> ServicioSaludOutput:
+    return ServicioSaludOutput(
+        servicios=[
+            f"Orientación y medicina preventiva en {payload.unidad_id}",
+            "Consulta general sujeta a valoración profesional",
+        ]
+    )
+
+
+def _consultar_requisitos_salud(payload: RequisitosSaludInput) -> RequisitosSaludOutput:
+    return RequisitosSaludOutput(
+        requisitos=[
+            "Identificación de la persona responsable",
+            "CURP o referencia de registro, si está disponible",
+            f"Indicar que se solicita {payload.servicio} con afiliación {payload.afiliacion}",
+        ]
+    )
+
+
+def _buscar_horarios_salud(payload: HorariosSaludInput) -> HorariosSaludOutput:
+    return HorariosSaludOutput(horarios=[f"Lunes a viernes de 08:00 a 14:00 · {payload.unidad_id}"])
+
+
+def _consultar_animal(payload: ConsultarAnimalInput) -> ConsultarAnimalOutput:
+    return ConsultarAnimalOutput(
+        animal_ref=payload.animal_ref,
+        especie="bovino",
+        estado_registro="activo_sintetico",
+    )
+
+
+def _consultar_historial(payload: HistorialAnimalInput) -> HistorialAnimalOutput:
+    return HistorialAnimalOutput(
+        eventos=[
+            f"2026-01-15 · identificación validada · {payload.animal_ref}",
+            "2026-04-10 · revisión sanitaria administrativa",
+        ]
+    )
+
+
+def _registrar_vacuna(payload: RegistrarVacunaInput) -> RegistrarVacunaOutput:
+    return RegistrarVacunaOutput(
+        registro_id=f"vac_{payload.animal_ref[-12:]}_{payload.fecha_aplicacion:%Y%m%d}",
+        animal_ref=payload.animal_ref,
+        actor_ref=payload.actor_ref,
+        regla_id=payload.regla_id,
+    )
+
+
+def _validar_movilizacion(payload: ValidarMovilizacionInput) -> ValidarMovilizacionOutput:
+    return ValidarMovilizacionOutput(
+        permitida=True,
+        regla_id="mov_demo_2026_01",
+        motivos=[f"Historial vigente para movilización hacia {payload.destino}"],
+    )
+
+
+def _consultar_alertas(payload: AlertasGanaderasInput) -> AlertasGanaderasOutput:
+    return AlertasGanaderasOutput(
+        alertas=[f"No hay alertas administrativas activas para {payload.municipio}."]
     )
 
 
@@ -489,6 +742,150 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_model=RegistrarSolicitudInput,
         output_model=RegistrarSolicitudOutput,
         handler=_registrar_solicitud,
+    ),
+    ToolDefinition(
+        metadata=_metadata(
+            "registro_civil.clasificar_tipo_correccion",
+            Domain.REGISTRO_CIVIL,
+            mode=ToolMode.COMPUTE,
+            description=(
+                "Distingue copia, aclaración y corrección sin resolver cuestiones jurídicas."
+            ),
+        ),
+        input_model=ClasificarCorreccionInput,
+        output_model=ClasificarCorreccionOutput,
+        handler=_clasificar_correccion,
+    ),
+    ToolDefinition(
+        metadata=_metadata(
+            "registro_civil.localizar_oficialia",
+            Domain.REGISTRO_CIVIL,
+            description="Localiza oficialías y horarios públicos.",
+        ),
+        input_model=LocalizarOficialiaInput,
+        output_model=LocalizarOficialiaOutput,
+        handler=_localizar_oficialia,
+    ),
+    ToolDefinition(
+        metadata=_metadata(
+            "registro_civil.consultar_disponibilidad",
+            Domain.REGISTRO_CIVIL,
+            description="Consulta horarios disponibles para orientación presencial.",
+        ),
+        input_model=DisponibilidadCivilInput,
+        output_model=DisponibilidadCivilOutput,
+        handler=_disponibilidad_civil,
+    ),
+    ToolDefinition(
+        metadata=_metadata(
+            "registro_civil.registrar_solicitud",
+            Domain.REGISTRO_CIVIL,
+            mode=ToolMode.WRITE,
+            risk=RiskLevel.MEDIUM,
+            roles=("citizen",),
+            description="Registra una solicitud mock; nunca modifica un acta.",
+        ),
+        input_model=SolicitudCivilInput,
+        output_model=SolicitudCivilOutput,
+        handler=_registrar_solicitud_civil,
+    ),
+    ToolDefinition(
+        metadata=_metadata(
+            "salud.localizar_unidad_salud",
+            Domain.SALUD,
+            description="Localiza unidades para navegación de servicios, sin triage clínico.",
+        ),
+        input_model=LocalizarUnidadInput,
+        output_model=LocalizarUnidadOutput,
+        handler=_localizar_unidad,
+    ),
+    ToolDefinition(
+        metadata=_metadata(
+            "salud.consultar_servicios",
+            Domain.SALUD,
+            description="Lista servicios administrativos publicados por una unidad.",
+        ),
+        input_model=ServicioSaludInput,
+        output_model=ServicioSaludOutput,
+        handler=_consultar_servicios,
+    ),
+    ToolDefinition(
+        metadata=_metadata(
+            "salud.consultar_requisitos",
+            Domain.SALUD,
+            description="Consulta requisitos administrativos; no interpreta síntomas.",
+        ),
+        input_model=RequisitosSaludInput,
+        output_model=RequisitosSaludOutput,
+        handler=_consultar_requisitos_salud,
+    ),
+    ToolDefinition(
+        metadata=_metadata(
+            "salud.buscar_horarios",
+            Domain.SALUD,
+            description="Consulta horarios publicados de una unidad.",
+        ),
+        input_model=HorariosSaludInput,
+        output_model=HorariosSaludOutput,
+        handler=_buscar_horarios_salud,
+    ),
+    ToolDefinition(
+        metadata=_metadata(
+            "ganaderia.consultar_animal",
+            Domain.GANADERIA,
+            roles=("producer", "operator"),
+            description="Consulta un animal por referencia sintética/autorizada.",
+        ),
+        input_model=ConsultarAnimalInput,
+        output_model=ConsultarAnimalOutput,
+        handler=_consultar_animal,
+    ),
+    ToolDefinition(
+        metadata=_metadata(
+            "ganaderia.consultar_historial",
+            Domain.GANADERIA,
+            roles=("producer", "operator"),
+            description="Consulta historial sanitario administrativo.",
+        ),
+        input_model=HistorialAnimalInput,
+        output_model=HistorialAnimalOutput,
+        handler=_consultar_historial,
+    ),
+    ToolDefinition(
+        metadata=_metadata(
+            "ganaderia.registrar_vacuna",
+            Domain.GANADERIA,
+            mode=ToolMode.WRITE,
+            risk=RiskLevel.HIGH,
+            roles=("producer", "operator"),
+            description="Registra una vacuna mock con confirmación, idempotencia y folio.",
+        ),
+        input_model=RegistrarVacunaInput,
+        output_model=RegistrarVacunaOutput,
+        handler=_registrar_vacuna,
+    ),
+    ToolDefinition(
+        metadata=_metadata(
+            "ganaderia.validar_movilizacion",
+            Domain.GANADERIA,
+            mode=ToolMode.COMPUTE,
+            roles=("producer", "operator"),
+            description="Evalúa movilización contra una regla vigente identificada.",
+        ),
+        input_model=ValidarMovilizacionInput,
+        output_model=ValidarMovilizacionOutput,
+        handler=_validar_movilizacion,
+    ),
+    ToolDefinition(
+        metadata=_metadata(
+            "ganaderia.consultar_alertas",
+            Domain.GANADERIA,
+            roles=("producer", "operator"),
+            description="Devuelve únicamente alertas administrativas autorizadas.",
+        ),
+        input_model=AlertasGanaderasInput,
+        output_model=AlertasGanaderasOutput,
+        handler=_consultar_alertas,
     ),
 )
 

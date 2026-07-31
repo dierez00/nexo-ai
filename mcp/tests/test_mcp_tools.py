@@ -1,4 +1,4 @@
-"""Server MCP, catálogo, autorización y las nueve tools mock (F1.8, F1.9).
+"""Server MCP, catálogo, autorización y tools mock MVP/Core (F1.8, F1.9, F2).
 
 Ninguna prueba abre red ni sistemas institucionales: el transporte MCP es en
 memoria y los adapters son mocks deterministas.
@@ -84,8 +84,8 @@ def _write_call(name: str, parameters: dict, **overrides) -> ToolCall:
 # --- Catálogo: configuración e implementación deben coincidir ---------------
 
 
-def test_all_nine_mvp_tools_are_registered_and_enabled(catalog: ToolCatalog) -> None:
-    assert len(catalog.definitions) == 9
+def test_all_mvp_and_core_tools_are_registered_and_enabled(catalog: ToolCatalog) -> None:
+    assert len(catalog.definitions) == 22
     assert all(catalog.is_enabled(name) for name in catalog.definitions)
 
 
@@ -146,6 +146,17 @@ async def test_the_domain_filter_narrows_the_list(catalog: ToolCatalog) -> None:
         "vehiculos.buscar_citas",
         "vehiculos.reservar_cita",
     }
+
+
+@pytest.mark.security
+async def test_producer_cannot_discover_citizen_or_health_tools(catalog: ToolCatalog) -> None:
+    tools = await catalog.list_tools(institution_id="inst_demo", roles=["producer"])
+    names = {tool.name for tool in tools}
+
+    assert names
+    assert all(name.startswith("ganaderia.") for name in names)
+    assert "ganaderia.registrar_vacuna" in names
+    assert "salud.localizar_unidad_salud" not in names
 
 
 # --- Autorización revalidada en el executor (`DIE-F2-013`) -----------------
@@ -322,15 +333,43 @@ async def test_repeating_a_confirmation_replays_without_writing_again(
 async def test_every_successful_write_returns_a_verifiable_folio(
     executor: ToolExecutor, catalog: ToolCatalog
 ) -> None:
-    for name, parameters in (
-        ("vehiculos.reservar_cita", {"slot_id": "s", "vehiculo_ref": "v"}),
+    del catalog
+    for name, parameters, roles in (
+        ("vehiculos.reservar_cita", {"slot_id": "s", "vehiculo_ref": "v"}, ["citizen"]),
         (
             "ayuntamiento.registrar_solicitud",
             {"giro": "taqueria", "predio_ref": "p", "tramite": "licencia_funcionamiento"},
+            ["citizen"],
+        ),
+        (
+            "registro_civil.registrar_solicitud",
+            {"acta_ref": "acta_demo", "tipo": "correccion"},
+            ["citizen"],
+        ),
+        (
+            "ganaderia.registrar_vacuna",
+            {
+                "animal_ref": "animal_demo_0001",
+                "vacuna": "vacuna_demo",
+                "fecha_aplicacion": "2026-07-30",
+                "actor_ref": "actor_demo_productor",
+                "regla_id": "sanidad_demo_2026_01",
+            },
+            ["producer"],
         ),
     ):
+        context = ToolPermissionContext(
+            user_id="usr_demo",
+            institution_id="inst_demo",
+            roles=roles,
+        )
         result = await executor.execute(
-            _write_call(name, parameters, tool_call_id=f"tc_{name[:4]}")
+            _write_call(
+                name,
+                parameters,
+                tool_call_id=f"tc_{name[:4]}",
+                context=context,
+            )
         )
 
         assert result.status is ToolCallStatus.SUCCEEDED
@@ -338,7 +377,40 @@ async def test_every_successful_write_returns_a_verifiable_folio(
         assert result.confirmation.is_mock is True
 
 
-# --- Las nueve tools: contract tests mock ↔ schema --------------------------
+async def test_repeating_vaccine_confirmation_does_not_duplicate(
+    executor: ToolExecutor,
+) -> None:
+    context = ToolPermissionContext(
+        user_id="usr_demo",
+        institution_id="inst_demo",
+        roles=["producer"],
+    )
+    parameters = {
+        "animal_ref": "animal_demo_0001",
+        "vacuna": "vacuna_demo",
+        "fecha_aplicacion": "2026-07-30",
+        "actor_ref": "actor_demo_productor",
+        "regla_id": "sanidad_demo_2026_01",
+    }
+
+    first = await executor.execute(
+        _write_call("ganaderia.registrar_vacuna", parameters, context=context)
+    )
+    second = await executor.execute(
+        _write_call(
+            "ganaderia.registrar_vacuna",
+            parameters,
+            context=context,
+            tool_call_id="tc_vacuna_replay",
+        )
+    )
+
+    assert first.status is ToolCallStatus.SUCCEEDED
+    assert second.idempotency_replayed is True
+    assert second.confirmation == first.confirmation
+
+
+# --- Tools MVP/Core: contract tests mock ↔ schema ---------------------------
 
 
 @pytest.mark.contract
@@ -402,13 +474,57 @@ def test_every_write_tool_demands_confirmation_and_idempotency(definition) -> No
             {"dependencia": "desarrollo_urbano", "desde": "2026-08-01"},
             ToolMode.READ,
         ),
+        (
+            "registro_civil.clasificar_tipo_correccion",
+            {"descripcion": "Hay un error ortográfico en el acta"},
+            ToolMode.COMPUTE,
+        ),
+        (
+            "registro_civil.localizar_oficialia",
+            {"municipio": "Durango"},
+            ToolMode.READ,
+        ),
+        (
+            "registro_civil.consultar_disponibilidad",
+            {"oficialia_id": "oficialia_centro", "tramite": "aclaracion"},
+            ToolMode.READ,
+        ),
+        (
+            "salud.localizar_unidad_salud",
+            {"municipio": "Durango", "afiliacion": "sin_afiliacion"},
+            ToolMode.READ,
+        ),
+        ("salud.consultar_servicios", {"unidad_id": "unidad_centro_demo"}, ToolMode.READ),
+        (
+            "salud.consultar_requisitos",
+            {"servicio": "consulta_general", "afiliacion": "sin_afiliacion"},
+            ToolMode.READ,
+        ),
+        ("salud.buscar_horarios", {"unidad_id": "unidad_centro_demo"}, ToolMode.READ),
+        ("ganaderia.consultar_animal", {"animal_ref": "animal_demo_0001"}, ToolMode.READ),
+        (
+            "ganaderia.consultar_historial",
+            {"animal_ref": "animal_demo_0001"},
+            ToolMode.READ,
+        ),
+        (
+            "ganaderia.validar_movilizacion",
+            {"animal_ref": "animal_demo_0001", "destino": "Durango"},
+            ToolMode.COMPUTE,
+        ),
+        ("ganaderia.consultar_alertas", {"municipio": "Durango"}, ToolMode.READ),
     ],
 )
 async def test_every_read_tool_returns_output_that_matches_its_schema(
     executor: ToolExecutor, name: str, parameters: dict, mode: ToolMode
 ) -> None:
     """Un mock que devuelve algo que su propio contrato rechaza es inútil."""
-    result = await executor.execute(_call(name, parameters, mode=mode))
+    context = ToolPermissionContext(
+        user_id="usr_demo",
+        institution_id="inst_demo",
+        roles=["producer"] if name.startswith("ganaderia.") else ["citizen"],
+    )
+    result = await executor.execute(_call(name, parameters, mode=mode, context=context))
 
     assert result.status is ToolCallStatus.SUCCEEDED, result.error
     assert result.is_mock is True
