@@ -2,7 +2,9 @@
 
 ## Objetivo
 
-Hub omnicanal de asistentes e integración institucional. El repositorio se encuentra en **fase de arquitectura documental**: todavía no contiene una aplicación ejecutable.
+Hub omnicanal de asistentes e integración institucional. El núcleo Python de
+las Fases 0 y 1 ya es ejecutable completamente offline; las aplicaciones web,
+la API y las integraciones externas avanzan en módulos separados.
 
 ## Documentos principales
 
@@ -21,7 +23,7 @@ Hub omnicanal de asistentes e integración institucional. El repositorio se encu
 
 Los comandos `docker compose up --build` y `./run.sh` son entregables futuros. No se documentan como disponibles hasta que existan y tengan un smoke test.
 
-### Núcleo Python (Fase 0 — `implementada`)
+### Núcleo Python (Fases 0 y 1 — `implementadas`)
 
 Existe un workspace Python con contratos tipados, puertos, dobles de prueba,
 configuración validada y un grafo mínimo verificable. Corre **sin red, sin base
@@ -29,9 +31,12 @@ de datos y sin credenciales**.
 
 ```sh
 python3 -m venv .venv
-.venv/bin/python -m pip install -e ./contracts -e ./rag -e ./mcp -e ./orchestration
+.venv/bin/python -m pip install -e ./contracts -e ./rag -e ./mcp \
+  -e ./orchestration -e ./agents -e ./a2ui
 .venv/bin/python -m pip install pytest pytest-asyncio ruff
-.venv/bin/python -m pytest          # 490 pruebas
+.venv/bin/python -m pytest -c pyproject.toml \
+  contracts/tests orchestration/tests rag/tests mcp/tests agents/tests \
+  a2ui/tests tests/e2e
 ```
 
 Regenerar los artefactos derivados de `contracts/` tras cambiar un modelo:
@@ -40,10 +45,11 @@ Regenerar los artefactos derivados de `contracts/` tras cambiar un modelo:
 .venv/bin/python -m nexo_contracts.export
 ```
 
-Alcance actual: contratos de la sección 5, puertos y fakes, configuración
-fail-fast y el recorrido `start → classify_fake → finalize_fake`. Los agentes,
-el RAG real, el server MCP y el builder A2UI son Fase 1. Ver
-[`docs/team/fase0_hallazgos.md`](./docs/team/fase0_hallazgos.md).
+Alcance actual: contratos versionados, corpus y retrieval híbrido, agentes
+cerrados, server/tools MCP mock, grafo MVP reanudable con confirmación,
+estimación determinista y A2UI ciudadano con fallback. Los recorridos
+`CAP-VEH-01` y `CAP-EMP-01` se prueban de extremo a extremo sin credenciales.
+Ver [`docs/team/fase1_hallazgos.md`](./docs/team/fase1_hallazgos.md).
 
 ## Convenciones
 
@@ -60,4 +66,7 @@ Responsable de instalación futura: Dani. Todo el equipo valida alcance y demo. 
 
 ## Skill de frontend
 
-Usa `$build-a2ui-frontend` para preparar componentes, interfaces base y catálogos compatibles con A2UI v0.9.1. La skill versionada está en `.agents/skills/build-a2ui-frontend`.
+Usa `$build-a2ui-frontend` para interfaces y futuros catálogos compatibles con
+A2UI v0.9.1. `citizen:v1` está congelado: cualquier evolución funcional publica
+`citizen:v2`. La skill versionada está en
+`.agents/skills/build-a2ui-frontend`.
