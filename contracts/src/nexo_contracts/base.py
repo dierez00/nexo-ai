@@ -18,12 +18,13 @@ from typing import Any, Self
 from pydantic import (
     BaseModel,
     ConfigDict,
+    GetJsonSchemaHandler,
     SerializationInfo,
     SerializerFunctionWrapHandler,
     model_serializer,
 )
 from pydantic.fields import FieldInfo
-from pydantic.json_schema import GetJsonSchemaHandler, JsonSchemaValue
+from pydantic.json_schema import JsonSchemaValue
 
 # Revisión del conjunto de contratos. Los cambios aditivos conservan esta
 # versión; eliminar o renombrar un campo exige publicar `v2` (`DIE-F0-007`).
