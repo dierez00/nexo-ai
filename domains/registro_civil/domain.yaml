@@ -1,0 +1,70 @@
+version: domain-registro-civil-2026-07-30
+domain: registro_civil
+title: Registro Civil
+owner: diego
+
+agents:
+  - domain_navigator
+
+intents:
+  - slug: corregir_acta
+    title: Aclarar o corregir un acta
+    description: Clasificar el tipo de corrección, orientar requisitos y ubicar oficialía.
+    keywords:
+      - corregir acta
+      - correccion
+      - corrección
+      - aclaracion
+      - aclaración
+      - error en acta
+      - nombre incorrecto
+    write_tool: registro_civil.registrar_solicitud
+    skill_id: skill_rc_correccion
+
+  - slug: obtener_copia
+    title: Obtener copia certificada de un acta
+    description: Orientar la obtención presencial de una copia certificada.
+    keywords:
+      - copia certificada
+      - copia de acta
+      - acta de nacimiento
+      - acta de matrimonio
+      - acta de defuncion
+      - acta de defunción
+    skill_id: skill_rc_copia
+
+  - slug: localizar_oficialia
+    title: Localizar oficialía
+    description: Ubicación, horario y disponibilidad pública de oficialías.
+    keywords:
+      - oficialia
+      - oficialía
+      - registro civil
+      - donde
+      - dónde
+      - horario
+
+allowed_sources:
+  - src_rc_tramites
+  - src_rc_oficialias
+  - src_rc_avisos
+
+allowed_tools:
+  - registro_civil.clasificar_tipo_correccion
+  - registro_civil.localizar_oficialia
+  - registro_civil.consultar_disponibilidad
+  - registro_civil.registrar_solicitud
+
+prompt_ref: nexo_agents/prompts/navigator_registro_civil.v1.md
+
+policies:
+  max_questions: 1
+  retrieval_top_k: 5
+  navigator_deadline_ms: 8000
+
+a2ui_components:
+  - Checklist
+  - StatusBanner
+  - SourceList
+  - SlotPicker
+  - ConfirmButton

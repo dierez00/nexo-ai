@@ -14,6 +14,7 @@ members = [
     "nexo-ai",
     "nexo-api",
     "nexo-contracts",
+    "nexo-evaluations",
     "nexo-integrations",
     "nexo-mcp",
     "nexo-observability",
@@ -1659,6 +1660,17 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [{ name = "pydantic", specifier = ">=2.9,<3" }]
+
+[[package]]
+name = "nexo-evaluations"
+version = "0.1.0"
+source = { editable = "evaluations" }
+dependencies = [
+    { name = "nexo-contracts" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "nexo-contracts", editable = "contracts" }]
 
 [[package]]
 name = "nexo-integrations"

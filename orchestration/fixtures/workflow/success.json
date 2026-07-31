@@ -1,0 +1,995 @@
+{
+  "events": [
+    {
+      "actor": {
+        "name": "classify",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "node": "classify"
+      },
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_wf_success_001",
+      "parent_event_id": null,
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "node": "classify"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 1,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "started",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "agent.started",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "general",
+        "type": "model"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "attempt": 1,
+        "outcome": "selected"
+      },
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_wf_success_002",
+      "parent_event_id": "evt_wf_success_001",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "attempt": 1,
+        "outcome": "selected"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 2,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "model.selected",
+      "visibility": "restricted"
+    },
+    {
+      "actor": {
+        "name": "general",
+        "type": "model"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "attempt": 1,
+        "outcome": "schema_valid"
+      },
+      "duration_ms": 12,
+      "error": null,
+      "event_id": "evt_wf_success_003",
+      "parent_event_id": "evt_wf_success_002",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "attempt": 1,
+        "outcome": "schema_valid"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 3,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "model.completed",
+      "visibility": "restricted"
+    },
+    {
+      "actor": {
+        "name": "classify",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "node": "classify"
+      },
+      "duration_ms": 12,
+      "error": null,
+      "event_id": "evt_wf_success_004",
+      "parent_event_id": "evt_wf_success_003",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "node": "classify"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 4,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "agent.completed",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "retrieve",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "node": "retrieve"
+      },
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_wf_success_005",
+      "parent_event_id": "evt_wf_success_004",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "node": "retrieve"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 5,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "started",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "agent.started",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "hybrid_retriever",
+        "type": "retriever"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "outcome": "started"
+      },
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_wf_success_006",
+      "parent_event_id": "evt_wf_success_005",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "outcome": "started"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 6,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "started",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "rag.started",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "hybrid_retriever",
+        "type": "retriever"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "outcome": "evidence_found"
+      },
+      "duration_ms": 12,
+      "error": null,
+      "event_id": "evt_wf_success_007",
+      "parent_event_id": "evt_wf_success_006",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "outcome": "evidence_found"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 7,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "rag.completed",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "retrieve",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "node": "retrieve"
+      },
+      "duration_ms": 12,
+      "error": null,
+      "event_id": "evt_wf_success_008",
+      "parent_event_id": "evt_wf_success_007",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "node": "retrieve"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 8,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "agent.completed",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "read_tools",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "node": "read_tools"
+      },
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_wf_success_009",
+      "parent_event_id": "evt_wf_success_008",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "node": "read_tools"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 9,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "started",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "agent.started",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "domain_navigator",
+        "type": "agent"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "outcome": "requested"
+      },
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_wf_success_010",
+      "parent_event_id": "evt_wf_success_009",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "outcome": "requested"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 10,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "started",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "tool.requested",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "salud.localizar_unidad_salud",
+        "type": "tool"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "outcome": "known_success"
+      },
+      "duration_ms": 12,
+      "error": null,
+      "event_id": "evt_wf_success_011",
+      "parent_event_id": "evt_wf_success_010",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "outcome": "known_success"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 11,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "tool.completed",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "read_tools",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "node": "read_tools"
+      },
+      "duration_ms": 12,
+      "error": null,
+      "event_id": "evt_wf_success_012",
+      "parent_event_id": "evt_wf_success_011",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "node": "read_tools"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 12,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "agent.completed",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "verify",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "node": "verify"
+      },
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_wf_success_013",
+      "parent_event_id": "evt_wf_success_012",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "node": "verify"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 13,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "started",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "agent.started",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "verifier",
+        "type": "agent"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "outcome": "accepted"
+      },
+      "duration_ms": 12,
+      "error": null,
+      "event_id": "evt_wf_success_014",
+      "parent_event_id": "evt_wf_success_013",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "outcome": "accepted"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 14,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "verification.completed",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "verify",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "node": "verify"
+      },
+      "duration_ms": 12,
+      "error": null,
+      "event_id": "evt_wf_success_015",
+      "parent_event_id": "evt_wf_success_014",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "node": "verify"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 15,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "agent.completed",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "build_a2ui",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "node": "build_a2ui"
+      },
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_wf_success_016",
+      "parent_event_id": "evt_wf_success_015",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "node": "build_a2ui"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 16,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "started",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "agent.started",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "a2ui_validator",
+        "type": "system"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "outcome": "valid"
+      },
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_wf_success_017",
+      "parent_event_id": "evt_wf_success_016",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "outcome": "valid"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 17,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "a2ui.validated",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "build_a2ui",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "node": "build_a2ui"
+      },
+      "duration_ms": 12,
+      "error": null,
+      "event_id": "evt_wf_success_018",
+      "parent_event_id": "evt_wf_success_017",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "node": "build_a2ui"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 18,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "agent.completed",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "supervisor",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_success",
+      "data": {
+        "outcome": "succeeded"
+      },
+      "duration_ms": 12,
+      "error": null,
+      "event_id": "evt_wf_success_019",
+      "parent_event_id": "evt_wf_success_018",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "outcome": "succeeded"
+      },
+      "run_id": "run_wf_success",
+      "sequence": 19,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_success",
+      "type": "run.completed",
+      "visibility": "public"
+    }
+  ],
+  "replay": {
+    "catalog_version": "core-catalog-2026-07-30",
+    "correlation_id": "trace_wf_success",
+    "edges": [
+      {
+        "source": "classify",
+        "target": "evt_wf_success_002"
+      },
+      {
+        "source": "classify",
+        "target": "evt_wf_success_003"
+      },
+      {
+        "source": "classify",
+        "target": "retrieve"
+      },
+      {
+        "source": "retrieve",
+        "target": "evt_wf_success_006"
+      },
+      {
+        "source": "retrieve",
+        "target": "evt_wf_success_007"
+      },
+      {
+        "source": "retrieve",
+        "target": "read_tools"
+      },
+      {
+        "source": "read_tools",
+        "target": "evt_wf_success_010"
+      },
+      {
+        "source": "read_tools",
+        "target": "evt_wf_success_011"
+      },
+      {
+        "source": "read_tools",
+        "target": "verify"
+      },
+      {
+        "source": "verify",
+        "target": "build_a2ui"
+      },
+      {
+        "source": "build_a2ui",
+        "target": "evt_wf_success_017"
+      }
+    ],
+    "final_event_type": "run.completed",
+    "last_sequence": 19,
+    "mapping_version": "workflow-event-mapping-v1",
+    "nodes": [
+      {
+        "completed_sequence": 4,
+        "duration_ms": 12,
+        "kind": "agent",
+        "label": "classify",
+        "node_id": "classify",
+        "started_sequence": 1,
+        "status": "succeeded"
+      },
+      {
+        "completed_sequence": 2,
+        "duration_ms": null,
+        "kind": "model",
+        "label": "model.selected",
+        "node_id": "evt_wf_success_002",
+        "started_sequence": 2,
+        "status": "succeeded"
+      },
+      {
+        "completed_sequence": 3,
+        "duration_ms": 12,
+        "kind": "model",
+        "label": "model.completed",
+        "node_id": "evt_wf_success_003",
+        "started_sequence": 3,
+        "status": "succeeded"
+      },
+      {
+        "completed_sequence": 8,
+        "duration_ms": 12,
+        "kind": "agent",
+        "label": "retrieve",
+        "node_id": "retrieve",
+        "started_sequence": 5,
+        "status": "succeeded"
+      },
+      {
+        "completed_sequence": 6,
+        "duration_ms": null,
+        "kind": "retriever",
+        "label": "rag.started",
+        "node_id": "evt_wf_success_006",
+        "started_sequence": 6,
+        "status": "started"
+      },
+      {
+        "completed_sequence": 7,
+        "duration_ms": 12,
+        "kind": "retriever",
+        "label": "rag.completed",
+        "node_id": "evt_wf_success_007",
+        "started_sequence": 7,
+        "status": "succeeded"
+      },
+      {
+        "completed_sequence": 12,
+        "duration_ms": 12,
+        "kind": "agent",
+        "label": "read_tools",
+        "node_id": "read_tools",
+        "started_sequence": 9,
+        "status": "succeeded"
+      },
+      {
+        "completed_sequence": 10,
+        "duration_ms": null,
+        "kind": "tool",
+        "label": "tool.requested",
+        "node_id": "evt_wf_success_010",
+        "started_sequence": 10,
+        "status": "started"
+      },
+      {
+        "completed_sequence": 11,
+        "duration_ms": 12,
+        "kind": "tool",
+        "label": "tool.completed",
+        "node_id": "evt_wf_success_011",
+        "started_sequence": 11,
+        "status": "succeeded"
+      },
+      {
+        "completed_sequence": 15,
+        "duration_ms": 12,
+        "kind": "agent",
+        "label": "verify",
+        "node_id": "verify",
+        "started_sequence": 13,
+        "status": "succeeded"
+      },
+      {
+        "completed_sequence": 18,
+        "duration_ms": 12,
+        "kind": "agent",
+        "label": "build_a2ui",
+        "node_id": "build_a2ui",
+        "started_sequence": 16,
+        "status": "succeeded"
+      },
+      {
+        "completed_sequence": 17,
+        "duration_ms": null,
+        "kind": "a2ui",
+        "label": "a2ui.validated",
+        "node_id": "evt_wf_success_017",
+        "started_sequence": 17,
+        "status": "succeeded"
+      }
+    ],
+    "run_id": "run_wf_success",
+    "skill_id": "skill_sal_navegacion",
+    "skill_version": "1.0.0",
+    "timeline": [
+      {
+        "actor_name": "classify",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "node": "classify"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_success_001",
+        "parent_event_id": null,
+        "sequence": 1,
+        "status": "started",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "agent.started"
+      },
+      {
+        "actor_name": "restringido",
+        "actor_type": "model",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "attempt": 1,
+          "outcome": "selected"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_success_002",
+        "parent_event_id": "evt_wf_success_001",
+        "sequence": 2,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "model.selected"
+      },
+      {
+        "actor_name": "restringido",
+        "actor_type": "model",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "attempt": 1,
+          "outcome": "schema_valid"
+        },
+        "duration_ms": 12,
+        "event_id": "evt_wf_success_003",
+        "parent_event_id": "evt_wf_success_002",
+        "sequence": 3,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "model.completed"
+      },
+      {
+        "actor_name": "classify",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "node": "classify"
+        },
+        "duration_ms": 12,
+        "event_id": "evt_wf_success_004",
+        "parent_event_id": "evt_wf_success_003",
+        "sequence": 4,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "agent.completed"
+      },
+      {
+        "actor_name": "retrieve",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "node": "retrieve"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_success_005",
+        "parent_event_id": "evt_wf_success_004",
+        "sequence": 5,
+        "status": "started",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "agent.started"
+      },
+      {
+        "actor_name": "hybrid_retriever",
+        "actor_type": "retriever",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "outcome": "started"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_success_006",
+        "parent_event_id": "evt_wf_success_005",
+        "sequence": 6,
+        "status": "started",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "rag.started"
+      },
+      {
+        "actor_name": "hybrid_retriever",
+        "actor_type": "retriever",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "outcome": "evidence_found"
+        },
+        "duration_ms": 12,
+        "event_id": "evt_wf_success_007",
+        "parent_event_id": "evt_wf_success_006",
+        "sequence": 7,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "rag.completed"
+      },
+      {
+        "actor_name": "retrieve",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "node": "retrieve"
+        },
+        "duration_ms": 12,
+        "event_id": "evt_wf_success_008",
+        "parent_event_id": "evt_wf_success_007",
+        "sequence": 8,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "agent.completed"
+      },
+      {
+        "actor_name": "read_tools",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "node": "read_tools"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_success_009",
+        "parent_event_id": "evt_wf_success_008",
+        "sequence": 9,
+        "status": "started",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "agent.started"
+      },
+      {
+        "actor_name": "domain_navigator",
+        "actor_type": "agent",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "outcome": "requested"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_success_010",
+        "parent_event_id": "evt_wf_success_009",
+        "sequence": 10,
+        "status": "started",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "tool.requested"
+      },
+      {
+        "actor_name": "salud.localizar_unidad_salud",
+        "actor_type": "tool",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "outcome": "known_success"
+        },
+        "duration_ms": 12,
+        "event_id": "evt_wf_success_011",
+        "parent_event_id": "evt_wf_success_010",
+        "sequence": 11,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "tool.completed"
+      },
+      {
+        "actor_name": "read_tools",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "node": "read_tools"
+        },
+        "duration_ms": 12,
+        "event_id": "evt_wf_success_012",
+        "parent_event_id": "evt_wf_success_011",
+        "sequence": 12,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "agent.completed"
+      },
+      {
+        "actor_name": "verify",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "node": "verify"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_success_013",
+        "parent_event_id": "evt_wf_success_012",
+        "sequence": 13,
+        "status": "started",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "agent.started"
+      },
+      {
+        "actor_name": "verifier",
+        "actor_type": "agent",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "outcome": "accepted"
+        },
+        "duration_ms": 12,
+        "event_id": "evt_wf_success_014",
+        "parent_event_id": "evt_wf_success_013",
+        "sequence": 14,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "verification.completed"
+      },
+      {
+        "actor_name": "verify",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "node": "verify"
+        },
+        "duration_ms": 12,
+        "event_id": "evt_wf_success_015",
+        "parent_event_id": "evt_wf_success_014",
+        "sequence": 15,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "agent.completed"
+      },
+      {
+        "actor_name": "build_a2ui",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "node": "build_a2ui"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_success_016",
+        "parent_event_id": "evt_wf_success_015",
+        "sequence": 16,
+        "status": "started",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "agent.started"
+      },
+      {
+        "actor_name": "a2ui_validator",
+        "actor_type": "system",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "outcome": "valid"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_success_017",
+        "parent_event_id": "evt_wf_success_016",
+        "sequence": 17,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "a2ui.validated"
+      },
+      {
+        "actor_name": "build_a2ui",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "node": "build_a2ui"
+        },
+        "duration_ms": 12,
+        "event_id": "evt_wf_success_018",
+        "parent_event_id": "evt_wf_success_017",
+        "sequence": 18,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "agent.completed"
+      },
+      {
+        "actor_name": "supervisor",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_success",
+        "data": {
+          "outcome": "succeeded"
+        },
+        "duration_ms": 12,
+        "event_id": "evt_wf_success_019",
+        "parent_event_id": "evt_wf_success_018",
+        "sequence": 19,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "run.completed"
+      }
+    ]
+  }
+}

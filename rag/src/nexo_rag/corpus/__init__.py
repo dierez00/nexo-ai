@@ -13,6 +13,15 @@ from .manifest import (
     load_manifest,
     manifest_path,
 )
+from .snapshot import (
+    CorpusDiff,
+    CorpusGlobalSnapshot,
+    LineageEntry,
+    build_global_snapshot,
+    diff_snapshots,
+    export_snapshot,
+    smoke_snapshot,
+)
 
 __all__ = [
     "MANIFEST_FILENAME",
@@ -24,6 +33,13 @@ __all__ = [
     "IngestionReport",
     "SourceEntry",
     "SourceManifest",
+    "CorpusDiff",
+    "CorpusGlobalSnapshot",
+    "LineageEntry",
+    "build_global_snapshot",
+    "diff_snapshots",
+    "export_snapshot",
+    "smoke_snapshot",
     "TextChunk",
     "checksum_of_file",
     "checksum_of_text",

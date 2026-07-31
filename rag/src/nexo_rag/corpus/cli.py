@@ -24,6 +24,7 @@ from .checksums import checksum_of_file
 from .manifest import load_domain_manifest, manifest_path
 
 MVP_DOMAINS = (Domain.VEHICULOS, Domain.AYUNTAMIENTO_EMPRESAS)
+CORE_DOMAINS = tuple(Domain)
 
 
 def repository_root() -> Path:
@@ -32,7 +33,7 @@ def repository_root() -> Path:
 
 
 def _domains(names: list[str]) -> tuple[Domain, ...]:
-    return tuple(Domain(name) for name in names) if names else MVP_DOMAINS
+    return tuple(Domain(name) for name in names) if names else CORE_DOMAINS
 
 
 def verify(root: Path, domains: tuple[Domain, ...]) -> list[str]:

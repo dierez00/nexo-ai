@@ -1,0 +1,59 @@
+skill_id: skill_rc_correccion
+version: 1.0.0
+title: Aclaración o corrección de acta
+domain: registro_civil
+owner: diego
+objective: Clasificar el cambio, orientar la ruta y registrar una solicitud confirmada.
+steps:
+  - step_id: clasificar
+    agent: classifier
+    objective: Detectar la corrección sin perder el tipo de acta.
+    deadline_ms: 3000
+  - step_id: determinar_tipo
+    agent: domain_navigator
+    objective: Determinar si es aclaración o corrección, con una pregunta si es indispensable.
+    depends_on: [clasificar]
+    deadline_ms: 6000
+  - step_id: verificar
+    agent: verifier
+    objective: Verificar requisitos y oficialía contra fuentes activas.
+    depends_on: [determinar_tipo]
+    deadline_ms: 5000
+  - step_id: registrar
+    agent: transactional
+    objective: Registrar sólo después de confirmación explícita.
+    depends_on: [verificar]
+    deadline_ms: 5000
+  - step_id: redactar
+    agent: writer
+    objective: Redactar únicamente desde hechos verificados.
+    depends_on: [verificar]
+    deadline_ms: 5000
+allowed_sources: [src_rc_tramites, src_rc_oficialias]
+allowed_tools:
+  - registro_civil.clasificar_tipo_correccion
+  - registro_civil.localizar_oficialia
+  - registro_civil.consultar_disponibilidad
+  - registro_civil.registrar_solicitud
+confirmation_required_for: [registro_civil.registrar_solicitud]
+reusable_inputs: [tipo_acta, municipio]
+question_conditions:
+  - No se puede distinguir una errata administrativa de un cambio sustantivo.
+budgets:
+  deadline_ms: 18000
+  max_cost_usd: 0.18
+  max_questions: 1
+  max_concurrency: 2
+success_criteria:
+  - La clasificación se obtiene con código y no se presenta como resolución jurídica.
+  - Requisitos y oficialía citan fuentes activas.
+  - La solicitud sólo se registra tras confirmación.
+escalation_policy: Si la clase no puede determinarse, formula una sola pregunta y no registra.
+prompt_refs:
+  - nexo_agents/prompts/classifier.v1.md
+  - nexo_agents/prompts/navigator_registro_civil.v1.md
+schema_refs:
+  - contracts://classification.v1
+  - contracts://verified_facts.v1
+  - contracts://action_request.v1
+a2ui_components: [Checklist, StatusBanner, SourceList, SlotPicker, ConfirmButton]

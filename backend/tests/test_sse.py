@@ -44,6 +44,7 @@ def _event(sequence: int) -> RunEvent:
         timestamp=datetime.now(UTC),
         actor=EventActor(type=ActorType.SUPERVISOR, name="test"),
         status=EventStatus.SUCCEEDED,
+        correlation_id="trace_abc",
         data={"sequence": sequence},
     )
 

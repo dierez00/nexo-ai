@@ -1,0 +1,45 @@
+skill_id: skill_gan_expediente
+version: 1.0.0
+title: Consulta de expediente animal
+domain: ganaderia
+owner: diego
+objective: Consultar ficha e historial sanitario mediante una referencia opaca.
+steps:
+  - step_id: clasificar
+    agent: classifier
+    objective: Identificar consulta de expediente.
+    deadline_ms: 3000
+  - step_id: consultar
+    agent: domain_navigator
+    objective: Consultar ficha e historial con tools de lectura.
+    depends_on: [clasificar]
+    deadline_ms: 6000
+  - step_id: verificar
+    agent: verifier
+    objective: Distinguir resultado de tool y regla documental.
+    depends_on: [consultar]
+    deadline_ms: 5000
+  - step_id: redactar
+    agent: writer
+    objective: Resumir el expediente sin inventar estatus.
+    depends_on: [verificar]
+    deadline_ms: 5000
+allowed_sources: [src_gan_expediente]
+allowed_tools: [ganaderia.consultar_animal, ganaderia.consultar_historial]
+reusable_inputs: [animal_ref]
+question_conditions:
+  - Falta la referencia opaca del animal.
+budgets:
+  deadline_ms: 15000
+  max_cost_usd: 0.12
+  max_questions: 1
+  max_concurrency: 2
+success_criteria:
+  - Los datos del animal provienen de tools.
+  - No se exponen identificadores personales.
+escalation_policy: Si no se localiza el animal, informa ausencia de resultado sin inferir.
+prompt_refs:
+  - nexo_agents/prompts/classifier.v1.md
+  - nexo_agents/prompts/navigator_ganaderia.v1.md
+schema_refs: [contracts://classification.v1, contracts://verified_facts.v1]
+a2ui_components: [Checklist, StatusBanner, SourceList]

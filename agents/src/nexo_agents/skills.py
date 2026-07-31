@@ -168,7 +168,7 @@ def validate_skill(
         except PromptError as exc:
             problems.append(str(exc))
 
-    if check_a2ui:  # pragma: no cover - A2UI diferido por decisión
+    if check_a2ui:
         unknown_components = sorted(
             set(skill.a2ui_components) - set(domain_manifest.a2ui_components)
         )

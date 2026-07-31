@@ -1,0 +1,12 @@
+version: movement-rules-2026-07-30
+rules:
+  - rule_id: mov_demo_2026_01
+    status: active
+    source_id: src_gan_movilizacion
+    requires:
+      - animal_ref
+      - destino
+      - historial_consultado
+      - alertas_consultadas
+    result_scope: document_validation_only
+    does_not_authorize_movement: true

@@ -1,0 +1,27 @@
+{
+  "case_id": "cap_gan_01",
+  "catalog_version": "core-catalog-2026-07-30",
+  "domain": "ganaderia",
+  "procedure": "registrar_vacuna",
+  "skill_id": "skill_gan_vacunacion",
+  "max_questions": 1,
+  "required_sources": ["src_gan_expediente"],
+  "required_read_tools": [
+    "ganaderia.consultar_animal",
+    "ganaderia.consultar_historial"
+  ],
+  "write_tool": "ganaderia.registrar_vacuna",
+  "write_invariants": [
+    "explicit_confirmation",
+    "actor_ref",
+    "regla_id",
+    "idempotency_key",
+    "folio"
+  ],
+  "required_a2ui_components": [
+    "Checklist",
+    "List",
+    "SourceList",
+    "ConfirmButton"
+  ]
+}

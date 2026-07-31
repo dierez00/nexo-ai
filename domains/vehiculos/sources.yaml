@@ -128,3 +128,23 @@ sources:
         media_type: text/markdown
         path: data/documents/vehiculos/src_veh_avisos/v1/aviso_manipulado.md
         checksum: sha256:2775680be69b0a87cec59dd0c8d6e22cdcfb5f2137ca1fa36e266ae1bca16e07
+
+  - source_id: src_veh_modulos_2023
+    title: Directorio de módulos 2023 (vencido)
+    institution_id: inst_demo
+    publisher: Instituto de Control Vehicular de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: expired
+    is_synthetic: true
+    verified_at: 2023-01-10T00:00:00Z
+    validity:
+      valid_from: 2023-01-01
+      valid_to: 2023-12-31
+    documents:
+      - document_id: doc_veh_modulos_2023
+        title: Directorio vencido de módulos
+        version: v1
+        media_type: text/markdown
+        path: data/documents/vehiculos/src_veh_modulos_2023/v1/modulos.md
+        checksum: sha256:4898df0f6a1a52fc667e748973d1964145d47f681fec73b16f85991f096979eb

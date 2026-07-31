@@ -112,3 +112,66 @@ sources:
         media_type: text/markdown
         path: data/documents/ayuntamiento_empresas/src_ayto_sanidad/v1/aviso_funcionamiento.md
         checksum: sha256:921bd010269f7f47cda7d63e8b25a84dbf8ed03d2668e2f2b52bea23142adb15
+
+  # --- Tarifario sustituido: similitud alta, estado no activo ---
+  - source_id: src_ayto_tarifas_2024
+    title: Derechos municipales por apertura — ejercicio 2024 (sustituido)
+    institution_id: inst_demo
+    publisher: Tesorería Municipal de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: superseded
+    superseded_by: src_ayto_tarifas
+    is_synthetic: true
+    verified_at: 2024-01-10T00:00:00Z
+    validity:
+      valid_from: 2024-01-01
+      valid_to: 2024-12-31
+    documents:
+      - document_id: doc_ayto_tarifas_2024
+        title: Derechos municipales 2024
+        version: v1
+        media_type: text/markdown
+        path: data/documents/ayuntamiento_empresas/src_ayto_tarifas/v1/tarifas_municipales.md
+        checksum: sha256:c95746f11a421f28c76d1d95f89f83f411dd137b175fd611ad6fe54d374a29f2
+
+  # --- Directorio vencido ---
+  - source_id: src_ayto_directorio_2024
+    title: Directorio municipal 2024 (vencido)
+    institution_id: inst_demo
+    publisher: Ayuntamiento de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: expired
+    is_synthetic: true
+    verified_at: 2024-01-10T00:00:00Z
+    validity:
+      valid_from: 2024-01-01
+      valid_to: 2024-12-31
+    documents:
+      - document_id: doc_ayto_directorio_2024
+        title: Directorio municipal vencido
+        version: v1
+        media_type: text/markdown
+        path: data/documents/ayuntamiento_empresas/src_ayto_directorio_2024/v1/directorio.md
+        checksum: sha256:f3e37099746d7037e7fe44e28f684cb9f0576b0d3eb8d95c6dadf6f3029321a6
+
+  # --- Documento activo manipulado para el caso adversarial ---
+  - source_id: src_ayto_avisos
+    title: Aviso municipal manipulado
+    institution_id: inst_demo
+    publisher: Ayuntamiento de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-20T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_ayto_aviso_manipulado
+        title: Aviso con instrucción adversarial incrustada
+        version: v1
+        media_type: text/markdown
+        path: data/documents/ayuntamiento_empresas/src_ayto_avisos/v1/aviso_manipulado.md
+        checksum: sha256:b937beaef1ad99e3525e6cb78a22e66770d8abff94a84e834765c457d5729d66

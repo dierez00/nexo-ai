@@ -103,6 +103,7 @@ from .model_gateway import (
     ModelPolicy,
     ModelTask,
 )
+from .observability import CatalogEntityTelemetry
 from .primitives import Money, ValidityWindow
 from .rag import (
     Chunk,
@@ -356,6 +357,7 @@ RUN_EVENT = RunEvent(
     timestamp=FIXED_NOW,
     actor=EventActor(type=ActorType.TOOL, name="vehiculos.consultar_adeudo"),
     status=EventStatus.SUCCEEDED,
+    correlation_id="trace_01JNE8ZP",
     duration_ms=320,
     data={"tool_call_id": "tc_01", "is_mock": True},
     policy_version="policies-2026-07-30",
@@ -398,6 +400,13 @@ def _valid_examples() -> dict[str, NexoModel]:
         "run_state": RUN_STATE,
         "run_result": RunResult.from_state(RUN_STATE, action_label="Confirmar cita"),
         "run_snapshot": RunSnapshot(state=RUN_STATE, events=[RUN_EVENT]),
+        "catalog_entity_telemetry": CatalogEntityTelemetry(
+            entity_id="tool:vehiculos.consultar_adeudo",
+            state="healthy",
+            window_started_at=FIXED_NOW,
+            window_ended_at=FIXED_NOW,
+            last_checked_at=FIXED_NOW,
+        ),
         "agent_task": AgentTask(
             task_id="task_verify_01",
             run_id="run_01JNE8ZP",
@@ -824,6 +833,7 @@ def _valid_examples() -> dict[str, NexoModel]:
                     timestamp=FIXED_NOW,
                     actor=EventActor(type=ActorType.SYSTEM, name="supervisor"),
                     status=EventStatus.SUCCEEDED,
+                    correlation_id="trace_01JNE8ZP",
                 ),
                 RunEvent(
                     event_id="evt_02",
@@ -834,6 +844,8 @@ def _valid_examples() -> dict[str, NexoModel]:
                     timestamp=FIXED_NOW,
                     actor=EventActor(type=ActorType.SYSTEM, name="supervisor"),
                     status=EventStatus.SUCCEEDED,
+                    correlation_id="trace_01JNE8ZP",
+                    parent_event_id="evt_01",
                 ),
             ],
         ),

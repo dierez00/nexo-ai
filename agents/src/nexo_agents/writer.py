@@ -163,6 +163,8 @@ class Writer:
         template = self.render_template(
             facts, channel=channel, warnings=warnings, next_action=next_action
         )
+        if any(warning.startswith("[salud-seguridad]") for warning in warnings):
+            return self._from_template(template, facts, channel, error=None)
 
         assert self.prompt is not None
         chat = ChatRequest(

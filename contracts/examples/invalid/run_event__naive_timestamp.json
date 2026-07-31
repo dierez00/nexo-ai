@@ -3,6 +3,8 @@
     "name": "vehiculos.consultar_adeudo",
     "type": "tool"
   },
+  "catalog_version": null,
+  "correlation_id": "trace_01JNE8ZP",
   "data": {
     "is_mock": true,
     "tool_call_id": "tc_01"
@@ -10,11 +12,16 @@
   "duration_ms": 320,
   "error": null,
   "event_id": "evt_01",
+  "parent_event_id": null,
   "policy_version": "policies-2026-07-30",
+  "public_data": {},
   "run_id": "run_01JNE8ZP",
   "sequence": 14,
+  "skill_id": null,
+  "skill_version": null,
   "status": "succeeded",
   "timestamp": "2026-07-30T15:00:00",
   "trace_id": "trace_01JNE8ZP",
-  "type": "tool.completed"
+  "type": "tool.completed",
+  "visibility": "public"
 }

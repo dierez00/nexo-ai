@@ -928,6 +928,11 @@ components:
           minimum: 0.0
           title: Model Invocation Count
           type: integer
+        question_count:
+          default: 0
+          minimum: 0.0
+          title: Question Count
+          type: integer
         retrieval_count:
           default: 0
           minimum: 0.0
@@ -978,6 +983,11 @@ components:
           maxItems: 20
           title: Available Actions
           type: array
+        catalog_version:
+          default: unset
+          maxLength: 80
+          title: Catalog Version
+          type: string
         error:
           anyOf:
           - $ref: '#/components/schemas/NormalizedError'
@@ -992,11 +1002,29 @@ components:
           - type: 'null'
         metrics:
           $ref: '#/components/schemas/RunMetrics'
+        questions:
+          items:
+            type: string
+          maxItems: 5
+          title: Questions
+          type: array
         run_id:
           maxLength: 67
           minLength: 5
           title: Run Id
           type: string
+        skill_id:
+          anyOf:
+          - maxLength: 80
+            type: string
+          - type: 'null'
+          title: Skill Id
+        skill_version:
+          anyOf:
+          - maxLength: 40
+            type: string
+          - type: 'null'
+          title: Skill Version
         sources:
           items:
             $ref: '#/components/schemas/SourceCitation'

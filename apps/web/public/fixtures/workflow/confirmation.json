@@ -1,0 +1,200 @@
+{
+  "events": [
+    {
+      "actor": {
+        "name": "supervisor",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_confirmation",
+      "data": {
+        "outcome": "waiting_confirmation"
+      },
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_wf_confirmation_001",
+      "parent_event_id": null,
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "outcome": "waiting_confirmation"
+      },
+      "run_id": "run_wf_confirmation",
+      "sequence": 1,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_confirmation",
+      "type": "run.waiting_confirmation",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "citizen",
+        "type": "user"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_confirmation",
+      "data": {
+        "reason": "explicit_confirmation"
+      },
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_wf_confirmation_002",
+      "parent_event_id": "evt_wf_confirmation_001",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "reason": "explicit_confirmation"
+      },
+      "run_id": "run_wf_confirmation",
+      "sequence": 2,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_confirmation",
+      "type": "run.resumed",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "registro_civil.registrar_solicitud",
+        "type": "tool"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_confirmation",
+      "data": {
+        "outcome": "known_success"
+      },
+      "duration_ms": 12,
+      "error": null,
+      "event_id": "evt_wf_confirmation_003",
+      "parent_event_id": "evt_wf_confirmation_002",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "outcome": "known_success"
+      },
+      "run_id": "run_wf_confirmation",
+      "sequence": 3,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_confirmation",
+      "type": "tool.completed",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "supervisor",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_confirmation",
+      "data": {
+        "outcome": "succeeded"
+      },
+      "duration_ms": 12,
+      "error": null,
+      "event_id": "evt_wf_confirmation_004",
+      "parent_event_id": "evt_wf_confirmation_003",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "outcome": "succeeded"
+      },
+      "run_id": "run_wf_confirmation",
+      "sequence": 4,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_confirmation",
+      "type": "run.completed",
+      "visibility": "public"
+    }
+  ],
+  "replay": {
+    "catalog_version": "core-catalog-2026-07-30",
+    "correlation_id": "trace_wf_confirmation",
+    "edges": [],
+    "final_event_type": "run.completed",
+    "last_sequence": 4,
+    "mapping_version": "workflow-event-mapping-v1",
+    "nodes": [
+      {
+        "completed_sequence": 3,
+        "duration_ms": 12,
+        "kind": "tool",
+        "label": "tool.completed",
+        "node_id": "evt_wf_confirmation_003",
+        "started_sequence": 3,
+        "status": "succeeded"
+      }
+    ],
+    "run_id": "run_wf_confirmation",
+    "skill_id": "skill_sal_navegacion",
+    "skill_version": "1.0.0",
+    "timeline": [
+      {
+        "actor_name": "supervisor",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_confirmation",
+        "data": {
+          "outcome": "waiting_confirmation"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_confirmation_001",
+        "parent_event_id": null,
+        "sequence": 1,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "run.waiting_confirmation"
+      },
+      {
+        "actor_name": "citizen",
+        "actor_type": "user",
+        "correlation_id": "trace_wf_confirmation",
+        "data": {
+          "reason": "explicit_confirmation"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_confirmation_002",
+        "parent_event_id": "evt_wf_confirmation_001",
+        "sequence": 2,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "run.resumed"
+      },
+      {
+        "actor_name": "registro_civil.registrar_solicitud",
+        "actor_type": "tool",
+        "correlation_id": "trace_wf_confirmation",
+        "data": {
+          "outcome": "known_success"
+        },
+        "duration_ms": 12,
+        "event_id": "evt_wf_confirmation_003",
+        "parent_event_id": "evt_wf_confirmation_002",
+        "sequence": 3,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "tool.completed"
+      },
+      {
+        "actor_name": "supervisor",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_confirmation",
+        "data": {
+          "outcome": "succeeded"
+        },
+        "duration_ms": 12,
+        "event_id": "evt_wf_confirmation_004",
+        "parent_event_id": "evt_wf_confirmation_003",
+        "sequence": 4,
+        "status": "succeeded",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "run.completed"
+      }
+    ]
+  }
+}

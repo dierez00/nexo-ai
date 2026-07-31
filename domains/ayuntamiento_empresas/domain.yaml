@@ -70,6 +70,7 @@ allowed_sources:
   - src_ayto_tarifas
   - src_ayto_proteccion_civil
   - src_ayto_sanidad
+  - src_ayto_avisos
 
 allowed_tools:
   - ayuntamiento.consultar_uso_suelo

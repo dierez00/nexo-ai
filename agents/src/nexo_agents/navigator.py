@@ -55,6 +55,7 @@ from nexo_contracts.model_gateway import ModelInvocation
 from nexo_contracts.primitives import Confidence
 
 from .domain_manifest import DomainManifest
+from .health_safety import assess_health_message
 from .prompts import Prompt, load_by_ref
 
 if TYPE_CHECKING:  # pragma: no cover - solo para tipos
@@ -205,6 +206,39 @@ class DomainNavigator:
         )
 
         warnings: list[str] = []
+        if self.domain is Domain.SALUD:
+            safety = assess_health_message(request.user_message)
+            if safety.blocked_clinical_request:
+                warning = safety.warning or "Solicitud clínica fuera del alcance administrativo."
+                fact = CandidateFact(
+                    fact_id=f"{self.fact_id_prefix}_sal_safe",
+                    claim=warning.removeprefix("[salud-seguridad] "),
+                    value=FactValue(text="orientacion_administrativa_sin_consejo_clinico"),
+                    category=FactCategory.CONTEXT,
+                    domain=Domain.SALUD,
+                    origin=FactOrigin.DEDUCTION,
+                    confidence=1.0,
+                    deduction=Deduction(
+                        value=FactValue(text="orientacion_administrativa_sin_consejo_clinico"),
+                        source=FactOrigin.DEDUCTION,
+                        confidence=1.0,
+                        confirmed_by_user=False,
+                        write_eligible=False,
+                        rationale="Límite de alcance aplicado por una regla determinista.",
+                    ),
+                )
+                return NavigationResult(
+                    facts=(fact,),
+                    citations=(),
+                    proposed_tools=(),
+                    self_check=SelfCheckResult(
+                        schema_valid=True,
+                        notes=["health_clinical_request_blocked"],
+                    ),
+                    warnings=(warning,),
+                    status=TaskStatus.PARTIAL,
+                )
+
         assessment = assess(_as_response(results))
         if assessment.warning:
             warnings.append(assessment.warning)
