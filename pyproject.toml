@@ -1,0 +1,70 @@
+# Configuración compartida del workspace Python de Nexo IA.
+#
+# La raíz no es un paquete instalable: solo agrupa la configuración de tooling
+# para que pytest, Ruff y mypy se comporten igual en cada módulo y en CI.
+# Cada paquete (`contracts`, `orchestration`, `rag`, `mcp`) declara sus propias
+# dependencias en su `pyproject.toml`.
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3,<9",
+    "pytest-asyncio>=0.24,<2",
+    "ruff>=0.7,<1",
+    "mypy>=1.13,<2",
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = [
+    "contracts/tests",
+    "orchestration/tests",
+    "rag/tests",
+    "mcp/tests",
+    "tests",
+]
+markers = [
+    "unit: prueba aislada, determinista y sin I/O externo",
+    "contract: verifica un contrato compartido entre módulos",
+    "integration: cruza una frontera real de proceso o almacenamiento",
+    "e2e: recorre el sistema de extremo a extremo",
+    "eval: mide calidad contra un dataset versionado",
+    "security: verifica un guardrail de seguridad",
+]
+addopts = "--strict-markers --strict-config -q"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "error",
+    # LangGraph 0.6 emite este aviso al importar su serializador; no depende de
+    # nuestro código y desaparecerá al actualizar el framework.
+    "ignore::langchain_core._api.beta_decorator.LangChainBetaWarning",
+    "ignore:The default value of `allowed_objects`:DeprecationWarning",
+    "ignore:The default value of `allowed_objects`:PendingDeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = [
+    "contracts/src",
+    "orchestration/src",
+    "rag/src",
+    "mcp/src",
+]
+# Las skills versionadas son artefactos de terceros con su propio estilo; el
+# lint del núcleo no debe reescribirlas.
+extend-exclude = [".agents", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+# El código y la documentación están en español técnico: los caracteres que
+# estas reglas marcan como "ambiguos" (acentos, «×», guiones largos) son
+# ortografía correcta, no confusiones tipográficas.
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_ignores = true
+plugins = ["pydantic.mypy"]
+mypy_path = "contracts/src:orchestration/src:rag/src:mcp/src"

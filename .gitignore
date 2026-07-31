@@ -1,0 +1,24 @@
+# Entornos y artefactos de Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Entornos y artefactos de Node
+node_modules/
+.next/
+
+# Secretos y configuración local
+.env
+.env.local
+!.env.example
+
+# Salidas generadas por evaluaciones
+evaluations/reports/*
+!evaluations/reports/.gitkeep
