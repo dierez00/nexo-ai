@@ -8,6 +8,7 @@ negocio desde la base. `require_permission` aplica permisos server-side
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+from typing import cast
 
 import jwt
 from fastapi import Depends, Query, Request
@@ -19,6 +20,7 @@ from nexo_api.repositories.users import load_profile_by_auth_id
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.services.actions import ActionExecutor, FakeActionExecutor
 from nexo_api.services.orchestration import FakeOrchestrator, Orchestrator
+from nexo_api.services.runs.tasks import RunTaskManager
 
 
 def get_orchestrator() -> Orchestrator:
@@ -29,6 +31,10 @@ def get_orchestrator() -> Orchestrator:
 def get_action_executor() -> ActionExecutor:
     """Provee el ejecutor transaccional. Hoy fake; luego la tool MCP real."""
     return FakeActionExecutor()
+
+
+def get_run_task_manager(request: Request) -> RunTaskManager:
+    return cast(RunTaskManager, request.app.state.run_task_manager)
 
 
 _bearer = HTTPBearer(auto_error=False)

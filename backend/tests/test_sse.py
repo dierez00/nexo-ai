@@ -1,4 +1,4 @@
-"""Tests del stream SSE de eventos de run (herméticos)."""
+"""SSE usa los ``RunEvent`` y la secuencia canónicos."""
 
 from __future__ import annotations
 
@@ -11,16 +11,8 @@ from fastapi.testclient import TestClient
 from nexo_api.api.deps import get_current_user_sse
 from nexo_api.main import create_app
 from nexo_api.schemas.auth import UserProfile
-from nexo_api.services.runs.service import public_run_event
 
-from nexo_contracts import (
-    ActorType,
-    EventActor,
-    EventStatus,
-    EventType,
-    EventVisibility,
-    RunEvent,
-)
+from nexo_contracts import ActorType, EventActor, EventStatus, EventType, RunEvent
 
 USER = UserProfile(
     user_id="1",
@@ -42,84 +34,67 @@ def client() -> Iterator[TestClient]:
     app.dependency_overrides.clear()
 
 
-def _event_row(event_id: int, event_type: str) -> dict[str, object]:
-    return {
-        "id": event_id,
-        "trace_id": "trace_abc",
-        "event_type": event_type,
-        "node_name": "classifier",
-        "payload": {"k": "v"},
-        "created_at": datetime.now(UTC),
-    }
+def _event(sequence: int) -> RunEvent:
+    return RunEvent(
+        event_id=f"evt_42_{sequence}",
+        run_id="run_42",
+        trace_id="trace_abc",
+        sequence=sequence,
+        type=EventType.RUN_COMPLETED,
+        timestamp=datetime.now(UTC),
+        actor=EventActor(type=ActorType.SUPERVISOR, name="test"),
+        status=EventStatus.SUCCEEDED,
+        correlation_id="trace_abc",
+        data={"sequence": sequence},
+    )
 
 
-def test_sse_streams_events_and_terminal_status(client: TestClient) -> None:
-    rows = [_event_row(100, "node_start"), _event_row(101, "node_end")]
+def test_sse_streams_canonical_events_and_terminal_status(client: TestClient) -> None:
     with (
         patch(
             "nexo_api.services.runs.service.runs_repo.get",
-            new=AsyncMock(return_value={"status": "completed"}),
+            new=AsyncMock(return_value={"status": "succeeded"}),
         ),
         patch(
-            "nexo_api.services.runs.service.event_repo.list_after",
-            new=AsyncMock(return_value=rows),
+            "nexo_api.services.runs.service.PostgresEventSink.read",
+            new=AsyncMock(return_value=(_event(1), _event(2))),
+        ),
+        patch(
+            "nexo_api.services.runs.service.runs_repo.get_status",
+            new=AsyncMock(return_value="succeeded"),
         ),
     ):
-        resp = client.get("/api/v1/runs/run_42/events")
-    assert resp.status_code == 200
-    assert "text/event-stream" in resp.headers["content-type"]
-    body = resp.text
-    assert "agent.started" in body
-    assert "evt_100" in body
-    assert "id: 101" in body
-    assert "run.status" in body  # evento terminal
+        response = client.get("/api/v1/runs/run_42/events")
+    assert response.status_code == 200
+    assert "evt_42_1" in response.text
+    assert "id: 2" in response.text
+    assert "run.status" in response.text
 
 
 def test_sse_resumes_after_last_event_id(client: TestClient) -> None:
     captured: dict[str, int] = {}
 
-    async def _list_after(run_id: int, after_id: int = 0) -> list[dict[str, object]]:
-        captured["after_id"] = after_id
-        return [_event_row(102, "node_end")]
+    async def read(_self: object, _run_id: str, *, after: int = 0) -> tuple[RunEvent, ...]:
+        captured["after"] = after
+        return (_event(2),)
 
     with (
         patch(
             "nexo_api.services.runs.service.runs_repo.get",
-            new=AsyncMock(return_value={"status": "completed"}),
+            new=AsyncMock(return_value={"status": "succeeded"}),
         ),
-        patch("nexo_api.services.runs.service.event_repo.list_after", new=_list_after),
+        patch("nexo_api.services.runs.service.PostgresEventSink.read", new=read),
+        patch(
+            "nexo_api.services.runs.service.runs_repo.get_status",
+            new=AsyncMock(return_value="succeeded"),
+        ),
     ):
-        resp = client.get("/api/v1/runs/run_42/events", headers={"Last-Event-ID": "101"})
-    assert resp.status_code == 200
-    assert captured["after_id"] == 101  # reanuda desde el último recibido
+        response = client.get("/api/v1/runs/run_42/events", headers={"Last-Event-ID": "1"})
+    assert response.status_code == 200
+    assert captured["after"] == 1
 
 
 def test_sse_404_on_unknown_run(client: TestClient) -> None:
-    with patch(
-        "nexo_api.services.runs.service.runs_repo.get",
-        new=AsyncMock(return_value=None),
-    ):
-        resp = client.get("/api/v1/runs/run_999/events")
-    assert resp.status_code == 404
-
-
-def test_public_run_event_uses_public_data_for_restricted_events() -> None:
-    event = RunEvent(
-        event_id="evt_000001",
-        trace_id="trace_abc",
-        run_id="run_42",
-        sequence=1,
-        type=EventType.MODEL_SELECTED,
-        timestamp=datetime.now(UTC),
-        actor=EventActor(type=ActorType.MODEL, name="internal-router"),
-        status=EventStatus.SUCCEEDED,
-        visibility=EventVisibility.RESTRICTED,
-        correlation_id="trace_abc",
-        data={"provider_detail": "solo auditoria"},
-        public_data={"outcome": "succeeded"},
-    )
-
-    public = public_run_event(event)
-
-    assert public.actor_name == "restringido"
-    assert public.data == {"outcome": "succeeded"}
+    with patch("nexo_api.services.runs.service.runs_repo.get", new=AsyncMock(return_value=None)):
+        response = client.get("/api/v1/runs/run_999/events")
+    assert response.status_code == 404

@@ -103,6 +103,7 @@ from .model_gateway import (
     ModelPolicy,
     ModelTask,
 )
+from .observability import CatalogEntityTelemetry
 from .primitives import Money, ValidityWindow
 from .rag import (
     Chunk,
@@ -399,6 +400,13 @@ def _valid_examples() -> dict[str, NexoModel]:
         "run_state": RUN_STATE,
         "run_result": RunResult.from_state(RUN_STATE, action_label="Confirmar cita"),
         "run_snapshot": RunSnapshot(state=RUN_STATE, events=[RUN_EVENT]),
+        "catalog_entity_telemetry": CatalogEntityTelemetry(
+            entity_id="tool:vehiculos.consultar_adeudo",
+            state="healthy",
+            window_started_at=FIXED_NOW,
+            window_ended_at=FIXED_NOW,
+            last_checked_at=FIXED_NOW,
+        ),
         "agent_task": AgentTask(
             task_id="task_verify_01",
             run_id="run_01JNE8ZP",

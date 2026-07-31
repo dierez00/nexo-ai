@@ -22,6 +22,14 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
+Verificar antes de continuar:
+```bash
+uv --version
+uv sync --all-packages --frozen
+```
+En PowerShell, ejecutar `./scripts/lint.ps1` y `./scripts/test.ps1`; ambos usan
+el mismo workspace que CI.
+
 ---
 
 ## 2. Configuración (`.env`)
@@ -105,8 +113,20 @@ curl -s -X POST $BASE/api/v1/conversations/$CID/messages -H "Authorization: Bear
 
 # SSE de eventos:  GET $BASE/api/v1/runs/<run_id>/events  (header o ?access_token=)
 # Acción idempotente: POST $BASE/api/v1/actions/<name>/confirm  (header Idempotency-Key)
-# Citas: GET /api/v1/appointments/availability ; POST /api/v1/appointments/holds
+# Citas: GET /api/v1/appointments/availability ; POST /api/v1/appointments/holds (Idempotency-Key)
 ```
+
+### Idempotencia y SSE MVP
+
+El mismo `Idempotency-Key` y payload reproduce la respuesta almacenada; reutilizar
+la clave con otro payload devuelve `409 IDEMPOTENCY_KEY_REUSED`. Un `409
+UNKNOWN_OUTCOME` significa que el proveedor pudo recibir la escritura pero no la
+confirmó: no reintentar automáticamente y reconciliar antes de actuar.
+
+El POST de mensaje devuelve `202` mientras el run se ejecuta en proceso. SSE
+reconecta con `Last-Event-ID` (la secuencia por run), hace keepalive y cierra al
+llegar al estado terminal. Reiniciar la API cancela runs activos; no hay cola
+durable en este MVP.
 
 ---
 

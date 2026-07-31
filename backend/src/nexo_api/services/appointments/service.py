@@ -10,8 +10,10 @@ from nexo_api.core import ids
 from nexo_api.core.errors import ProblemException
 from nexo_api.repositories import appointments as appts_repo
 from nexo_api.repositories import branches as branches_repo
+from nexo_api.repositories import idempotency as idempotency_repo
 from nexo_api.schemas.appointment import AppointmentHold, AppointmentSlot, HoldCreate
 from nexo_api.schemas.auth import UserProfile
+from nexo_api.services import idempotency
 
 # Horario de atención (UTC) y tamaño de slot para el MVP.
 _DAY_START_HOUR = 9
@@ -57,14 +59,38 @@ async def get_availability(
     return slots
 
 
-async def create_hold(user: UserProfile, body: HoldCreate) -> AppointmentHold:
+async def create_hold(
+    user: UserProfile, body: HoldCreate, idempotency_key: str | None
+) -> AppointmentHold:
     _ensure_permission(user, f"{body.module_code}.write")
     tenant_id = int(user.tenant_id)
+
+    if not idempotency_key:
+        raise ProblemException(
+            status=400,
+            code="VALIDATION_ERROR",
+            title="Falta el header Idempotency-Key",
+            detail="Toda escritura requiere el header 'Idempotency-Key'.",
+        )
 
     if not await branches_repo.exists(tenant_id, body.branch_id):
         raise ProblemException(
             status=404, code="RESOURCE_NOT_FOUND", title="Sucursal no encontrada"
         )
+
+    record, owned = await idempotency.claim(
+        tenant_id, "appointments.create_hold", idempotency_key, body.model_dump(mode="json")
+    )
+    if not owned:
+        if str(record["status"]) == "failed":
+            response = idempotency_repo.response_body(record)
+            raise ProblemException(
+                status=int(record["response_status"] or 409),
+                code=str(response.get("code", "APPOINTMENT_CONFLICT")),
+                title=str(response.get("title", "Horario no disponible")),
+                detail=str(response.get("detail", "Ya existe una cita activa que se solapa.")),
+            )
+        return AppointmentHold.model_validate(idempotency_repo.response_body(record))
 
     try:
         row = await appts_repo.create_hold(
@@ -77,6 +103,14 @@ async def create_hold(user: UserProfile, body: HoldCreate) -> AppointmentHold:
             ends_at=_to_utc(body.ends_at),
         )
     except IntegrityError as exc:
+        error = {
+            "code": "APPOINTMENT_CONFLICT",
+            "title": "Horario no disponible",
+            "detail": "Ya existe una cita activa que se solapa en esa sucursal.",
+        }
+        await idempotency_repo.complete(
+            int(record["id"]), status="failed", response_status=409, response_body=error
+        )
         raise ProblemException(
             status=409,
             code="APPOINTMENT_CONFLICT",
@@ -84,7 +118,7 @@ async def create_hold(user: UserProfile, body: HoldCreate) -> AppointmentHold:
             detail="Ya existe una cita activa que se solapa en esa sucursal.",
         ) from exc
 
-    return AppointmentHold(
+    hold = AppointmentHold(
         appointment_id=ids.encode(ids.APPOINTMENT, row["id"]),
         status=row["status"],
         branch_id=body.branch_id,
@@ -94,3 +128,11 @@ async def create_hold(user: UserProfile, body: HoldCreate) -> AppointmentHold:
         ends_at=row["ends_at"],
         hold_expires_at=row["hold_expires_at"],
     )
+    await idempotency_repo.complete(
+        int(record["id"]),
+        status="succeeded",
+        response_status=201,
+        response_body=hold.model_dump(mode="json"),
+        resource_id=hold.appointment_id,
+    )
+    return hold

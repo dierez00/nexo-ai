@@ -1,40 +1,200 @@
 components:
   schemas:
-    ActionResult:
+    A2UIAction:
+      additionalProperties: false
+      description: Acción opaca ligada a un schema, una versión y un run concreto
+        (§5.5).
       properties:
         action_id:
+          maxLength: 67
+          minLength: 5
           title: Action Id
           type: string
-        action_name:
-          title: Action Name
+        expected_version:
+          minimum: 1.0
+          title: Expected Version
+          type: integer
+        input_schema_ref:
+          maxLength: 300
+          title: Input Schema Ref
           type: string
-        created_at:
-          format: date-time
-          title: Created At
+        label:
+          maxLength: 120
+          title: Label
           type: string
-        folio:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Folio
-        idempotency_key:
-          title: Idempotency Key
-          type: string
-        result:
-          additionalProperties: true
-          title: Result
-          type: object
-        status:
-          title: Status
+        requires_confirmation:
+          default: true
+          title: Requires Confirmation
+          type: boolean
+        tool_name:
+          maxLength: 95
+          title: Tool Name
           type: string
       required:
       - action_id
-      - idempotency_key
-      - action_name
+      - tool_name
+      - input_schema_ref
+      - expected_version
+      - label
+      title: A2UIAction
+      type: object
+    A2UIComponent:
+      additionalProperties: false
+      description: 'Nodo del árbol de componentes.
+
+
+        Los datos viven en el data model y se referencian por binding (`{"path": ...}`);
+
+        la estructura nunca los incrusta (`DIE-F1-102`).
+
+
+        En el protocolo, las propiedades específicas del componente viajan aplanadas
+
+        junto a `id` y `component`. Aquí se validan agrupadas bajo `properties` para
+
+        mantener el modelo cerrado, y la (de)serialización hace la conversión: los
+
+        fixtures que consume el renderer de Cris salen con la forma del protocolo,
+
+        sin traducción implícita a cargo del consumidor (`DIE-F0-019`).'
+      properties:
+        actionId:
+          anyOf:
+          - maxLength: 67
+            minLength: 5
+            type: string
+          - type: 'null'
+          title: Actionid
+        children:
+          items:
+            pattern: ^[a-z][a-z0-9-]{0,62}$
+            type: string
+          maxItems: 100
+          title: Children
+          type: array
+        component:
+          pattern: ^[A-Z][A-Za-z0-9]{1,40}$
+          title: Component
+          type: string
+        id:
+          pattern: ^[a-z][a-z0-9-]{0,62}$
+          title: Id
+          type: string
+        properties:
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          title: Properties
+          type: object
+      required:
+      - id
+      - component
+      title: A2UIComponent
+      type: object
+    A2UIMessage:
+      additionalProperties: false
+      description: 'Unidad JSONL del protocolo: exactamente uno de los tres mensajes.'
+      properties:
+        createSurface:
+          anyOf:
+          - $ref: '#/components/schemas/CreateSurface'
+          - type: 'null'
+        updateComponents:
+          anyOf:
+          - $ref: '#/components/schemas/UpdateComponents'
+          - type: 'null'
+        updateDataModel:
+          anyOf:
+          - $ref: '#/components/schemas/UpdateDataModel'
+          - type: 'null'
+        version:
+          default: v0.9.1
+          title: Version
+          type: string
+      title: A2UIMessage
+      type: object
+    A2UISurface:
+      additionalProperties: false
+      description: 'Superficie completa: la secuencia ordenada de mensajes más sus
+        acciones.'
+      properties:
+        actions:
+          items:
+            $ref: '#/components/schemas/A2UIAction'
+          maxItems: 20
+          title: Actions
+          type: array
+        catalog_id:
+          description: URN inmutable del catálogo negociado, por ejemplo 'urn:nexo-ia:a2ui:catalog:citizen:v1'.
+          maxLength: 200
+          pattern: ^urn:nexo-ia:a2ui:catalog:[a-z0-9_-]+:v\d+$
+          title: Catalog Id
+          type: string
+        channel:
+          $ref: '#/components/schemas/Channel'
+        messages:
+          items:
+            $ref: '#/components/schemas/A2UIMessage'
+          maxItems: 100
+          minItems: 1
+          title: Messages
+          type: array
+        surface_id:
+          maxLength: 68
+          minLength: 6
+          title: Surface Id
+          type: string
+      required:
+      - surface_id
+      - catalog_id
+      - channel
+      - messages
+      title: A2UISurface
+      type: object
+    ActionResult:
+      additionalProperties: false
+      description: Resultado de ejecutar una acción confirmada (§5.1).
+      properties:
+        action_id:
+          maxLength: 67
+          minLength: 5
+          title: Action Id
+          type: string
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/NormalizedError'
+          - type: 'null'
+        idempotency_replayed:
+          default: false
+          title: Idempotency Replayed
+          type: boolean
+        status:
+          $ref: '#/components/schemas/ActionStatus'
+        tool_call_id:
+          anyOf:
+          - maxLength: 66
+            minLength: 4
+            type: string
+          - type: 'null'
+          title: Tool Call Id
+        tool_result:
+          anyOf:
+          - $ref: '#/components/schemas/ToolResult'
+          - type: 'null'
+      required:
+      - action_id
       - status
-      - created_at
       title: ActionResult
       type: object
+    ActionStatus:
+      enum:
+      - pending_confirmation
+      - confirmed
+      - succeeded
+      - failed
+      - partial
+      - cancelled
+      title: ActionStatus
+      type: string
     AppointmentHold:
       properties:
         appointment_id:
@@ -94,23 +254,147 @@ components:
       - available
       title: AppointmentSlot
       type: object
+    Channel:
+      enum:
+      - web
+      - whatsapp
+      - voice
+      title: Channel
+      type: string
+    ChannelFallback:
+      additionalProperties: false
+      description: 'Representación segura cuando la superficie no puede renderizarse
+        (§5.5).
+
+
+        Nunca queda vacío: si A2UI falla, el canal recibe texto plano equivalente
+        en
+
+        lugar de nada (`DIE-F1-106`).'
+      properties:
+        action_hint:
+          anyOf:
+          - maxLength: 300
+            type: string
+          - type: 'null'
+          title: Action Hint
+        channel:
+          $ref: '#/components/schemas/Channel'
+        numbered_items:
+          items:
+            type: string
+          maxItems: 50
+          title: Numbered Items
+          type: array
+        reason:
+          maxLength: 200
+          title: Reason
+          type: string
+        text:
+          maxLength: 4000
+          minLength: 1
+          title: Text
+          type: string
+      required:
+      - channel
+      - reason
+      - text
+      title: ChannelFallback
+      type: object
     ConfirmActionRequest:
+      additionalProperties: false
       properties:
         consent:
           default: false
           title: Consent
           type: boolean
         expected_version:
-          anyOf:
-          - type: integer
-          - type: 'null'
+          minimum: 1.0
           title: Expected Version
-        input:
-          additionalProperties: true
-          title: Input
-          type: object
+          type: integer
+      required:
+      - expected_version
       title: ConfirmActionRequest
       type: object
+    Contradiction:
+      additionalProperties: false
+      description: Conflicto detectado entre hechos, fuentes o resultados de tools
+        (§5.2).
+      properties:
+        conflicting_sources:
+          items:
+            maxLength: 67
+            minLength: 5
+            type: string
+          maxItems: 20
+          title: Conflicting Sources
+          type: array
+        conflicting_tool_calls:
+          items:
+            maxLength: 66
+            minLength: 4
+            type: string
+          maxItems: 20
+          title: Conflicting Tool Calls
+          type: array
+        contradiction_id:
+          maxLength: 70
+          minLength: 8
+          title: Contradiction Id
+          type: string
+        explanation:
+          maxLength: 1000
+          title: Explanation
+          type: string
+        fact_ids:
+          items:
+            maxLength: 68
+            minLength: 6
+            type: string
+          maxItems: 10
+          minItems: 2
+          title: Fact Ids
+          type: array
+        resolved_fact_id:
+          anyOf:
+          - maxLength: 68
+            minLength: 6
+            type: string
+          - type: 'null'
+          title: Resolved Fact Id
+        rule:
+          description: 'Regla de precedencia aplicada. Ejemplo: ''newer_source_wins''.'
+          maxLength: 200
+          title: Rule
+          type: string
+        severity:
+          $ref: '#/components/schemas/ContradictionSeverity'
+        status:
+          $ref: '#/components/schemas/ContradictionStatus'
+          default: detected
+      required:
+      - contradiction_id
+      - fact_ids
+      - severity
+      - rule
+      - explanation
+      title: Contradiction
+      type: object
+    ContradictionSeverity:
+      description: Una contradicción crítica bloquea toda escritura dependiente (`DIE-F4-020`).
+      enum:
+      - informational
+      - material
+      - critical
+      title: ContradictionSeverity
+      type: string
+    ContradictionStatus:
+      enum:
+      - detected
+      - resolved
+      - unresolved
+      title: ContradictionStatus
+      type: string
     Conversation:
       properties:
         channel:
@@ -156,6 +440,225 @@ components:
           title: Title
       title: ConversationCreate
       type: object
+    CreateSurface:
+      additionalProperties: false
+      properties:
+        catalogId:
+          description: URN inmutable del catálogo negociado, por ejemplo 'urn:nexo-ia:a2ui:catalog:citizen:v1'.
+          maxLength: 200
+          pattern: ^urn:nexo-ia:a2ui:catalog:[a-z0-9_-]+:v\d+$
+          title: Catalogid
+          type: string
+        sendDataModel:
+          default: false
+          title: Senddatamodel
+          type: boolean
+        surfaceId:
+          maxLength: 68
+          minLength: 6
+          title: Surfaceid
+          type: string
+      required:
+      - surfaceId
+      - catalogId
+      title: CreateSurface
+      type: object
+    Domain:
+      description: Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta
+        lista se rechaza.
+      enum:
+      - vehiculos
+      - ayuntamiento_empresas
+      - registro_civil
+      - salud
+      - ganaderia
+      title: Domain
+      type: string
+    ErrorCode:
+      description: 'Códigos de error estables (arquitectura §9.11).
+
+
+        El consumidor decide por `code`, nunca por el texto del mensaje.'
+      enum:
+      - VALIDATION_ERROR
+      - AUTHENTICATION_REQUIRED
+      - PERMISSION_DENIED
+      - RESOURCE_NOT_FOUND
+      - APPOINTMENT_CONFLICT
+      - VERSION_CONFLICT
+      - ACTION_CONFIRMATION_REQUIRED
+      - RATE_LIMITED
+      - BUDGET_EXCEEDED
+      - PROVIDER_ERROR
+      - MODEL_UNAVAILABLE
+      - MODEL_OUTPUT_INVALID
+      - TOOL_TIMEOUT
+      - TOOL_NOT_FOUND
+      - RUN_TIMEOUT
+      - RUN_CANCELLED
+      - UNKNOWN_OUTCOME
+      - CONFIGURATION_INVALID
+      - CONTRACT_INVALID
+      title: ErrorCode
+      type: string
+    ErrorDetail:
+      additionalProperties: false
+      description: Detalle accionable de un error, sin contenido sensible.
+      properties:
+        field:
+          anyOf:
+          - maxLength: 200
+            type: string
+          - type: 'null'
+          description: Ruta del campo que falló, en notación de puntos.
+          title: Field
+        reason:
+          description: 'Motivo estable y corto, en snake_case. Ejemplo: ''conflict''.'
+          maxLength: 200
+          title: Reason
+          type: string
+      required:
+      - reason
+      title: ErrorDetail
+      type: object
+    Estimate:
+      additionalProperties: false
+      description: 'Resultado del estimador: pasos ordenados, costo total y trazabilidad.'
+      properties:
+        derived_from:
+          items:
+            maxLength: 68
+            minLength: 6
+            type: string
+          maxItems: 200
+          title: Derived From
+          type: array
+        domain:
+          $ref: '#/components/schemas/Domain'
+        steps:
+          items:
+            $ref: '#/components/schemas/EstimateStep'
+          maxItems: 100
+          title: Steps
+          type: array
+        total_cost:
+          anyOf:
+          - $ref: '#/components/schemas/Money'
+          - type: 'null'
+      required:
+      - domain
+      title: Estimate
+      type: object
+    EstimateStep:
+      additionalProperties: false
+      description: Un trámite dentro de la ruta calculada, con dependencias estables.
+      properties:
+        cost:
+          anyOf:
+          - $ref: '#/components/schemas/Money'
+          - type: 'null'
+        depends_on:
+          items:
+            pattern: ^[a-z][a-z0-9_]{1,62}$
+            type: string
+          maxItems: 20
+          title: Depends On
+          type: array
+        derived_from:
+          items:
+            maxLength: 68
+            minLength: 6
+            type: string
+          maxItems: 50
+          minItems: 1
+          title: Derived From
+          type: array
+        duration_days:
+          anyOf:
+          - maximum: 3650.0
+            minimum: 0.0
+            type: integer
+          - type: 'null'
+          title: Duration Days
+        missing_documents:
+          items:
+            type: string
+          maxItems: 30
+          title: Missing Documents
+          type: array
+        step_id:
+          pattern: ^[a-z][a-z0-9_]{1,62}$
+          title: Step Id
+          type: string
+        title:
+          maxLength: 200
+          title: Title
+          type: string
+      required:
+      - step_id
+      - title
+      - derived_from
+      title: EstimateStep
+      type: object
+    FactCategory:
+      description: Naturaleza de un hecho. Determina si su citación es obligatoria.
+      enum:
+      - requirement
+      - cost
+      - location
+      - validity
+      - schedule
+      - dependency
+      - procedure
+      - action_result
+      - context
+      title: FactCategory
+      type: string
+    FactValue:
+      additionalProperties: false
+      description: 'Valor tipado de un hecho.
+
+
+        Se modela como una unión explícita en lugar de `Any` para que el estimador
+
+        nunca tenga que adivinar el tipo antes de sumar o comparar.'
+      properties:
+        boolean:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Boolean
+        date:
+          anyOf:
+          - format: date
+            type: string
+          - type: 'null'
+          title: Date
+        items:
+          anyOf:
+          - items:
+              type: string
+            maxItems: 100
+            type: array
+          - type: 'null'
+          title: Items
+        money:
+          anyOf:
+          - $ref: '#/components/schemas/Money'
+          - type: 'null'
+        number:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Number
+        text:
+          anyOf:
+          - maxLength: 2000
+            type: string
+          - type: 'null'
+          title: Text
+      title: FactValue
+      type: object
     HTTPValidationError:
       properties:
         detail:
@@ -192,6 +695,7 @@ components:
       - ends_at
       title: HoldCreate
       type: object
+    JsonValue: {}
     LiveResponse:
       properties:
         status:
@@ -235,6 +739,88 @@ components:
       - content
       title: MessageCreate
       type: object
+    Money:
+      additionalProperties: false
+      description: 'Monto en unidades menores más moneda (§2.3).
+
+
+        Nunca se representa un monto en flotante ni se suma en un prompt: el
+
+        estimador opera sobre `amount_minor` con código determinista.'
+      properties:
+        amount_minor:
+          description: Monto en la unidad menor de la moneda; 125000 son 1,250.00
+            MXN.
+          title: Amount Minor
+          type: integer
+        currency:
+          description: Código ISO 4217, por ejemplo 'MXN'.
+          pattern: ^[A-Z]{3}$
+          title: Currency
+          type: string
+      required:
+      - amount_minor
+      - currency
+      title: Money
+      type: object
+    NormalizedError:
+      additionalProperties: false
+      description: 'Error normalizado que cruza cualquier frontera de Nexo IA.
+
+
+        `outcome` es el campo que impide reintentos peligrosos: un `UNKNOWN`
+
+        significa que no sabemos si la operación tuvo efecto, y por tanto nunca se
+
+        reintenta de forma automática (`DIE-F0-035`).'
+      properties:
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        details:
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+          maxItems: 50
+          title: Details
+          type: array
+        message:
+          description: Mensaje para operadores. Nunca incluye prompts, secretos ni
+            PII.
+          maxLength: 500
+          title: Message
+          type: string
+        outcome:
+          $ref: '#/components/schemas/Outcome'
+          default: known_failure
+          description: Certeza sobre el efecto producido antes del fallo.
+        retry_after_ms:
+          anyOf:
+          - minimum: 0.0
+            type: integer
+          - type: 'null'
+          title: Retry After Ms
+        retryable:
+          description: Si la operación puede reintentarse tal cual, sin intervención.
+          title: Retryable
+          type: boolean
+      required:
+      - code
+      - message
+      - retryable
+      title: NormalizedError
+      type: object
+    Outcome:
+      description: 'Certeza sobre el efecto de una operación.
+
+
+        `UNKNOWN` es el caso peligroso: un write con outcome desconocido nunca se
+
+        reintenta automáticamente y produce `partial` (`DIE-F1-077`, `DIE-F1-081`).'
+      enum:
+      - known_success
+      - known_failure
+      - unknown
+      title: Outcome
+      type: string
     ProblemDetail:
       properties:
         code:
@@ -295,7 +881,7 @@ components:
       title: ReadyResponse
       type: object
     RunAccepted:
-      description: Respuesta 202 al postear un mensaje.
+      description: Acuse inmediato de un run que se ejecuta en segundo plano.
       properties:
         created_at:
           format: date-time
@@ -308,13 +894,7 @@ components:
           title: Run Id
           type: string
         status:
-          enum:
-          - running
-          - completed
-          - failed
-          - requires_action
-          title: Status
-          type: string
+          $ref: '#/components/schemas/RunStatus'
         trace_id:
           title: Trace Id
           type: string
@@ -326,64 +906,240 @@ components:
       - created_at
       title: RunAccepted
       type: object
+    RunMetrics:
+      additionalProperties: false
+      description: Métricas obligatorias del run. El gate exige que el 100% las registre.
+      properties:
+        duration_ms:
+          default: 0
+          maximum: 3600000.0
+          minimum: 0.0
+          title: Duration Ms
+          type: integer
+        first_event_ms:
+          anyOf:
+          - maximum: 3600000.0
+            minimum: 0.0
+            type: integer
+          - type: 'null'
+          title: First Event Ms
+        model_invocation_count:
+          default: 0
+          minimum: 0.0
+          title: Model Invocation Count
+          type: integer
+        question_count:
+          default: 0
+          minimum: 0.0
+          title: Question Count
+          type: integer
+        retrieval_count:
+          default: 0
+          minimum: 0.0
+          title: Retrieval Count
+          type: integer
+        tool_call_count:
+          default: 0
+          minimum: 0.0
+          title: Tool Call Count
+          type: integer
+        total_cost_usd:
+          default: 0.0
+          minimum: 0.0
+          title: Total Cost Usd
+          type: number
+        total_input_tokens:
+          default: 0
+          minimum: 0.0
+          title: Total Input Tokens
+          type: integer
+        total_output_tokens:
+          default: 0
+          minimum: 0.0
+          title: Total Output Tokens
+          type: integer
+      title: RunMetrics
+      type: object
     RunResult:
-      description: Snapshot de un run (§9.11).
+      additionalProperties: false
+      description: 'Salida del núcleo (§5.1).
+
+
+        Se construye desde `RunState` omitiendo todo lo interno: hechos candidatos
+
+        sin verificar, nodos completados, reintentos e invocaciones de modelo no
+
+        salen de la orquestación.'
       properties:
         answer:
           anyOf:
-          - type: string
+          - maxLength: 20000
+            type: string
           - type: 'null'
           title: Answer
         available_actions:
           items:
-            additionalProperties: true
-            type: object
+            $ref: '#/components/schemas/A2UIAction'
+          maxItems: 20
           title: Available Actions
           type: array
-        created_at:
-          format: date-time
-          title: Created At
+        catalog_version:
+          default: unset
+          maxLength: 80
+          title: Catalog Version
           type: string
-        domain:
+        error:
           anyOf:
-          - type: string
+          - $ref: '#/components/schemas/NormalizedError'
           - type: 'null'
-          title: Domain
+        estimate:
+          anyOf:
+          - $ref: '#/components/schemas/Estimate'
+          - type: 'null'
+        fallback:
+          anyOf:
+          - $ref: '#/components/schemas/ChannelFallback'
+          - type: 'null'
         metrics:
-          additionalProperties: true
-          title: Metrics
-          type: object
+          $ref: '#/components/schemas/RunMetrics'
+        questions:
+          items:
+            type: string
+          maxItems: 5
+          title: Questions
+          type: array
         run_id:
+          maxLength: 67
+          minLength: 5
           title: Run Id
           type: string
+        skill_id:
+          anyOf:
+          - maxLength: 80
+            type: string
+          - type: 'null'
+          title: Skill Id
+        skill_version:
+          anyOf:
+          - maxLength: 40
+            type: string
+          - type: 'null'
+          title: Skill Version
         sources:
           items:
-            additionalProperties: true
-            type: object
+            $ref: '#/components/schemas/SourceCitation'
+          maxItems: 200
           title: Sources
           type: array
         status:
-          enum:
-          - running
-          - completed
-          - failed
-          - requires_action
-          title: Status
-          type: string
+          $ref: '#/components/schemas/RunStatus'
+        surface:
+          anyOf:
+          - $ref: '#/components/schemas/A2UISurface'
+          - type: 'null'
         trace_id:
+          maxLength: 69
+          minLength: 7
           title: Trace Id
           type: string
+        verified_facts:
+          anyOf:
+          - $ref: '#/components/schemas/VerifiedFacts'
+          - type: 'null'
         warnings:
           items:
             type: string
+          maxItems: 100
           title: Warnings
           type: array
       required:
       - run_id
       - trace_id
       - status
-      - created_at
       title: RunResult
+      type: object
+    RunStatus:
+      description: 'Estados de un run (arquitectura §9.11).
+
+
+        `queued → planning → running → waiting_confirmation → running →
+
+        succeeded | partial | failed`; `cancelled` puede ocurrir antes del final.'
+      enum:
+      - queued
+      - planning
+      - running
+      - waiting_confirmation
+      - succeeded
+      - partial
+      - failed
+      - cancelled
+      title: RunStatus
+      type: string
+    SourceCitation:
+      additionalProperties: false
+      description: 'Referencia puntual a un fragmento de una fuente (§5.2).
+
+
+        Es inmutable a propósito: una citación es evidencia, y la evidencia no se
+
+        edita después de recogerse.'
+      properties:
+        char_end:
+          anyOf:
+          - minimum: 0.0
+            type: integer
+          - type: 'null'
+          title: Char End
+        char_start:
+          anyOf:
+          - minimum: 0.0
+            type: integer
+          - type: 'null'
+          description: Inicio del tramo relevante dentro del fragmento.
+          title: Char Start
+        corpus_version:
+          description: Versión de corpus vigente cuando se recuperó el fragmento.
+          maxLength: 120
+          title: Corpus Version
+          type: string
+        fragment_id:
+          maxLength: 68
+          minLength: 6
+          title: Fragment Id
+          type: string
+        is_active:
+          default: true
+          description: Falso si la fuente fue sustituida o venció; bloquea claims
+            críticos.
+          title: Is Active
+          type: boolean
+        source_id:
+          maxLength: 67
+          minLength: 5
+          title: Source Id
+          type: string
+        source_version:
+          maxLength: 40
+          title: Source Version
+          type: string
+        valid_from:
+          format: date
+          title: Valid From
+          type: string
+        valid_to:
+          anyOf:
+          - format: date
+            type: string
+          - type: 'null'
+          title: Valid To
+      required:
+      - source_id
+      - fragment_id
+      - corpus_version
+      - source_version
+      - valid_from
+      title: SourceCitation
       type: object
     TokenPair:
       properties:
@@ -401,6 +1157,162 @@ components:
       - access_token
       - refresh_token
       title: TokenPair
+      type: object
+    ToolCallStatus:
+      enum:
+      - succeeded
+      - failed
+      - denied
+      - timeout
+      title: ToolCallStatus
+      type: string
+    ToolConfirmation:
+      additionalProperties: false
+      description: 'Comprobante verificable de una escritura.
+
+
+        Sin folio, UUID o identificador equivalente no hay éxito: el resultado se
+
+        degrada a `partial` (`DIE-F1-078`).'
+      properties:
+        identifier:
+          description: Folio, UUID o identificador devuelto por el sistema destino.
+          maxLength: 120
+          minLength: 3
+          title: Identifier
+          type: string
+        identifier_kind:
+          default: folio
+          maxLength: 40
+          title: Identifier Kind
+          type: string
+        is_mock:
+          default: true
+          title: Is Mock
+          type: boolean
+        issued_at:
+          format: date-time
+          title: Issued At
+          type: string
+      required:
+      - identifier
+      - issued_at
+      title: ToolConfirmation
+      type: object
+    ToolError:
+      additionalProperties: false
+      description: Error normalizado de una tool (§5.4).
+      properties:
+        error:
+          $ref: '#/components/schemas/NormalizedError'
+        provider:
+          default: mock
+          maxLength: 100
+          title: Provider
+          type: string
+        safe_details:
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          title: Safe Details
+          type: object
+      required:
+      - error
+      title: ToolError
+      type: object
+    ToolResult:
+      additionalProperties: false
+      description: Resultado de una invocación (§5.4).
+      properties:
+        confirmation:
+          anyOf:
+          - $ref: '#/components/schemas/ToolConfirmation'
+          - type: 'null'
+        data:
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          title: Data
+          type: object
+        duration_ms:
+          maximum: 3600000.0
+          minimum: 0.0
+          title: Duration Ms
+          type: integer
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ToolError'
+          - type: 'null'
+        idempotency_replayed:
+          default: false
+          title: Idempotency Replayed
+          type: boolean
+        is_mock:
+          default: true
+          title: Is Mock
+          type: boolean
+        name:
+          description: Nombre `dominio.verbo_objeto`, por ejemplo 'vehiculos.reservar_cita'.
+          maxLength: 95
+          title: Name
+          type: string
+        provider:
+          default: mock
+          maxLength: 100
+          title: Provider
+          type: string
+        status:
+          $ref: '#/components/schemas/ToolCallStatus'
+        tool_call_id:
+          maxLength: 66
+          minLength: 4
+          title: Tool Call Id
+          type: string
+      required:
+      - tool_call_id
+      - name
+      - status
+      - duration_ms
+      title: ToolResult
+      type: object
+    UpdateComponents:
+      additionalProperties: false
+      properties:
+        components:
+          items:
+            $ref: '#/components/schemas/A2UIComponent'
+          maxItems: 200
+          minItems: 1
+          title: Components
+          type: array
+        surfaceId:
+          maxLength: 68
+          minLength: 6
+          title: Surfaceid
+          type: string
+      required:
+      - surfaceId
+      - components
+      title: UpdateComponents
+      type: object
+    UpdateDataModel:
+      additionalProperties: false
+      properties:
+        path:
+          maxLength: 300
+          pattern: ^/[A-Za-z0-9_/-]*$
+          title: Path
+          type: string
+        surfaceId:
+          maxLength: 68
+          minLength: 6
+          title: Surfaceid
+          type: string
+        value:
+          $ref: '#/components/schemas/JsonValue'
+      required:
+      - surfaceId
+      - path
+      - value
+      title: UpdateDataModel
       type: object
     UserProfile:
       properties:
@@ -462,6 +1374,127 @@ components:
       - msg
       - type
       title: ValidationError
+      type: object
+    VerificationStatus:
+      description: Resultado de verificar un hecho candidato (`DIE-F1-052`).
+      enum:
+      - accepted
+      - rejected
+      - uncertain
+      title: VerificationStatus
+      type: string
+    VerifiedFact:
+      additionalProperties: false
+      description: 'Hecho tras pasar por el verificador (§5.2).
+
+
+        Invariante central: si es crítico y fue aceptado, tiene al menos una
+
+        citación activa y es apto para escritura solo si además está aceptado.'
+      properties:
+        category:
+          $ref: '#/components/schemas/FactCategory'
+        citations:
+          items:
+            $ref: '#/components/schemas/SourceCitation'
+          maxItems: 20
+          title: Citations
+          type: array
+        claim:
+          maxLength: 1000
+          title: Claim
+          type: string
+        confidence:
+          maximum: 1.0
+          minimum: 0.0
+          title: Confidence
+          type: number
+        depends_on:
+          items:
+            maxLength: 68
+            minLength: 6
+            type: string
+          maxItems: 50
+          title: Depends On
+          type: array
+        domain:
+          $ref: '#/components/schemas/Domain'
+        fact_id:
+          maxLength: 68
+          minLength: 6
+          title: Fact Id
+          type: string
+        reason:
+          description: 'Motivo estable de la decisión. Ejemplo: ''source_expired''.'
+          maxLength: 300
+          title: Reason
+          type: string
+        supporting_tool_call_id:
+          anyOf:
+          - maxLength: 66
+            minLength: 4
+            type: string
+          - type: 'null'
+          description: Invocación de tool que respalda el hecho cuando su evidencia
+            no es documental. Es la otra forma admisible de fundamentar un claim crítico.
+          title: Supporting Tool Call Id
+        value:
+          $ref: '#/components/schemas/FactValue'
+        verification:
+          $ref: '#/components/schemas/VerificationStatus'
+        write_eligible:
+          default: false
+          title: Write Eligible
+          type: boolean
+      required:
+      - fact_id
+      - claim
+      - value
+      - category
+      - domain
+      - verification
+      - reason
+      - confidence
+      title: VerifiedFact
+      type: object
+    VerifiedFacts:
+      additionalProperties: false
+      description: 'Snapshot inmutable que reciben estimación final, A2UI y redactor
+        (§5.2).
+
+
+        El redactor solo ve esto: no tiene puertos de RAG ni de MCP, así que este
+
+        snapshot es literalmente el universo de hechos del que puede hablar
+
+        (`DIE-F1-094`).'
+      properties:
+        contradictions:
+          default: []
+          items:
+            $ref: '#/components/schemas/Contradiction'
+          maxItems: 100
+          title: Contradictions
+          type: array
+        created_at:
+          format: date-time
+          title: Created At
+          type: string
+        facts:
+          items:
+            $ref: '#/components/schemas/VerifiedFact'
+          maxItems: 500
+          title: Facts
+          type: array
+        snapshot_id:
+          maxLength: 120
+          title: Snapshot Id
+          type: string
+      required:
+      - snapshot_id
+      - created_at
+      - facts
+      title: VerifiedFacts
       type: object
   securitySchemes:
     HTTPBearer:
@@ -603,6 +1636,15 @@ paths:
   /api/v1/appointments/holds:
     post:
       operationId: create_hold_api_v1_appointments_holds_post
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Idempotency-Key
       requestBody:
         content:
           application/json:

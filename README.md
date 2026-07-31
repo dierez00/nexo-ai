@@ -2,9 +2,11 @@
 
 ## Objetivo
 
-Hub omnicanal de asistentes e integración institucional. El núcleo Python de
-las Fases 0 y 1 ya es ejecutable completamente offline; las aplicaciones web,
-la API y las integraciones externas avanzan en módulos separados.
+Hub omnicanal de asistentes e integración institucional. El repositorio contiene
+un núcleo de contratos/orquestación de las Fases 0 y 1, ejecutable offline, y
+una API FastAPI MVP con auth, conversaciones, citas, acciones idempotentes,
+webhooks Twilio y SSE. Las aplicaciones web e integraciones externas avanzan
+en módulos separados.
 
 ## Documentos principales
 
@@ -21,7 +23,10 @@ la API y las integraciones externas avanzan en módulos separados.
 
 ## Estado de ejecución
 
-Los comandos `docker compose up --build` y `./run.sh` son entregables futuros. No se documentan como disponibles hasta que existan y tengan un smoke test.
+Implementado: `docker compose up --build api`, healthchecks, CI, logging JSONL,
+OpenAPI y runbook. El streaming SSE del MVP se ejecuta en proceso; un reinicio
+cancela runs activos. Worker/cola durable, voz y adapters institucionales reales
+siguen pendientes.
 
 ### Núcleo Python (Fases 0 y 1 — `implementadas`)
 
@@ -34,9 +39,8 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -e ./contracts -e ./rag -e ./mcp \
   -e ./orchestration -e ./agents -e ./a2ui
 .venv/bin/python -m pip install pytest pytest-asyncio ruff
-.venv/bin/python -m pytest -c pyproject.toml \
-  contracts/tests orchestration/tests rag/tests mcp/tests agents/tests \
-  a2ui/tests tests/e2e
+uv sync --all-packages --frozen
+uv run pytest
 ```
 
 Regenerar los artefactos derivados de `contracts/` tras cambiar un modelo:
@@ -60,7 +64,9 @@ Ver [`docs/team/fase1_hallazgos.md`](./docs/team/fase1_hallazgos.md).
 
 ## Dependencias, ejemplos y tareas
 
-La raíz enlaza todos los módulos, pero no contiene lógica de uno en particular. Archivos ejemplo futuros: `compose.yaml`, `.env.example` y `run.sh`. Tareas iniciales: bootstrap, healthchecks, seed E2E y guion.
+La raíz coordina el workspace Python. Requiere `uv >= 0.12`; en PowerShell usa
+`./scripts/lint.ps1` y `./scripts/test.ps1`. `docker-compose.yml` y
+`.env.example` están materializados; `run.sh` sigue pendiente.
 
 Responsable de instalación futura: Dani. Todo el equipo valida alcance y demo. La raíz se considera terminada cuando una persona nueva puede comprender y ejecutar el proyecto sin ayuda.
 

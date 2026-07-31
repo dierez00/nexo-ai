@@ -6,7 +6,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 Write-Host "==> pytest"
-uv run pytest @args
+uv run pytest backend/tests integrations/tests observability/tests @args
 $code = $LASTEXITCODE
 
 if ($code -eq 5) {

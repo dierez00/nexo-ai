@@ -16,6 +16,7 @@ dependencies = [
     "nexo-contracts",
     "nexo-integrations",
     "nexo-observability",
+    "nexo-orchestration",
 ]
 
 [build-system]
@@ -29,3 +30,4 @@ packages = ["src/nexo_api"]
 nexo-contracts = { workspace = true }
 nexo-integrations = { workspace = true }
 nexo-observability = { workspace = true }
+nexo-orchestration = { workspace = true }

@@ -16,6 +16,15 @@ DATABASE_URL = os.environ.get(
 )
 
 
+def pytest_runtest_setup(item: pytest.Item) -> None:
+    """Evita abrir Postgres fuera del gate explícito de Supabase local."""
+    normalized_path = str(item.path).replace("\\", "/")
+    if "tests/integration/database/" in normalized_path and os.environ.get(
+        "NEXO_RUN_DB_INTEGRATION"
+    ) != "1":
+        pytest.skip("requiere Supabase local; usa NEXO_RUN_DB_INTEGRATION=1")
+
+
 def new_conn() -> psycopg.Connection:
     """Abre una conexión nueva e independiente (rol postgres, superusuario)."""
     conn = psycopg.connect(DATABASE_URL, autocommit=True)

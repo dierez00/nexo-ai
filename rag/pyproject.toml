@@ -20,3 +20,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/nexo_rag"]
+
+[tool.uv.sources]
+nexo-contracts = { workspace = true }
