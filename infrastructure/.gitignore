@@ -1,0 +1,10 @@
+# infrastructure — .gitignore defensivo
+.env
+.env.*
+!.env.example
+docker-compose.override.yml
+*.local.yaml
+*.local.yml
+# Volúmenes y datos locales de contenedores
+volumes/
+.docker/

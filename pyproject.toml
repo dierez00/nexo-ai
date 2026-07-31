@@ -1,70 +1,87 @@
-# Configuración compartida del workspace Python de Nexo IA.
-#
-# La raíz no es un paquete instalable: solo agrupa la configuración de tooling
-# para que pytest, Ruff y mypy se comporten igual en cada módulo y en CI.
-# Cada paquete (`contracts`, `orchestration`, `rag`, `mcp`) declara sus propias
-# dependencias en su `pyproject.toml`.
+[project]
+name = "nexo-ai"
+version = "0.1.0"
+description = "nexo-ai — workspace raíz (paquete virtual)"
+requires-python = ">=3.12"
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = [
+    "backend",
+    "integrations",
+    "observability",
+]
 
 [dependency-groups]
 dev = [
-    "pytest>=8.3,<9",
-    "pytest-asyncio>=0.24,<2",
-    "ruff>=0.7,<1",
-    "mypy>=1.13,<2",
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "httpx>=0.27",
+    "ruff>=0.6",
+    "mypy>=1.11",
 ]
 
-[tool.pytest.ini_options]
-minversion = "8.0"
-testpaths = [
-    "contracts/tests",
-    "orchestration/tests",
-    "rag/tests",
-    "mcp/tests",
-    "tests",
-]
-markers = [
-    "unit: prueba aislada, determinista y sin I/O externo",
-    "contract: verifica un contrato compartido entre módulos",
-    "integration: cruza una frontera real de proceso o almacenamiento",
-    "e2e: recorre el sistema de extremo a extremo",
-    "eval: mide calidad contra un dataset versionado",
-    "security: verifica un guardrail de seguridad",
-]
-addopts = "--strict-markers --strict-config -q"
-asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "function"
-filterwarnings = [
-    "error",
-    # LangGraph 0.6 emite este aviso al importar su serializador; no depende de
-    # nuestro código y desaparecerá al actualizar el framework.
-    "ignore::langchain_core._api.beta_decorator.LangChainBetaWarning",
-    "ignore:The default value of `allowed_objects`:DeprecationWarning",
-    "ignore:The default value of `allowed_objects`:PendingDeprecationWarning",
-]
-
+# =============================================================================
+# Ruff — linter y formatter compartido
+# =============================================================================
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-src = [
-    "contracts/src",
-    "orchestration/src",
-    "rag/src",
-    "mcp/src",
-]
-# Las skills versionadas son artefactos de terceros con su propio estilo; el
-# lint del núcleo no debe reescribirlas.
+# .agents = skills/plantillas vendidas (no es código del workspace)
 extend-exclude = [".agents", ".venv"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
-# El código y la documentación están en español técnico: los caracteres que
-# estas reglas marcan como "ambiguos" (acentos, «×», guiones largos) son
-# ortografía correcta, no confusiones tipográficas.
-ignore = ["RUF001", "RUF002", "RUF003"]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "S",   # flake8-bandit (seguridad básica)
+    "ANN", # anotaciones de tipo
+]
+ignore = [
+    "S101", # assert en tests está bien
+]
 
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S", "ANN"]
+"**/migrations/**" = ["ANN"]
+# Repositorios: SQL siempre parametrizado; los f-strings solo interpolan listas
+# de columnas constantes (nunca input de usuario) → S608 es ruido aquí.
+"**/repositories/**" = ["S608"]
+
+# FastAPI usa Depends/Query/etc. como valores por defecto de argumentos:
+# es el idiom del framework, no el bug que B008 busca.
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Header",
+    "fastapi.Body",
+    "fastapi.Security",
+]
+
+# =============================================================================
+# mypy — type checking compartido
+# =============================================================================
 [tool.mypy]
 python_version = "3.12"
 strict = true
+warn_return_any = true
 warn_unused_ignores = true
-plugins = ["pydantic.mypy"]
-mypy_path = "contracts/src:orchestration/src:rag/src:mcp/src"
+no_implicit_reexport = true
+explicit_package_bases = true
+mypy_path = "backend/src:integrations/src:observability/src"
+exclude = ['\.agents/', '\.venv/']
+
+# =============================================================================
+# pytest
+# =============================================================================
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests", "backend/tests", "integrations/tests", "observability/tests"]

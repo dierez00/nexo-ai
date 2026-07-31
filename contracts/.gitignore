@@ -1,0 +1,6 @@
+# contracts — .gitignore defensivo
+.env
+.env.*
+!.env.example
+# Clientes TypeScript generados se regeneran desde CI; no versionar si se decide así
+# generated/
