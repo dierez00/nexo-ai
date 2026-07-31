@@ -1,0 +1,1673 @@
+{
+  "entities": [
+    {
+      "domain": null,
+      "entity_id": "dependency:inst_demo",
+      "kind": "dependency",
+      "references": [],
+      "title": "Institución demostrativa",
+      "version": "1.0.0"
+    },
+    {
+      "domain": null,
+      "entity_id": "agent:classifier",
+      "kind": "agent",
+      "references": [],
+      "title": "classifier",
+      "version": "1.0.0"
+    },
+    {
+      "domain": null,
+      "entity_id": "agent:supervisor",
+      "kind": "agent",
+      "references": [],
+      "title": "supervisor",
+      "version": "1.0.0"
+    },
+    {
+      "domain": null,
+      "entity_id": "agent:domain_navigator",
+      "kind": "agent",
+      "references": [],
+      "title": "domain_navigator",
+      "version": "1.0.0"
+    },
+    {
+      "domain": null,
+      "entity_id": "agent:verifier",
+      "kind": "agent",
+      "references": [],
+      "title": "verifier",
+      "version": "1.0.0"
+    },
+    {
+      "domain": null,
+      "entity_id": "agent:estimator",
+      "kind": "agent",
+      "references": [],
+      "title": "estimator",
+      "version": "1.0.0"
+    },
+    {
+      "domain": null,
+      "entity_id": "agent:transactional",
+      "kind": "agent",
+      "references": [],
+      "title": "transactional",
+      "version": "1.0.0"
+    },
+    {
+      "domain": null,
+      "entity_id": "agent:writer",
+      "kind": "agent",
+      "references": [],
+      "title": "writer",
+      "version": "1.0.0"
+    },
+    {
+      "domain": null,
+      "entity_id": "agent:signal_analyst",
+      "kind": "agent",
+      "references": [],
+      "title": "signal_analyst",
+      "version": "1.0.0"
+    },
+    {
+      "domain": null,
+      "entity_id": "agent:judge",
+      "kind": "agent",
+      "references": [],
+      "title": "judge",
+      "version": "1.0.0"
+    },
+    {
+      "domain": null,
+      "entity_id": "agent:prompt_assistant",
+      "kind": "agent",
+      "references": [],
+      "title": "prompt_assistant",
+      "version": "1.0.0"
+    },
+    {
+      "domain": null,
+      "entity_id": "policy:policies-2026-07-30",
+      "kind": "policy",
+      "references": [],
+      "title": "Políticas de ejecución",
+      "version": "policies-2026-07-30"
+    },
+    {
+      "domain": null,
+      "entity_id": "model:offline_fake",
+      "kind": "model",
+      "references": [],
+      "title": "offline_fake",
+      "version": "router-2026-07-30"
+    },
+    {
+      "domain": null,
+      "entity_id": "model:general",
+      "kind": "model",
+      "references": [],
+      "title": "general",
+      "version": "router-2026-07-30"
+    },
+    {
+      "domain": null,
+      "entity_id": "model:structured_small",
+      "kind": "model",
+      "references": [],
+      "title": "structured_small",
+      "version": "router-2026-07-30"
+    },
+    {
+      "domain": null,
+      "entity_id": "model:high_accuracy",
+      "kind": "model",
+      "references": [],
+      "title": "high_accuracy",
+      "version": "router-2026-07-30"
+    },
+    {
+      "domain": null,
+      "entity_id": "model:judge_secondary",
+      "kind": "model",
+      "references": [],
+      "title": "judge_secondary",
+      "version": "router-2026-07-30"
+    },
+    {
+      "domain": null,
+      "entity_id": "a2ui:card",
+      "kind": "a2ui_component",
+      "references": [],
+      "title": "Card",
+      "version": "citizen-v1"
+    },
+    {
+      "domain": null,
+      "entity_id": "a2ui:checklist",
+      "kind": "a2ui_component",
+      "references": [],
+      "title": "Checklist",
+      "version": "citizen-v1"
+    },
+    {
+      "domain": null,
+      "entity_id": "a2ui:column",
+      "kind": "a2ui_component",
+      "references": [],
+      "title": "Column",
+      "version": "citizen-v1"
+    },
+    {
+      "domain": null,
+      "entity_id": "a2ui:confirmbutton",
+      "kind": "a2ui_component",
+      "references": [],
+      "title": "ConfirmButton",
+      "version": "citizen-v1"
+    },
+    {
+      "domain": null,
+      "entity_id": "a2ui:costsummary",
+      "kind": "a2ui_component",
+      "references": [],
+      "title": "CostSummary",
+      "version": "citizen-v1"
+    },
+    {
+      "domain": null,
+      "entity_id": "a2ui:list",
+      "kind": "a2ui_component",
+      "references": [],
+      "title": "List",
+      "version": "citizen-v1"
+    },
+    {
+      "domain": null,
+      "entity_id": "a2ui:slotpicker",
+      "kind": "a2ui_component",
+      "references": [],
+      "title": "SlotPicker",
+      "version": "citizen-v1"
+    },
+    {
+      "domain": null,
+      "entity_id": "a2ui:sourcelist",
+      "kind": "a2ui_component",
+      "references": [],
+      "title": "SourceList",
+      "version": "citizen-v1"
+    },
+    {
+      "domain": null,
+      "entity_id": "a2ui:statusbanner",
+      "kind": "a2ui_component",
+      "references": [],
+      "title": "StatusBanner",
+      "version": "citizen-v1"
+    },
+    {
+      "domain": null,
+      "entity_id": "a2ui:text",
+      "kind": "a2ui_component",
+      "references": [],
+      "title": "Text",
+      "version": "citizen-v1"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "domain:vehiculos",
+      "kind": "domain",
+      "references": [],
+      "title": "Vehículos",
+      "version": "domain-vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "module:vehiculos",
+      "kind": "module",
+      "references": [],
+      "title": "Vehículos",
+      "version": "domain-vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "source:src_veh_licencias",
+      "kind": "source",
+      "references": [],
+      "title": "Requisitos de renovación de licencia de conducir tipo A",
+      "version": "vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "source:src_veh_tarifas",
+      "kind": "source",
+      "references": [],
+      "title": "Tarifas de trámites vehiculares — ejercicio 2026",
+      "version": "vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "source:src_veh_tarifas_2024",
+      "kind": "source",
+      "references": [],
+      "title": "Tarifas de trámites vehiculares — ejercicio 2024 (sustituido)",
+      "version": "vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "source:src_veh_modulos",
+      "kind": "source",
+      "references": [],
+      "title": "Módulos de atención vehicular — ubicación y horarios",
+      "version": "vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "source:src_veh_avisos",
+      "kind": "source",
+      "references": [],
+      "title": "Avisos a la ciudadanía (documento manipulado, caso adversarial)",
+      "version": "vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "source:src_veh_modulos_2023",
+      "kind": "source",
+      "references": [],
+      "title": "Directorio de módulos 2023 (vencido)",
+      "version": "vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "skill:skill_veh_adeudo",
+      "kind": "skill",
+      "references": [],
+      "title": "Consulta de adeudo vehicular",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "skill:skill_veh_renovacion",
+      "kind": "skill",
+      "references": [],
+      "title": "Renovación de licencia de conducir con verificación de adeudo",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "service:vehiculos:renovar_licencia",
+      "kind": "service",
+      "references": [],
+      "title": "Renovar licencia de conducir",
+      "version": "domain-vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "procedure:vehiculos:renovar_licencia",
+      "kind": "procedure",
+      "references": [],
+      "title": "Renovar licencia de conducir",
+      "version": "domain-vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "service:vehiculos:consultar_adeudo",
+      "kind": "service",
+      "references": [],
+      "title": "Consultar adeudo vehicular",
+      "version": "domain-vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "procedure:vehiculos:consultar_adeudo",
+      "kind": "procedure",
+      "references": [],
+      "title": "Consultar adeudo vehicular",
+      "version": "domain-vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "service:vehiculos:localizar_modulo",
+      "kind": "service",
+      "references": [],
+      "title": "Localizar módulo de atención",
+      "version": "domain-vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "procedure:vehiculos:localizar_modulo",
+      "kind": "procedure",
+      "references": [],
+      "title": "Localizar módulo de atención",
+      "version": "domain-vehiculos-2026-07-30"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "tool:vehiculos.consultar_adeudo",
+      "kind": "tool",
+      "references": [],
+      "title": "vehiculos.consultar_adeudo",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "tool:vehiculos.localizar_modulo",
+      "kind": "tool",
+      "references": [],
+      "title": "vehiculos.localizar_modulo",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "tool:vehiculos.buscar_citas",
+      "kind": "tool",
+      "references": [],
+      "title": "vehiculos.buscar_citas",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "vehiculos",
+      "entity_id": "tool:vehiculos.reservar_cita",
+      "kind": "tool",
+      "references": [],
+      "title": "vehiculos.reservar_cita",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "domain:ayuntamiento_empresas",
+      "kind": "domain",
+      "references": [],
+      "title": "Ayuntamiento y apertura de empresas",
+      "version": "domain-ayuntamiento-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "module:ayuntamiento_empresas",
+      "kind": "module",
+      "references": [],
+      "title": "Ayuntamiento y apertura de empresas",
+      "version": "domain-ayuntamiento-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "source:src_ayto_apertura",
+      "kind": "source",
+      "references": [],
+      "title": "Apertura de un establecimiento comercial — ruta de trámites",
+      "version": "ayuntamiento_empresas-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "source:src_ayto_uso_suelo",
+      "kind": "source",
+      "references": [],
+      "title": "Constancia de uso de suelo — requisitos y criterios",
+      "version": "ayuntamiento_empresas-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "source:src_ayto_tarifas",
+      "kind": "source",
+      "references": [],
+      "title": "Derechos municipales por trámites de apertura — ejercicio 2026",
+      "version": "ayuntamiento_empresas-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "source:src_ayto_proteccion_civil",
+      "kind": "source",
+      "references": [],
+      "title": "Visto bueno de protección civil — requisitos",
+      "version": "ayuntamiento_empresas-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "source:src_ayto_sanidad",
+      "kind": "source",
+      "references": [],
+      "title": "Aviso de funcionamiento sanitario — giros de alimentos",
+      "version": "ayuntamiento_empresas-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "source:src_ayto_tarifas_2024",
+      "kind": "source",
+      "references": [],
+      "title": "Derechos municipales por apertura — ejercicio 2024 (sustituido)",
+      "version": "ayuntamiento_empresas-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "source:src_ayto_directorio_2024",
+      "kind": "source",
+      "references": [],
+      "title": "Directorio municipal 2024 (vencido)",
+      "version": "ayuntamiento_empresas-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "source:src_ayto_avisos",
+      "kind": "source",
+      "references": [],
+      "title": "Aviso municipal manipulado",
+      "version": "ayuntamiento_empresas-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "skill:skill_emp_apertura",
+      "kind": "skill",
+      "references": [],
+      "title": "Apertura de un establecimiento comercial de bajo impacto",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "service:ayuntamiento_empresas:abrir_negocio",
+      "kind": "service",
+      "references": [],
+      "title": "Abrir un establecimiento comercial",
+      "version": "domain-ayuntamiento-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "procedure:ayuntamiento_empresas:abrir_negocio",
+      "kind": "procedure",
+      "references": [],
+      "title": "Abrir un establecimiento comercial",
+      "version": "domain-ayuntamiento-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "service:ayuntamiento_empresas:consultar_uso_suelo",
+      "kind": "service",
+      "references": [],
+      "title": "Consultar uso de suelo",
+      "version": "domain-ayuntamiento-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "procedure:ayuntamiento_empresas:consultar_uso_suelo",
+      "kind": "procedure",
+      "references": [],
+      "title": "Consultar uso de suelo",
+      "version": "domain-ayuntamiento-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "service:ayuntamiento_empresas:consultar_costos_tramites",
+      "kind": "service",
+      "references": [],
+      "title": "Consultar costos de los trámites municipales",
+      "version": "domain-ayuntamiento-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "procedure:ayuntamiento_empresas:consultar_costos_tramites",
+      "kind": "procedure",
+      "references": [],
+      "title": "Consultar costos de los trámites municipales",
+      "version": "domain-ayuntamiento-2026-07-30"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "tool:ayuntamiento.consultar_uso_suelo",
+      "kind": "tool",
+      "references": [],
+      "title": "ayuntamiento.consultar_uso_suelo",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "tool:ayuntamiento.calcular_costos",
+      "kind": "tool",
+      "references": [],
+      "title": "ayuntamiento.calcular_costos",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "tool:ayuntamiento.consultar_requisitos_negocio",
+      "kind": "tool",
+      "references": [],
+      "title": "ayuntamiento.consultar_requisitos_negocio",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "tool:ayuntamiento.consultar_citas",
+      "kind": "tool",
+      "references": [],
+      "title": "ayuntamiento.consultar_citas",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ayuntamiento_empresas",
+      "entity_id": "tool:ayuntamiento.registrar_solicitud",
+      "kind": "tool",
+      "references": [],
+      "title": "ayuntamiento.registrar_solicitud",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "domain:registro_civil",
+      "kind": "domain",
+      "references": [],
+      "title": "Registro Civil",
+      "version": "domain-registro-civil-2026-07-30"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "module:registro_civil",
+      "kind": "module",
+      "references": [],
+      "title": "Registro Civil",
+      "version": "domain-registro-civil-2026-07-30"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "source:src_rc_tramites",
+      "kind": "source",
+      "references": [],
+      "title": "Copias, aclaraciones y correcciones de actas",
+      "version": "registro-civil-2026-07-30"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "source:src_rc_oficialias",
+      "kind": "source",
+      "references": [],
+      "title": "Directorio público de oficialías",
+      "version": "registro-civil-2026-07-30"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "source:src_rc_tramites_2024",
+      "kind": "source",
+      "references": [],
+      "title": "Guía de trámites de actas 2024 (sustituida)",
+      "version": "registro-civil-2026-07-30"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "source:src_rc_avisos",
+      "kind": "source",
+      "references": [],
+      "title": "Aviso manipulado de Registro Civil",
+      "version": "registro-civil-2026-07-30"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "source:src_rc_oficialias_2023",
+      "kind": "source",
+      "references": [],
+      "title": "Directorio de oficialías 2023 (vencido)",
+      "version": "registro-civil-2026-07-30"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "skill:skill_rc_copia",
+      "kind": "skill",
+      "references": [],
+      "title": "Copia certificada de acta",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "skill:skill_rc_correccion",
+      "kind": "skill",
+      "references": [],
+      "title": "Aclaración o corrección de acta",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "service:registro_civil:corregir_acta",
+      "kind": "service",
+      "references": [],
+      "title": "Aclarar o corregir un acta",
+      "version": "domain-registro-civil-2026-07-30"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "procedure:registro_civil:corregir_acta",
+      "kind": "procedure",
+      "references": [],
+      "title": "Aclarar o corregir un acta",
+      "version": "domain-registro-civil-2026-07-30"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "service:registro_civil:obtener_copia",
+      "kind": "service",
+      "references": [],
+      "title": "Obtener copia certificada de un acta",
+      "version": "domain-registro-civil-2026-07-30"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "procedure:registro_civil:obtener_copia",
+      "kind": "procedure",
+      "references": [],
+      "title": "Obtener copia certificada de un acta",
+      "version": "domain-registro-civil-2026-07-30"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "service:registro_civil:localizar_oficialia",
+      "kind": "service",
+      "references": [],
+      "title": "Localizar oficialía",
+      "version": "domain-registro-civil-2026-07-30"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "procedure:registro_civil:localizar_oficialia",
+      "kind": "procedure",
+      "references": [],
+      "title": "Localizar oficialía",
+      "version": "domain-registro-civil-2026-07-30"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "tool:registro_civil.clasificar_tipo_correccion",
+      "kind": "tool",
+      "references": [],
+      "title": "registro_civil.clasificar_tipo_correccion",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "tool:registro_civil.localizar_oficialia",
+      "kind": "tool",
+      "references": [],
+      "title": "registro_civil.localizar_oficialia",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "tool:registro_civil.consultar_disponibilidad",
+      "kind": "tool",
+      "references": [],
+      "title": "registro_civil.consultar_disponibilidad",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "registro_civil",
+      "entity_id": "tool:registro_civil.registrar_solicitud",
+      "kind": "tool",
+      "references": [],
+      "title": "registro_civil.registrar_solicitud",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "domain:salud",
+      "kind": "domain",
+      "references": [],
+      "title": "Navegación de servicios de salud",
+      "version": "domain-salud-2026-07-30"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "module:salud",
+      "kind": "module",
+      "references": [],
+      "title": "Navegación de servicios de salud",
+      "version": "domain-salud-2026-07-30"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "source:src_sal_directorio",
+      "kind": "source",
+      "references": [],
+      "title": "Directorio público de unidades de salud",
+      "version": "salud-2026-07-30"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "source:src_sal_servicios",
+      "kind": "source",
+      "references": [],
+      "title": "Servicios y requisitos administrativos",
+      "version": "salud-2026-07-30"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "source:src_sal_directorio_2024",
+      "kind": "source",
+      "references": [],
+      "title": "Directorio de unidades 2024 (vencido)",
+      "version": "salud-2026-07-30"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "source:src_sal_avisos",
+      "kind": "source",
+      "references": [],
+      "title": "Aviso manipulado de navegación de salud",
+      "version": "salud-2026-07-30"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "source:src_sal_servicios_2024",
+      "kind": "source",
+      "references": [],
+      "title": "Servicios administrativos 2024 (sustituidos)",
+      "version": "salud-2026-07-30"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "skill:skill_sal_navegacion",
+      "kind": "skill",
+      "references": [],
+      "title": "Navegación administrativa de servicios de salud",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "service:salud:localizar_unidad",
+      "kind": "service",
+      "references": [],
+      "title": "Localizar unidad de salud",
+      "version": "domain-salud-2026-07-30"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "procedure:salud:localizar_unidad",
+      "kind": "procedure",
+      "references": [],
+      "title": "Localizar unidad de salud",
+      "version": "domain-salud-2026-07-30"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "service:salud:consultar_servicio",
+      "kind": "service",
+      "references": [],
+      "title": "Consultar servicios y requisitos administrativos",
+      "version": "domain-salud-2026-07-30"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "procedure:salud:consultar_servicio",
+      "kind": "procedure",
+      "references": [],
+      "title": "Consultar servicios y requisitos administrativos",
+      "version": "domain-salud-2026-07-30"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "tool:salud.localizar_unidad_salud",
+      "kind": "tool",
+      "references": [],
+      "title": "salud.localizar_unidad_salud",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "tool:salud.consultar_servicios",
+      "kind": "tool",
+      "references": [],
+      "title": "salud.consultar_servicios",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "tool:salud.consultar_requisitos",
+      "kind": "tool",
+      "references": [],
+      "title": "salud.consultar_requisitos",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "salud",
+      "entity_id": "tool:salud.buscar_horarios",
+      "kind": "tool",
+      "references": [],
+      "title": "salud.buscar_horarios",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "domain:ganaderia",
+      "kind": "domain",
+      "references": [],
+      "title": "Ganadería",
+      "version": "domain-ganaderia-2026-07-30"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "module:ganaderia",
+      "kind": "module",
+      "references": [],
+      "title": "Ganadería",
+      "version": "domain-ganaderia-2026-07-30"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "source:src_gan_expediente",
+      "kind": "source",
+      "references": [],
+      "title": "Expediente e historial sanitario animal",
+      "version": "ganaderia-2026-07-30"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "source:src_gan_movilizacion",
+      "kind": "source",
+      "references": [],
+      "title": "Requisitos de movilización pecuaria",
+      "version": "ganaderia-2026-07-30"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "source:src_gan_movilizacion_2024",
+      "kind": "source",
+      "references": [],
+      "title": "Requisitos de movilización 2024 (sustituidos)",
+      "version": "ganaderia-2026-07-30"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "source:src_gan_avisos",
+      "kind": "source",
+      "references": [],
+      "title": "Aviso manipulado de ganadería",
+      "version": "ganaderia-2026-07-30"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "source:src_gan_expediente_2023",
+      "kind": "source",
+      "references": [],
+      "title": "Guía de expediente animal 2023 (vencida)",
+      "version": "ganaderia-2026-07-30"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "skill:skill_gan_expediente",
+      "kind": "skill",
+      "references": [],
+      "title": "Consulta de expediente animal",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "skill:skill_gan_movilizacion",
+      "kind": "skill",
+      "references": [],
+      "title": "Validación documental de movilización",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "skill:skill_gan_vacunacion",
+      "kind": "skill",
+      "references": [],
+      "title": "Registro confirmado de vacunación",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "service:ganaderia:consultar_expediente",
+      "kind": "service",
+      "references": [],
+      "title": "Consultar expediente e historial animal",
+      "version": "domain-ganaderia-2026-07-30"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "procedure:ganaderia:consultar_expediente",
+      "kind": "procedure",
+      "references": [],
+      "title": "Consultar expediente e historial animal",
+      "version": "domain-ganaderia-2026-07-30"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "service:ganaderia:registrar_vacuna",
+      "kind": "service",
+      "references": [],
+      "title": "Registrar una vacuna",
+      "version": "domain-ganaderia-2026-07-30"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "procedure:ganaderia:registrar_vacuna",
+      "kind": "procedure",
+      "references": [],
+      "title": "Registrar una vacuna",
+      "version": "domain-ganaderia-2026-07-30"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "service:ganaderia:validar_movilizacion",
+      "kind": "service",
+      "references": [],
+      "title": "Validar requisitos de movilización",
+      "version": "domain-ganaderia-2026-07-30"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "procedure:ganaderia:validar_movilizacion",
+      "kind": "procedure",
+      "references": [],
+      "title": "Validar requisitos de movilización",
+      "version": "domain-ganaderia-2026-07-30"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "tool:ganaderia.consultar_animal",
+      "kind": "tool",
+      "references": [],
+      "title": "ganaderia.consultar_animal",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "tool:ganaderia.consultar_historial",
+      "kind": "tool",
+      "references": [],
+      "title": "ganaderia.consultar_historial",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "tool:ganaderia.registrar_vacuna",
+      "kind": "tool",
+      "references": [],
+      "title": "ganaderia.registrar_vacuna",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "tool:ganaderia.validar_movilizacion",
+      "kind": "tool",
+      "references": [],
+      "title": "ganaderia.validar_movilizacion",
+      "version": "1.0.0"
+    },
+    {
+      "domain": "ganaderia",
+      "entity_id": "tool:ganaderia.consultar_alertas",
+      "kind": "tool",
+      "references": [],
+      "title": "ganaderia.consultar_alertas",
+      "version": "1.0.0"
+    }
+  ],
+  "lifecycle": "active",
+  "relations": [
+    {
+      "relation": "belongs_to",
+      "source_id": "module:vehiculos",
+      "target_id": "domain:vehiculos"
+    },
+    {
+      "relation": "served_by",
+      "source_id": "domain:vehiculos",
+      "target_id": "dependency:inst_demo"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:vehiculos",
+      "target_id": "source:src_veh_licencias"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:vehiculos",
+      "target_id": "source:src_veh_tarifas"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:vehiculos",
+      "target_id": "source:src_veh_tarifas_2024"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:vehiculos",
+      "target_id": "source:src_veh_modulos"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:vehiculos",
+      "target_id": "source:src_veh_avisos"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:vehiculos",
+      "target_id": "source:src_veh_modulos_2023"
+    },
+    {
+      "relation": "offers_skill",
+      "source_id": "domain:vehiculos",
+      "target_id": "skill:skill_veh_adeudo"
+    },
+    {
+      "relation": "offers_skill",
+      "source_id": "domain:vehiculos",
+      "target_id": "skill:skill_veh_renovacion"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:vehiculos",
+      "target_id": "service:vehiculos:renovar_licencia"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:vehiculos:renovar_licencia",
+      "target_id": "procedure:vehiculos:renovar_licencia"
+    },
+    {
+      "relation": "uses_skill",
+      "source_id": "procedure:vehiculos:renovar_licencia",
+      "target_id": "skill:skill_veh_renovacion"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:vehiculos",
+      "target_id": "service:vehiculos:consultar_adeudo"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:vehiculos:consultar_adeudo",
+      "target_id": "procedure:vehiculos:consultar_adeudo"
+    },
+    {
+      "relation": "uses_skill",
+      "source_id": "procedure:vehiculos:consultar_adeudo",
+      "target_id": "skill:skill_veh_adeudo"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:vehiculos",
+      "target_id": "service:vehiculos:localizar_modulo"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:vehiculos:localizar_modulo",
+      "target_id": "procedure:vehiculos:localizar_modulo"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:vehiculos",
+      "target_id": "tool:vehiculos.consultar_adeudo"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:vehiculos",
+      "target_id": "tool:vehiculos.localizar_modulo"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:vehiculos",
+      "target_id": "tool:vehiculos.buscar_citas"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:vehiculos",
+      "target_id": "tool:vehiculos.reservar_cita"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:vehiculos",
+      "target_id": "a2ui:checklist"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:vehiculos",
+      "target_id": "a2ui:statusbanner"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:vehiculos",
+      "target_id": "a2ui:costsummary"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:vehiculos",
+      "target_id": "a2ui:sourcelist"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:vehiculos",
+      "target_id": "a2ui:slotpicker"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:vehiculos",
+      "target_id": "a2ui:confirmbutton"
+    },
+    {
+      "relation": "belongs_to",
+      "source_id": "module:ayuntamiento_empresas",
+      "target_id": "domain:ayuntamiento_empresas"
+    },
+    {
+      "relation": "served_by",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "dependency:inst_demo"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "source:src_ayto_apertura"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "source:src_ayto_uso_suelo"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "source:src_ayto_tarifas"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "source:src_ayto_proteccion_civil"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "source:src_ayto_sanidad"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "source:src_ayto_tarifas_2024"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "source:src_ayto_directorio_2024"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "source:src_ayto_avisos"
+    },
+    {
+      "relation": "offers_skill",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "skill:skill_emp_apertura"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "service:ayuntamiento_empresas:abrir_negocio"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:ayuntamiento_empresas:abrir_negocio",
+      "target_id": "procedure:ayuntamiento_empresas:abrir_negocio"
+    },
+    {
+      "relation": "uses_skill",
+      "source_id": "procedure:ayuntamiento_empresas:abrir_negocio",
+      "target_id": "skill:skill_emp_apertura"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "service:ayuntamiento_empresas:consultar_uso_suelo"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:ayuntamiento_empresas:consultar_uso_suelo",
+      "target_id": "procedure:ayuntamiento_empresas:consultar_uso_suelo"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "service:ayuntamiento_empresas:consultar_costos_tramites"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:ayuntamiento_empresas:consultar_costos_tramites",
+      "target_id": "procedure:ayuntamiento_empresas:consultar_costos_tramites"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "tool:ayuntamiento.consultar_uso_suelo"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "tool:ayuntamiento.calcular_costos"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "tool:ayuntamiento.consultar_requisitos_negocio"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "tool:ayuntamiento.consultar_citas"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "tool:ayuntamiento.registrar_solicitud"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "a2ui:checklist"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "a2ui:statusbanner"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "a2ui:costsummary"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "a2ui:sourcelist"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "a2ui:slotpicker"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:ayuntamiento_empresas",
+      "target_id": "a2ui:confirmbutton"
+    },
+    {
+      "relation": "belongs_to",
+      "source_id": "module:registro_civil",
+      "target_id": "domain:registro_civil"
+    },
+    {
+      "relation": "served_by",
+      "source_id": "domain:registro_civil",
+      "target_id": "dependency:inst_demo"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:registro_civil",
+      "target_id": "source:src_rc_tramites"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:registro_civil",
+      "target_id": "source:src_rc_oficialias"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:registro_civil",
+      "target_id": "source:src_rc_tramites_2024"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:registro_civil",
+      "target_id": "source:src_rc_avisos"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:registro_civil",
+      "target_id": "source:src_rc_oficialias_2023"
+    },
+    {
+      "relation": "offers_skill",
+      "source_id": "domain:registro_civil",
+      "target_id": "skill:skill_rc_copia"
+    },
+    {
+      "relation": "offers_skill",
+      "source_id": "domain:registro_civil",
+      "target_id": "skill:skill_rc_correccion"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:registro_civil",
+      "target_id": "service:registro_civil:corregir_acta"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:registro_civil:corregir_acta",
+      "target_id": "procedure:registro_civil:corregir_acta"
+    },
+    {
+      "relation": "uses_skill",
+      "source_id": "procedure:registro_civil:corregir_acta",
+      "target_id": "skill:skill_rc_correccion"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:registro_civil",
+      "target_id": "service:registro_civil:obtener_copia"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:registro_civil:obtener_copia",
+      "target_id": "procedure:registro_civil:obtener_copia"
+    },
+    {
+      "relation": "uses_skill",
+      "source_id": "procedure:registro_civil:obtener_copia",
+      "target_id": "skill:skill_rc_copia"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:registro_civil",
+      "target_id": "service:registro_civil:localizar_oficialia"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:registro_civil:localizar_oficialia",
+      "target_id": "procedure:registro_civil:localizar_oficialia"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:registro_civil",
+      "target_id": "tool:registro_civil.clasificar_tipo_correccion"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:registro_civil",
+      "target_id": "tool:registro_civil.localizar_oficialia"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:registro_civil",
+      "target_id": "tool:registro_civil.consultar_disponibilidad"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:registro_civil",
+      "target_id": "tool:registro_civil.registrar_solicitud"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:registro_civil",
+      "target_id": "a2ui:checklist"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:registro_civil",
+      "target_id": "a2ui:statusbanner"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:registro_civil",
+      "target_id": "a2ui:sourcelist"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:registro_civil",
+      "target_id": "a2ui:slotpicker"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:registro_civil",
+      "target_id": "a2ui:confirmbutton"
+    },
+    {
+      "relation": "belongs_to",
+      "source_id": "module:salud",
+      "target_id": "domain:salud"
+    },
+    {
+      "relation": "served_by",
+      "source_id": "domain:salud",
+      "target_id": "dependency:inst_demo"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:salud",
+      "target_id": "source:src_sal_directorio"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:salud",
+      "target_id": "source:src_sal_servicios"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:salud",
+      "target_id": "source:src_sal_directorio_2024"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:salud",
+      "target_id": "source:src_sal_avisos"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:salud",
+      "target_id": "source:src_sal_servicios_2024"
+    },
+    {
+      "relation": "offers_skill",
+      "source_id": "domain:salud",
+      "target_id": "skill:skill_sal_navegacion"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:salud",
+      "target_id": "service:salud:localizar_unidad"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:salud:localizar_unidad",
+      "target_id": "procedure:salud:localizar_unidad"
+    },
+    {
+      "relation": "uses_skill",
+      "source_id": "procedure:salud:localizar_unidad",
+      "target_id": "skill:skill_sal_navegacion"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:salud",
+      "target_id": "service:salud:consultar_servicio"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:salud:consultar_servicio",
+      "target_id": "procedure:salud:consultar_servicio"
+    },
+    {
+      "relation": "uses_skill",
+      "source_id": "procedure:salud:consultar_servicio",
+      "target_id": "skill:skill_sal_navegacion"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:salud",
+      "target_id": "tool:salud.localizar_unidad_salud"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:salud",
+      "target_id": "tool:salud.consultar_servicios"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:salud",
+      "target_id": "tool:salud.consultar_requisitos"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:salud",
+      "target_id": "tool:salud.buscar_horarios"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:salud",
+      "target_id": "a2ui:checklist"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:salud",
+      "target_id": "a2ui:statusbanner"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:salud",
+      "target_id": "a2ui:sourcelist"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:salud",
+      "target_id": "a2ui:list"
+    },
+    {
+      "relation": "belongs_to",
+      "source_id": "module:ganaderia",
+      "target_id": "domain:ganaderia"
+    },
+    {
+      "relation": "served_by",
+      "source_id": "domain:ganaderia",
+      "target_id": "dependency:inst_demo"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:ganaderia",
+      "target_id": "source:src_gan_expediente"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:ganaderia",
+      "target_id": "source:src_gan_movilizacion"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:ganaderia",
+      "target_id": "source:src_gan_movilizacion_2024"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:ganaderia",
+      "target_id": "source:src_gan_avisos"
+    },
+    {
+      "relation": "allows_source",
+      "source_id": "domain:ganaderia",
+      "target_id": "source:src_gan_expediente_2023"
+    },
+    {
+      "relation": "offers_skill",
+      "source_id": "domain:ganaderia",
+      "target_id": "skill:skill_gan_expediente"
+    },
+    {
+      "relation": "offers_skill",
+      "source_id": "domain:ganaderia",
+      "target_id": "skill:skill_gan_movilizacion"
+    },
+    {
+      "relation": "offers_skill",
+      "source_id": "domain:ganaderia",
+      "target_id": "skill:skill_gan_vacunacion"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:ganaderia",
+      "target_id": "service:ganaderia:consultar_expediente"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:ganaderia:consultar_expediente",
+      "target_id": "procedure:ganaderia:consultar_expediente"
+    },
+    {
+      "relation": "uses_skill",
+      "source_id": "procedure:ganaderia:consultar_expediente",
+      "target_id": "skill:skill_gan_expediente"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:ganaderia",
+      "target_id": "service:ganaderia:registrar_vacuna"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:ganaderia:registrar_vacuna",
+      "target_id": "procedure:ganaderia:registrar_vacuna"
+    },
+    {
+      "relation": "uses_skill",
+      "source_id": "procedure:ganaderia:registrar_vacuna",
+      "target_id": "skill:skill_gan_vacunacion"
+    },
+    {
+      "relation": "offers",
+      "source_id": "domain:ganaderia",
+      "target_id": "service:ganaderia:validar_movilizacion"
+    },
+    {
+      "relation": "implements",
+      "source_id": "service:ganaderia:validar_movilizacion",
+      "target_id": "procedure:ganaderia:validar_movilizacion"
+    },
+    {
+      "relation": "uses_skill",
+      "source_id": "procedure:ganaderia:validar_movilizacion",
+      "target_id": "skill:skill_gan_movilizacion"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:ganaderia",
+      "target_id": "tool:ganaderia.consultar_animal"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:ganaderia",
+      "target_id": "tool:ganaderia.consultar_historial"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:ganaderia",
+      "target_id": "tool:ganaderia.registrar_vacuna"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:ganaderia",
+      "target_id": "tool:ganaderia.validar_movilizacion"
+    },
+    {
+      "relation": "allows_tool",
+      "source_id": "domain:ganaderia",
+      "target_id": "tool:ganaderia.consultar_alertas"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:ganaderia",
+      "target_id": "a2ui:checklist"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:ganaderia",
+      "target_id": "a2ui:statusbanner"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:ganaderia",
+      "target_id": "a2ui:sourcelist"
+    },
+    {
+      "relation": "recommends_component",
+      "source_id": "domain:ganaderia",
+      "target_id": "a2ui:confirmbutton"
+    }
+  ],
+  "version": "core-catalog-2026-07-30"
+}

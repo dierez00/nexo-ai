@@ -1,0 +1,185 @@
+{
+  "events": [
+    {
+      "actor": {
+        "name": "read_tools",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_denied",
+      "data": {
+        "node": "read_tools"
+      },
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_wf_denied_001",
+      "parent_event_id": null,
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "node": "read_tools"
+      },
+      "run_id": "run_wf_denied",
+      "sequence": 1,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "started",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_denied",
+      "type": "agent.started",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "ganaderia.consultar_animal",
+        "type": "tool"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_denied",
+      "data": {
+        "reason": "no_permission_rule"
+      },
+      "duration_ms": null,
+      "error": {
+        "code": "PERMISSION_DENIED",
+        "details": [],
+        "message": "La operación no pudo completarse de forma segura.",
+        "outcome": "known_failure",
+        "retry_after_ms": null,
+        "retryable": false
+      },
+      "event_id": "evt_wf_denied_002",
+      "parent_event_id": "evt_wf_denied_001",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "reason": "no_permission_rule"
+      },
+      "run_id": "run_wf_denied",
+      "sequence": 2,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "denied",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_denied",
+      "type": "tool.denied",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "supervisor",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_denied",
+      "data": {
+        "outcome": "permission_denied"
+      },
+      "duration_ms": null,
+      "error": {
+        "code": "PROVIDER_ERROR",
+        "details": [],
+        "message": "La operación no pudo completarse de forma segura.",
+        "outcome": "known_failure",
+        "retry_after_ms": null,
+        "retryable": true
+      },
+      "event_id": "evt_wf_denied_003",
+      "parent_event_id": "evt_wf_denied_002",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "outcome": "permission_denied"
+      },
+      "run_id": "run_wf_denied",
+      "sequence": 3,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "failed",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_denied",
+      "type": "run.partial",
+      "visibility": "public"
+    }
+  ],
+  "replay": {
+    "catalog_version": "core-catalog-2026-07-30",
+    "correlation_id": "trace_wf_denied",
+    "edges": [
+      {
+        "source": "read_tools",
+        "target": "evt_wf_denied_002"
+      }
+    ],
+    "final_event_type": "run.partial",
+    "last_sequence": 3,
+    "mapping_version": "workflow-event-mapping-v1",
+    "nodes": [
+      {
+        "completed_sequence": null,
+        "duration_ms": null,
+        "kind": "agent",
+        "label": "read_tools",
+        "node_id": "read_tools",
+        "started_sequence": 1,
+        "status": "started"
+      },
+      {
+        "completed_sequence": 2,
+        "duration_ms": null,
+        "kind": "tool",
+        "label": "tool.denied",
+        "node_id": "evt_wf_denied_002",
+        "started_sequence": 2,
+        "status": "denied"
+      }
+    ],
+    "run_id": "run_wf_denied",
+    "skill_id": "skill_sal_navegacion",
+    "skill_version": "1.0.0",
+    "timeline": [
+      {
+        "actor_name": "read_tools",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_denied",
+        "data": {
+          "node": "read_tools"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_denied_001",
+        "parent_event_id": null,
+        "sequence": 1,
+        "status": "started",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "agent.started"
+      },
+      {
+        "actor_name": "ganaderia.consultar_animal",
+        "actor_type": "tool",
+        "correlation_id": "trace_wf_denied",
+        "data": {
+          "reason": "no_permission_rule"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_denied_002",
+        "parent_event_id": "evt_wf_denied_001",
+        "sequence": 2,
+        "status": "denied",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "tool.denied"
+      },
+      {
+        "actor_name": "supervisor",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_denied",
+        "data": {
+          "outcome": "permission_denied"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_denied_003",
+        "parent_event_id": "evt_wf_denied_002",
+        "sequence": 3,
+        "status": "failed",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "run.partial"
+      }
+    ]
+  }
+}
