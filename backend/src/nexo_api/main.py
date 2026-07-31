@@ -45,6 +45,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         "app.startup",
         app_env=settings.app_env,
         orchestrator_profile=settings.orchestrator_profile,
+        model_backend=(
+            app.state.graph_assembly.model_backend if app.state.graph_assembly is not None else None
+        ),
     )
     if settings.app_env != "development":
         try:
@@ -59,6 +62,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         yield
     finally:
         await app.state.run_task_manager.shutdown(settings.run_shutdown_grace_seconds)
+        if app.state.graph_assembly is not None:
+            await app.state.graph_assembly.aclose()
         await dispose_engine()
         log.info("app.shutdown")
 

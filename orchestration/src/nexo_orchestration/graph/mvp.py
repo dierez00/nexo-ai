@@ -150,6 +150,7 @@ class MVPDependencies:
     surface_builder: CitizenSurfaceBuilder | None = None
     surface_validator: SurfaceValidator | None = None
     central_catalog: CentralCatalog | None = None
+    strict_model_errors: bool = False
 
 
 @dataclass
@@ -439,6 +440,8 @@ class MVPGraph:
 
         run = self._charge(run, outcome.invocations, ledger)
         run = await self._emit_model_events(run, outcome.invocations)
+        if self.deps.strict_model_errors and outcome.error is not None:
+            return await self._fail(run, NODE_CLASSIFY, outcome.error)
         classification = outcome.classification
         run = run.model_copy(
             update={
@@ -626,6 +629,8 @@ class MVPGraph:
 
         run = self._charge(run, result.invocations, ledger)
         run = await self._emit_model_events(run, result.invocations)
+        if self.deps.strict_model_errors and result.error is not None:
+            return await self._fail(run, NODE_NAVIGATE, result.error)
         questions = list(run.questions)
         if result.question is not None and result.question not in questions:
             questions.append(result.question)
@@ -912,6 +917,8 @@ class MVPGraph:
         )
         run = self._charge(run, outcome.invocations, ledger)
         run = await self._emit_model_events(run, outcome.invocations)
+        if self.deps.strict_model_errors and outcome.error is not None:
+            return await self._fail(run, NODE_WRITE_ANSWER, outcome.error)
         run = run.model_copy(update={"answer": outcome.answer})
         run = await self.emitter.node_completed(run, NODE_WRITE_ANSWER, duration_ms=0)
         return _graph(await self._persist(run, NODE_WRITE_ANSWER))

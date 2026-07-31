@@ -188,7 +188,13 @@ class Writer:
         try:
             outcome = await self.gateway.invoke(chat, context, DraftedAnswer)
         except ModelPortError as exc:
-            return self._from_template(template, facts, channel, error=exc.error)
+            return self._from_template(
+                template,
+                facts,
+                channel,
+                error=exc.error,
+                invocations=tuple(exc.invocations),
+            )
 
         drafted = outcome.value
         assert drafted is not None

@@ -128,7 +128,11 @@ class Classifier:
         try:
             outcome = await self.gateway.invoke(chat, context, Classification)
         except ModelPortError as exc:
-            return self._fallback(request, invocations=(), error=exc.error)
+            return self._fallback(
+                request,
+                invocations=tuple(exc.invocations),
+                error=exc.error,
+            )
 
         classification = outcome.value
         assert classification is not None  # `invoke` con contrato o devuelve valor o lanza

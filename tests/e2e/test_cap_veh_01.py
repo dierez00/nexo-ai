@@ -23,7 +23,7 @@ from nexo_contracts import (
     ToolMode,
 )
 from nexo_orchestration.graph.mvp import NODE_NAVIGATE, NODE_RETRIEVE, MVPGraph
-from nexo_orchestration.testing import Scenario
+from nexo_orchestration.testing import FakeBehavior, Scenario
 from nexo_rag.testing import load_corpus
 
 from .runtime import (
@@ -125,6 +125,56 @@ def _vehicle_scenarios(fragments: dict[str, str]) -> dict[str, Scenario]:
             )
         ),
     }
+
+
+async def test_strict_profile_fails_on_classifier_model_error() -> None:
+    runtime = await build_runtime(
+        scenarios={
+            "classify_request": Scenario(behavior=FakeBehavior.PROVIDER_DOWN),
+        },
+        strict_model_errors=True,
+    )
+
+    result = await runtime.graph.invoke(citizen_request(MESSAGE))
+
+    assert result.status is RunStatus.FAILED
+    assert result.answer is None
+    assert result.error is not None
+    assert result.error.code.value == "MODEL_UNAVAILABLE"
+    assert "model.failed" in runtime.events.types(RUN_ID)
+    assert "run.failed" in runtime.events.types(RUN_ID)
+
+
+async def test_strict_profile_fails_on_navigator_model_error(
+    fragments: dict[str, str],
+) -> None:
+    scenarios = _vehicle_scenarios(fragments)
+    scenarios["navigate_domain"] = Scenario(behavior=FakeBehavior.PROVIDER_DOWN)
+    runtime = await build_runtime(scenarios=scenarios, strict_model_errors=True)
+
+    result = await runtime.graph.invoke(citizen_request(MESSAGE))
+
+    assert result.status is RunStatus.FAILED
+    assert result.answer is None
+    assert result.error is not None
+    assert "model.failed" in runtime.events.types(RUN_ID)
+    assert "run.failed" in runtime.events.types(RUN_ID)
+
+
+async def test_strict_profile_fails_on_writer_model_error(
+    fragments: dict[str, str],
+) -> None:
+    scenarios = _vehicle_scenarios(fragments)
+    scenarios["write_answer"] = Scenario(behavior=FakeBehavior.PROVIDER_DOWN)
+    runtime = await build_runtime(scenarios=scenarios, strict_model_errors=True)
+
+    result = await runtime.graph.invoke(citizen_request(MESSAGE))
+
+    assert result.status is RunStatus.FAILED
+    assert result.answer is None
+    assert result.error is not None
+    assert "model.failed" in runtime.events.types(RUN_ID)
+    assert "run.failed" in runtime.events.types(RUN_ID)
 
 
 @pytest.fixture

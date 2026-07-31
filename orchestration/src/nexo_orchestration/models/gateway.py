@@ -26,7 +26,8 @@ al modelo falso, y la demo completa corre sin red ni credenciales
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+import asyncio
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Annotated
@@ -47,7 +48,12 @@ from nexo_contracts import (
     NormalizedError,
     Outcome,
 )
-from nexo_contracts.config import ModelAliasConfig, ModelRouterConfig, RunOutcomePolicy
+from nexo_contracts.config import (
+    ModelAliasConfig,
+    ModelRouterConfig,
+    RetryPolicy,
+    RunOutcomePolicy,
+)
 from nexo_contracts.ids import RunId, TraceId
 
 from ..ports.clock import Clock, IdFactory
@@ -117,9 +123,15 @@ class ModelGateway:
     adapters: Mapping[str, ChatAdapterPort]
     clock: Clock
     ids: IdFactory
+    retry: RetryPolicy = field(default_factory=RetryPolicy)
+    sleep: Callable[[float], Awaitable[None]] = field(default=asyncio.sleep, repr=False)
     max_alias_hops: int = field(
         default=3,
         metadata={"why": "cota dura: un fallback que encadena sin límite es un run colgado"},
+    )
+    max_total_attempts: int = field(
+        default=5,
+        metadata={"why": "ModelInvocation limita attempt a cinco y la traza debe ser acotada"},
     )
 
     def __post_init__(self) -> None:
@@ -326,124 +338,214 @@ class ModelGateway:
         invocations: list[ModelInvocation] = []
         tried: list[ModelAlias] = []
         last_error: NormalizedError | None = None
+        call_started_ms = self.clock.monotonic_ms()
+        attempt = 0
+        alias_hops = 0
 
-        for attempt in range(1, self.max_alias_hops + 1):
-            tried.append(alias)
+        while alias_hops < self.max_alias_hops and attempt < self.max_total_attempts:
+            alias_hops += 1
+            if alias not in tried:
+                tried.append(alias)
             entry = self._alias_config(alias)
             decision = self._decision(
                 request=request, selected=alias, reason=reason, considered=considered
             )
+            alias_attempt = 0
+            move_to_next_alias = False
 
-            # `DIE-F1-006`: el presupuesto se comprueba antes de gastar, no después.
-            try:
-                context.ledger.ensure_affordable(
-                    max_cost_usd=request.max_cost_usd, deadline_ms=request.deadline_ms
-                )
-            except BudgetExceededError as exc:
-                invocations.append(
-                    self._record(
-                        context=context,
-                        decision=decision,
-                        attempt=attempt,
-                        input_tokens=0,
-                        output_tokens=0,
-                        cost_usd=0.0,
-                        duration_ms=0,
-                        started_at=self.clock.now(),
-                        error=exc.error,
+            while alias_attempt < self.retry.max_attempts and attempt < self.max_total_attempts:
+                alias_attempt += 1
+                attempt += 1
+                elapsed_call_ms = self.clock.monotonic_ms() - call_started_ms
+                remaining_ms = request.deadline_ms - elapsed_call_ms
+                if remaining_ms <= 0:
+                    timeout_error = NormalizedError.from_code(
+                        ErrorCode.RUN_TIMEOUT,
+                        f"se agotó el deadline del purpose {request.purpose!r}",
                     )
-                )
-                raise ModelPortError(exc.error) from exc
-
-            started_at = self.clock.now()
-            started_ms = self.clock.monotonic_ms()
-            adapter = self.adapters[entry.provider_ref.provider]
-
-            try:
-                result = await adapter.generate(request, model=entry.provider_ref.model)
-            except ModelPortError as exc:
-                elapsed = self.clock.monotonic_ms() - started_ms
-                context.ledger.charge(cost_usd=0.0, input_tokens=0, output_tokens=0)
-                invocations.append(
-                    self._record(
-                        context=context,
-                        decision=decision,
-                        attempt=attempt,
-                        input_tokens=0,
-                        output_tokens=0,
-                        cost_usd=0.0,
-                        duration_ms=elapsed,
-                        started_at=started_at,
-                        error=exc.error,
+                    invocations.append(
+                        self._record(
+                            context=context,
+                            decision=decision,
+                            attempt=attempt,
+                            input_tokens=0,
+                            output_tokens=0,
+                            cost_usd=0.0,
+                            duration_ms=0,
+                            started_at=self.clock.now(),
+                            error=timeout_error,
+                        )
                     )
-                )
-                last_error = exc.error
-                nxt = self._next_alias(code=exc.error.code, policy=policy, tried=tried)
-                if nxt is None:
-                    raise
-                alias, reason = nxt
-                continue
+                    raise ModelPortError(timeout_error, invocations=tuple(invocations))
 
-            cost = self._cost(
-                entry, input_tokens=result.input_tokens, output_tokens=result.output_tokens
-            )
-            context.ledger.charge(
-                cost_usd=cost,
-                input_tokens=result.input_tokens,
-                output_tokens=result.output_tokens,
-            )
-
-            value: M | None = None
-            schema_error: NormalizedError | None = None
-            if contract is not None:
+                # `DIE-F1-006`: el presupuesto se comprueba antes de gastar, no después.
                 try:
-                    value = contract.model_validate(result.data)
-                except ValidationError as exc:
-                    schema_error = _output_contract_error(request.output_contract, exc)
+                    context.ledger.ensure_affordable(
+                        max_cost_usd=request.max_cost_usd, deadline_ms=remaining_ms
+                    )
+                except BudgetExceededError as exc:
+                    invocations.append(
+                        self._record(
+                            context=context,
+                            decision=decision,
+                            attempt=attempt,
+                            input_tokens=0,
+                            output_tokens=0,
+                            cost_usd=0.0,
+                            duration_ms=0,
+                            started_at=self.clock.now(),
+                            error=exc.error,
+                        )
+                    )
+                    raise ModelPortError(exc.error, invocations=tuple(invocations)) from exc
 
-            invocations.append(
-                self._record(
-                    context=context,
-                    decision=decision,
-                    attempt=attempt,
+                started_at = self.clock.now()
+                started_ms = self.clock.monotonic_ms()
+                adapter = self.adapters[entry.provider_ref.provider]
+
+                try:
+                    result = await adapter.generate(
+                        request,
+                        model=entry.provider_ref.model,
+                        output_contract=contract,
+                        max_output_tokens=entry.capabilities.max_output_tokens,
+                        timeout_ms=remaining_ms,
+                    )
+                except ModelPortError as exc:
+                    elapsed = self.clock.monotonic_ms() - started_ms
+                    duration_ms = exc.duration_ms or elapsed
+                    cost = self._cost(
+                        entry,
+                        input_tokens=exc.input_tokens,
+                        output_tokens=exc.output_tokens,
+                    )
+                    context.ledger.charge(
+                        cost_usd=cost,
+                        input_tokens=exc.input_tokens,
+                        output_tokens=exc.output_tokens,
+                    )
+                    invocations.append(
+                        self._record(
+                            context=context,
+                            decision=decision,
+                            attempt=attempt,
+                            input_tokens=exc.input_tokens,
+                            output_tokens=exc.output_tokens,
+                            cost_usd=cost,
+                            duration_ms=duration_ms,
+                            started_at=started_at,
+                            error=exc.error,
+                        )
+                    )
+                    last_error = exc.error
+                    if await self._retry_current_alias(
+                        error=exc.error,
+                        alias_attempt=alias_attempt,
+                        call_started_ms=call_started_ms,
+                        deadline_ms=request.deadline_ms,
+                    ):
+                        continue
+                    nxt = self._next_alias(code=exc.error.code, policy=policy, tried=tried)
+                    if nxt is None:
+                        raise ModelPortError(exc.error, invocations=tuple(invocations)) from exc
+                    alias, reason = nxt
+                    move_to_next_alias = True
+                    break
+
+                cost = self._cost(
+                    entry, input_tokens=result.input_tokens, output_tokens=result.output_tokens
+                )
+                context.ledger.charge(
+                    cost_usd=cost,
                     input_tokens=result.input_tokens,
                     output_tokens=result.output_tokens,
-                    cost_usd=cost,
-                    duration_ms=result.duration_ms,
-                    started_at=started_at,
-                    error=schema_error,
                 )
-            )
 
-            if schema_error is None:
-                return ModelOutcome[M](
-                    value=value,
-                    response=ChatResponse(
-                        data=result.data,
+                value: M | None = None
+                schema_error: NormalizedError | None = None
+                if contract is not None:
+                    try:
+                        value = contract.model_validate(result.data)
+                    except ValidationError as exc:
+                        schema_error = _output_contract_error(request.output_contract, exc)
+
+                invocations.append(
+                    self._record(
+                        context=context,
                         decision=decision,
+                        attempt=attempt,
                         input_tokens=result.input_tokens,
                         output_tokens=result.output_tokens,
-                        estimated_cost_usd=cost,
+                        cost_usd=cost,
                         duration_ms=result.duration_ms,
-                    ),
-                    invocations=invocations,
+                        started_at=started_at,
+                        error=schema_error,
+                    )
                 )
 
-            last_error = schema_error
-            nxt = self._next_alias(code=schema_error.code, policy=policy, tried=tried)
-            if nxt is None:
-                raise ModelPortError(schema_error)
-            alias, reason = nxt
+                if schema_error is None:
+                    return ModelOutcome[M](
+                        value=value,
+                        response=ChatResponse(
+                            data=result.data,
+                            decision=decision,
+                            input_tokens=result.input_tokens,
+                            output_tokens=result.output_tokens,
+                            estimated_cost_usd=cost,
+                            duration_ms=result.duration_ms,
+                        ),
+                        invocations=invocations,
+                    )
+
+                last_error = schema_error
+                if await self._retry_current_alias(
+                    error=schema_error,
+                    alias_attempt=alias_attempt,
+                    call_started_ms=call_started_ms,
+                    deadline_ms=request.deadline_ms,
+                ):
+                    continue
+                nxt = self._next_alias(code=schema_error.code, policy=policy, tried=tried)
+                if nxt is None:
+                    raise ModelPortError(schema_error, invocations=tuple(invocations))
+                alias, reason = nxt
+                move_to_next_alias = True
+                break
+
+            if move_to_next_alias:
+                continue
+            break
 
         assert last_error is not None  # el bucle solo termina tras al menos un fallo
-        raise ModelPortError(
-            NormalizedError.from_code(
-                last_error.code,
-                f"se agotaron los {self.max_alias_hops} intentos de alias para el purpose "
-                f"{request.purpose!r}; último motivo: {last_error.message}",
-                outcome=last_error.outcome,
-            )
+        exhausted = NormalizedError.from_code(
+            last_error.code,
+            f"se agotaron los intentos de modelo para el purpose "
+            f"{request.purpose!r}; último motivo: {last_error.message}",
+            outcome=last_error.outcome,
         )
+        raise ModelPortError(
+            exhausted,
+            invocations=tuple(invocations),
+        )
+
+    async def _retry_current_alias(
+        self,
+        *,
+        error: NormalizedError,
+        alias_attempt: int,
+        call_started_ms: int,
+        deadline_ms: int,
+    ) -> bool:
+        """Espera, si cabe en el deadline, antes de repetir el mismo proveedor."""
+        if error.code not in self.retry.retry_on or alias_attempt >= self.retry.max_attempts:
+            return False
+        remaining_ms = deadline_ms - (self.clock.monotonic_ms() - call_started_ms)
+        delay_ms = error.retry_after_ms or 0
+        if remaining_ms <= 0 or delay_ms >= remaining_ms:
+            return False
+        if delay_ms:
+            await self.sleep(delay_ms / 1000)
+        return True
 
     async def generate(self, request: ChatRequest) -> ChatResponse:
         """Conformidad con `ChatModelPort`, sin atribución a un run.

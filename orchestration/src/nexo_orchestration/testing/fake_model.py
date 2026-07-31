@@ -22,6 +22,7 @@ from nexo_contracts import (
     ErrorCode,
     ModelDecision,
     ModelDecisionReason,
+    NexoModel,
     NormalizedError,
     Outcome,
 )
@@ -74,10 +75,16 @@ class Scenario:
     input_tokens: int = 120
     output_tokens: int = 40
     cost_usd: float = 0.0
+    retry_after_ms: int | None = None
 
     def error(self) -> NormalizedError:
         code, message, outcome = _ERROR_BY_BEHAVIOR[self.behavior]
-        return NormalizedError.from_code(code, message, outcome=outcome)
+        return NormalizedError.from_code(
+            code,
+            message,
+            outcome=outcome,
+            retry_after_ms=self.retry_after_ms,
+        )
 
 
 class ScenarioScript:
@@ -201,7 +208,16 @@ class FakeChatAdapter:
     def program(self, purpose: str, *scenarios: Scenario) -> None:
         self._script.program(purpose, *scenarios)
 
-    async def generate(self, request: ChatRequest, *, model: str) -> AdapterResult:
+    async def generate(
+        self,
+        request: ChatRequest,
+        *,
+        model: str,
+        output_contract: type[NexoModel] | None,
+        max_output_tokens: int,
+        timeout_ms: int,
+    ) -> AdapterResult:
+        del output_contract, max_output_tokens, timeout_ms
         self.calls.append((request.purpose, model))
         scenario = self._script.next(request.purpose)
         if scenario.behavior is not FakeBehavior.SUCCESS:

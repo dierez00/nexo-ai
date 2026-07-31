@@ -18,6 +18,7 @@ from pydantic import Field, JsonValue
 from nexo_contracts import (
     ModelAlias,
     ModelDecision,
+    ModelInvocation,
     ModelTaskKind,
     NexoModel,
     NormalizedError,
@@ -87,6 +88,18 @@ class ModelPortError(Exception):
     mismo código estable que después registrará en el evento.
     """
 
-    def __init__(self, error: NormalizedError) -> None:
+    def __init__(
+        self,
+        error: NormalizedError,
+        *,
+        invocations: tuple[ModelInvocation, ...] = (),
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+        duration_ms: int = 0,
+    ) -> None:
         self.error = error
+        self.invocations = invocations
+        self.input_tokens = input_tokens
+        self.output_tokens = output_tokens
+        self.duration_ms = duration_ms
         super().__init__(f"{error.code.value}: {error.message}")

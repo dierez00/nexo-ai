@@ -113,6 +113,7 @@ async def build_runtime(
     root: Path | None = None,
     failures: dict[str, AdapterFailure] | None = None,
     with_a2ui: bool = True,
+    strict_model_errors: bool = False,
 ) -> OfflineRuntime:
     """Ensambla el MVP offline con los escenarios de modelo programados."""
     resolved_root = root or repository_root()
@@ -177,6 +178,7 @@ async def build_runtime(
         surface_builder=CitizenSurfaceBuilder() if with_a2ui else None,
         surface_validator=SurfaceValidator(catalog=CITIZEN_CATALOG) if with_a2ui else None,
         central_catalog=central_catalog,
+        strict_model_errors=strict_model_errors,
     )
 
     events = InMemoryEventSink()

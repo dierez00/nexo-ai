@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from nexo_contracts import ConfigurationError
+from nexo_contracts import ConfigurationError, ErrorCode
 from nexo_orchestration.configuration import CONFIG_FILES, default_config_dir, load_config
 
 pytestmark = pytest.mark.unit
@@ -204,3 +204,26 @@ def test_configuration_holds_no_secret_values() -> None:
             assert "secret://" in stripped, (
                 f"{filename} parece contener un secreto literal: {stripped!r}"
             )
+
+
+def test_gemini_profile_is_pinned_and_has_no_model_fallback() -> None:
+    config = load_config(model_profile="gemini")
+    online = [
+        entry for entry in config.model_router.aliases if entry.provider_ref.provider == "gemini"
+    ]
+
+    assert {entry.provider_ref.model for entry in online} == {"gemini-3.6-flash"}
+    assert {entry.alias for entry in online} == {
+        "general",
+        "structured_small",
+        "high_accuracy",
+        "judge_secondary",
+    }
+    assert {entry.capabilities.cost_per_1k_input_usd for entry in online} == {0.0015}
+    assert {entry.capabilities.cost_per_1k_output_usd for entry in online} == {0.0075}
+    assert config.policies.outcomes.fallback_on == []
+    model_call = next(
+        operation for operation in config.policies.operations if operation.operation == "model_call"
+    )
+    assert model_call.retry.max_attempts == 2
+    assert ErrorCode.MODEL_OUTPUT_INVALID not in model_call.retry.retry_on

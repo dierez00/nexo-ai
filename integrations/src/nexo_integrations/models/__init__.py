@@ -1,1 +1,5 @@
-"""Adapter de modelos — gateway con aliases y fallback."""
+"""Adapters de proveedores de modelos."""
+
+from .gemini import GeminiChatAdapter
+
+__all__ = ["GeminiChatAdapter"]

@@ -1,0 +1,124 @@
+# Router online para Gemini. Se activa únicamente cuando el composition root
+# selecciona el backend `gemini`; las credenciales nunca viven aquí.
+
+version: router-gemini-2026-07-31
+
+allowed_providers:
+  - fake
+  - gemini
+
+aliases:
+  - alias: offline_fake
+    provider_ref:
+      provider: fake
+      model: fake-deterministic-v1
+    capabilities:
+      supports_structured_output: true
+      max_context_tokens: 200000
+      max_output_tokens: 8192
+      cost_per_1k_input_usd: 0.0
+      cost_per_1k_output_usd: 0.0
+    enabled: true
+
+  - alias: general
+    provider_ref:
+      provider: gemini
+      model: gemini-3.6-flash
+      api_key_ref: secret://providers/gemini/api_key
+    capabilities:
+      supports_structured_output: true
+      max_context_tokens: 1000000
+      max_output_tokens: 8192
+      allows_sensitive_data: false
+      cost_per_1k_input_usd: 0.0015
+      cost_per_1k_output_usd: 0.0075
+    enabled: true
+
+  - alias: structured_small
+    provider_ref:
+      provider: gemini
+      model: gemini-3.6-flash
+      api_key_ref: secret://providers/gemini/api_key
+    capabilities:
+      supports_structured_output: true
+      max_context_tokens: 1000000
+      max_output_tokens: 4096
+      allows_sensitive_data: false
+      cost_per_1k_input_usd: 0.0015
+      cost_per_1k_output_usd: 0.0075
+    enabled: true
+
+  - alias: high_accuracy
+    provider_ref:
+      provider: gemini
+      model: gemini-3.6-flash
+      api_key_ref: secret://providers/gemini/api_key
+    capabilities:
+      supports_structured_output: true
+      max_context_tokens: 1000000
+      max_output_tokens: 16384
+      allows_sensitive_data: false
+      cost_per_1k_input_usd: 0.0015
+      cost_per_1k_output_usd: 0.0075
+    enabled: true
+
+  # Alias diferente para respetar el contrato del judge. En esta primera
+  # integración comparte modelo con el generador y no aporta independencia.
+  - alias: judge_secondary
+    provider_ref:
+      provider: gemini
+      model: gemini-3.6-flash
+      api_key_ref: secret://providers/gemini/api_key
+    capabilities:
+      supports_structured_output: true
+      max_context_tokens: 1000000
+      max_output_tokens: 4096
+      allows_sensitive_data: false
+      cost_per_1k_input_usd: 0.0015
+      cost_per_1k_output_usd: 0.0075
+    enabled: true
+
+offline_alias: offline_fake
+
+policies:
+  - task_kind: classification
+    default_alias: structured_small
+    max_attempts: 2
+    min_accuracy_class: low
+    policy_version: router-gemini-2026-07-31
+
+  - task_kind: extraction
+    default_alias: structured_small
+    max_attempts: 2
+    min_accuracy_class: low
+    policy_version: router-gemini-2026-07-31
+
+  - task_kind: navigation
+    default_alias: general
+    max_attempts: 2
+    min_accuracy_class: medium
+    policy_version: router-gemini-2026-07-31
+
+  - task_kind: supervision
+    default_alias: general
+    max_attempts: 2
+    min_accuracy_class: medium
+    policy_version: router-gemini-2026-07-31
+
+  - task_kind: verification
+    default_alias: high_accuracy
+    max_attempts: 2
+    min_accuracy_class: high
+    policy_version: router-gemini-2026-07-31
+
+  - task_kind: drafting
+    default_alias: structured_small
+    max_attempts: 2
+    min_accuracy_class: low
+    policy_version: router-gemini-2026-07-31
+
+  - task_kind: judge
+    default_alias: judge_secondary
+    max_attempts: 1
+    min_accuracy_class: medium
+    policy_version: router-gemini-2026-07-31

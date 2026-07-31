@@ -52,7 +52,7 @@ def _request() -> RunRequest:
 
 
 async def test_real_run_reaches_confirmation_and_persists_the_action() -> None:
-    assembly = await build_graph_deps()
+    assembly = await build_graph_deps(model_backend="offline")
     orchestrator = RealOrchestrator(assembly)
     sink = _CapturingSink()
 

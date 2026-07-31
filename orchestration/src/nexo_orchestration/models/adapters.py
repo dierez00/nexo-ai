@@ -50,7 +50,15 @@ class ChatAdapterPort(Protocol):
         """Nombre del proveedor, tal como aparece en `allowed_providers`."""
         ...
 
-    async def generate(self, request: ChatRequest, *, model: str) -> AdapterResult:
+    async def generate(
+        self,
+        request: ChatRequest,
+        *,
+        model: str,
+        output_contract: type[NexoModel] | None,
+        max_output_tokens: int,
+        timeout_ms: int,
+    ) -> AdapterResult:
         """Genera una respuesta con el modelo indicado por la configuración."""
         ...
 

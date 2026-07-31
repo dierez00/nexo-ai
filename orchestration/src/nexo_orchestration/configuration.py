@@ -8,7 +8,7 @@ en el tercer nodo del grafo produce un fallo caro y difícil de atribuir.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pydantic import ValidationError
@@ -29,6 +29,16 @@ CONFIG_FILES: dict[str, tuple[str, type[NexoModel]]] = {
     "permissions": ("permissions.yaml", PermissionsConfig),
     "catalogs": ("catalogs.yaml", CatalogsConfig),
     "policies": ("policies.yaml", PoliciesConfig),
+}
+
+ModelProfile = Literal["offline", "gemini"]
+
+_PROFILE_OVERRIDES: dict[ModelProfile, dict[str, str]] = {
+    "offline": {},
+    "gemini": {
+        "model_router": "model_router.gemini.yaml",
+        "policies": "policies.gemini.yaml",
+    },
 }
 
 
@@ -72,14 +82,20 @@ def _validate(path: Path, model: type[NexoModel], raw: dict[str, Any]) -> NexoMo
         ) from exc
 
 
-def load_config(config_dir: Path | None = None) -> NexoConfig:
+def load_config(
+    config_dir: Path | None = None,
+    *,
+    model_profile: ModelProfile = "offline",
+) -> NexoConfig:
     """Carga, valida y consolida la configuración.
 
     Lanza `ConfigurationError` con ruta, campo y motivo ante el primer problema.
     """
     directory = config_dir or default_config_dir()
+    overrides = _PROFILE_OVERRIDES[model_profile]
     sections: dict[str, NexoModel] = {}
     for key, (filename, model) in CONFIG_FILES.items():
+        filename = overrides.get(key, filename)
         path = directory / filename
         sections[key] = _validate(path, model, _load_yaml(path))
 
