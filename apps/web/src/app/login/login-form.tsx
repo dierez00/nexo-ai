@@ -14,7 +14,7 @@ export function LoginForm() {
   const { login, status, profile } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/portal";
+  const next = searchParams.get("next") || "/admin";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
