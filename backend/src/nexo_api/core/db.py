@@ -38,6 +38,37 @@ def get_sessionmaker() -> async_sessionmaker[AsyncSession]:
     return async_sessionmaker(get_engine(), expire_on_commit=False)
 
 
+@lru_cache(maxsize=1)
+def get_append_engine() -> AsyncEngine:
+    """Engine para escrituras append-only de una sola sentencia (eventos del run).
+
+    Contra una base remota, envolver un `insert` en una transacción explícita
+    cuesta tres idas y vuelta (BEGIN, INSERT, COMMIT) más el ROLLBACK de
+    devolución al pool, y `pool_pre_ping` añade una cuarta. Medido contra el
+    pooler de Supabase eso son ~1.1 s por evento; un run emite decenas, así que
+    la observabilidad terminaba consumiendo el presupuesto del propio run.
+
+    En AUTOCOMMIT y sin pre-ping el mismo `insert` cuesta una ida y vuelta
+    (~0.11 s). Se prescinde del pre-ping porque su garantía —detectar una
+    conexión que el pooler cerró— la da igual de bien un reintento en el punto de
+    escritura, y ese reintento no cuesta nada cuando la conexión está viva.
+    """
+    settings = get_settings()
+    return create_async_engine(
+        settings.database_url,
+        pool_pre_ping=False,
+        pool_size=5,
+        max_overflow=5,
+        isolation_level="AUTOCOMMIT",
+    )
+
+
+@lru_cache(maxsize=1)
+def get_append_sessionmaker() -> async_sessionmaker[AsyncSession]:
+    """Fábrica de sesiones ligada al engine de escrituras append-only."""
+    return async_sessionmaker(get_append_engine(), expire_on_commit=False)
+
+
 async def check_database() -> bool:
     """Ping mínimo a la base de datos (`SELECT 1`). Lanza si no hay conexión."""
     async with get_engine().connect() as conn:
@@ -46,5 +77,6 @@ async def check_database() -> bool:
 
 
 async def dispose_engine() -> None:
-    """Cierra el pool de conexiones. Llamar en el shutdown de la app."""
+    """Cierra los pools de conexiones. Llamar en el shutdown de la app."""
     await get_engine().dispose()
+    await get_append_engine().dispose()

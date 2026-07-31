@@ -10,11 +10,14 @@ from nexo_orchestration.ports.events import EventSequenceError
 
 class PostgresEventSink:
     async def emit(self, event: RunEvent) -> None:
+        # Una sola ida y vuelta: la base valida la continuidad de la secuencia al
+        # insertar. Solo cuando falla se consulta cuál era la esperada, que es lo
+        # que necesita el error y no el camino normal.
+        if await events_repo.create_if_next(event) is not None:
+            return
         run_id = ids.decode(ids.RUN, event.run_id)
         expected = await events_repo.last_sequence(run_id) + 1
-        if event.sequence != expected:
-            raise EventSequenceError(event.run_id, expected, event.sequence)
-        await events_repo.create(event)
+        raise EventSequenceError(event.run_id, expected, event.sequence)
 
     async def read(self, run_id: str, *, after: int = 0) -> tuple[RunEvent, ...]:
         internal_id = ids.decode(ids.RUN, run_id)
