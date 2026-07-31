@@ -8,8 +8,8 @@ from sse_starlette.sse import EventSourceResponse
 from nexo_api.api.deps import get_current_user, get_current_user_sse
 from nexo_api.core.errors import problem_responses
 from nexo_api.schemas.auth import UserProfile
-from nexo_api.schemas.run import RunResult
 from nexo_api.services.runs import service as runs_service
+from nexo_contracts import RunResult
 
 router = APIRouter(prefix="/api/v1", tags=["runs"])
 

@@ -196,7 +196,10 @@ def verify_frozen_catalog(root: Path) -> FrozenCatalogManifest:
                 "la ruta sale de la raíz del repositorio",
             )
         try:
-            actual = _sha256(target.read_bytes())
+            # Git puede materializar los JSON/JSONL con CRLF en Windows por
+            # `core.autocrlf`. Las huellas congeladas se calculan sobre el
+            # contenido textual canónico LF, no sobre esa representación local.
+            actual = _sha256(target.read_bytes().replace(b"\r\n", b"\n"))
         except OSError as exc:
             raise ConfigurationError(str(target), "<archivo>", str(exc)) from exc
         if actual != expected:

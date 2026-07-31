@@ -22,6 +22,8 @@ from nexo_api.core.config import get_settings
 from nexo_api.core.db import dispose_engine
 from nexo_api.core.errors import ProblemException, problem_exception_handler
 from nexo_api.core.middleware import TraceIdMiddleware
+from nexo_api.repositories import idempotency as idempotency_repo
+from nexo_api.services.runs.tasks import RunTaskManager
 
 log = get_logger(__name__)
 
@@ -30,10 +32,21 @@ log = get_logger(__name__)
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     configure_logging(settings.log_level)
+    app.state.run_task_manager = RunTaskManager()
     log.info("app.startup", app_env=settings.app_env)
+    if settings.app_env != "development":
+        try:
+            count = await idempotency_repo.mark_stale_processing_unknown(
+                settings.idempotency_processing_ttl_seconds
+            )
+            if count:
+                log.warning("idempotency.stale_records_marked_unknown", count=count)
+        except Exception as exc:  # readiness informa DB; startup debe seguir disponible
+            log.warning("idempotency.recovery_skipped", error=str(exc))
     try:
         yield
     finally:
+        await app.state.run_task_manager.shutdown(settings.run_shutdown_grace_seconds)
         await dispose_engine()
         log.info("app.shutdown")
 
@@ -43,6 +56,10 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="nexo-ai API",
         version="0.1.0",
+        # NexoModel usa un serializador que filtra campos internos bajo un
+        # contexto explícito. Para OpenAPI HTTP se publica el schema de
+        # validación canónico, no el retorno dinámico de ese serializador.
+        separate_input_output_schemas=False,
         summary="Gateway HTTP/SSE/webhooks del asistente institucional nexo-ai.",
         description=(
             "API del backend (Dani). Convenciones: JSON snake_case, UTC, IDs opacos "

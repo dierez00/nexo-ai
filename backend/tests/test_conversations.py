@@ -65,11 +65,8 @@ def test_post_message_returns_202_run_accepted(client: TestClient) -> None:
             new=AsyncMock(return_value=run_row),
         ),
         patch(
-            "nexo_api.services.runs.service.event_repo.bulk_create",
-            new=AsyncMock(return_value=None),
-        ),
-        patch(
-            "nexo_api.services.runs.service.runs_repo.finalize", new=AsyncMock(return_value=None)
+            "nexo_api.services.runs.tasks.RunTaskManager.submit",
+            side_effect=lambda coroutine: coroutine.close(),
         ),
     ):
         resp = client.post("/api/v1/conversations/conv_7/messages", json={"content": "hola"})
@@ -77,16 +74,21 @@ def test_post_message_returns_202_run_accepted(client: TestClient) -> None:
     assert resp.status_code == 202
     body = resp.json()
     assert body["run_id"] == "run_42"
-    assert body["status"] == "completed"
+    assert body["status"] == "queued"
     assert body["events_url"] == "/api/v1/runs/run_42/events"
 
 
 def test_get_run_snapshot(client: TestClient) -> None:
     row = {
         "trace_id": "trace_abc",
-        "status": "completed",
-        "domain": "general",
-        "metadata": {"answer": "hola", "sources": [], "warnings": [], "metrics": {}},
+        "status": "succeeded",
+        "metadata": {
+            "run_id": "run_42",
+            "trace_id": "trace_abc",
+            "status": "succeeded",
+            "answer": "hola",
+            "metrics": {"duration_ms": 0},
+        },
         "created_at": datetime.now(UTC),
     }
     with patch(

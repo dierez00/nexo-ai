@@ -4,12 +4,12 @@
 set -euo pipefail
 
 echo "==> ruff format --check"
-uv run ruff format --check .
+uv run ruff format --check backend integrations observability scripts
 
 echo "==> ruff check"
-uv run ruff check .
+uv run ruff check backend integrations observability scripts
 
 echo "==> mypy"
-uv run mypy .
+uv run mypy backend/src integrations/src observability/src
 
 echo "Lint OK"

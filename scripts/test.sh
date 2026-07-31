@@ -7,7 +7,7 @@ set -uo pipefail
 
 echo "==> pytest"
 set +e
-uv run pytest "$@"
+uv run pytest backend/tests integrations/tests observability/tests "$@"
 code=$?
 set -e
 

@@ -1,6 +1,6 @@
 # Documentación de la Base de Datos Nexo IA (Supabase / PostgreSQL)
 
-Este documento contiene la especificación completa, arquitectura, esquema de tablas, funciones almacenadas, seguridad (RLS), índices y datos de inicialización (seeds) de la base de datos de **Nexo IA**, derivados directamente de las migraciones oficiales de Supabase en [`supabase/migrations`].
+Este documento contiene la especificación completa, arquitectura, esquema de tablas, funciones almacenadas, seguridad (RLS), índices y datos de inicialización (seeds) de la base de datos de **Nexo IA**, derivados directamente de las migraciones oficiales de Supabase en [`supabase/migrations`](../../supabase/migrations).
 
 ---
 
@@ -257,6 +257,13 @@ Gestión de citas y trámites presenciales o virtuales con soporte para Holds te
 ---
 
 ### 4.5. Sistema Conversacional, Trazo de Agentes (Runs) e Idempotencia
+
+La migración `20260730000000_reliability_ledger_and_event_sequence.sql` añade
+`idempotency_records`: ledger por tenant, operación y clave con hash del request,
+estado (`processing`, `succeeded`, `failed`, `unknown`) y respuesta serializada.
+Una clave en `unknown` nunca se reintenta automáticamente. `run_events` incorpora
+`event_id` y `sequence`, única y 1-indexada por run; SSE usa esa secuencia como
+`Last-Event-ID`, no el identificador físico de la fila.
 
 #### Tabla `public.conversations`
 Hilos de interacción entre usuarios y la plataforma multiagente.
