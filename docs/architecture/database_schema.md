@@ -1,6 +1,6 @@
 # Documentación de la Base de Datos Nexo IA (Supabase / PostgreSQL)
 
-Este documento contiene la especificación completa, arquitectura, esquema de tablas, funciones almacenadas, seguridad (RLS), índices y datos de inicialización (seeds) de la base de datos de **Nexo IA**, derivados directamente de las migraciones oficiales de Supabase en [`supabase/migrations`](file:///c:/Users/di3go/Downloads/metaphorce-retos/nexo-ai/supabase/migrations).
+Este documento contiene la especificación completa, arquitectura, esquema de tablas, funciones almacenadas, seguridad (RLS), índices y datos de inicialización (seeds) de la base de datos de **Nexo IA**, derivados directamente de las migraciones oficiales de Supabase en [`supabase/migrations`].
 
 ---
 
@@ -55,12 +55,13 @@ erDiagram
 
 | Archivo de Migración | Módulo / Componente | Descripción General |
 |---|---|---|
-| [`20260504094442_initial_schema.sql`](file:///c:/Users/di3go/Downloads/metaphorce-retos/nexo-ai/supabase/migrations/20260504094442_initial_schema.sql) | Core SaaS Multi-Tenant & RBAC | Estructura base de Tenants, Planes, Módulos, Suscripciones, Sucursales, Usuarios (vinculados a `auth.users`), Permisos RBAC, Invitaciones, Auditoría, Archivos y Facturación. Políticas RLS iniciales. |
-| [`20260504100000_rag_vector_store.sql`](file:///c:/Users/di3go/Downloads/metaphorce-retos/nexo-ai/supabase/migrations/20260504100000_rag_vector_store.sql) | RAG & Vector Store | Fuentes documentales (`sources`), Documentos (`documents`) y Chunks vectoriales (`chunks`) con pgvector 1536d. Índice HNSW Coseno y función RPC `match_chunks`. |
-| [`20260504110000_appointments_gist.sql`](file:///c:/Users/di3go/Downloads/metaphorce-retos/nexo-ai/supabase/migrations/20260504110000_appointments_gist.sql) | Citas & Pre-reservas (Holds) | Control de disponibilidad sin solapamiento vía constraint GiST sobre `tstzrange`. Holds temporales de 15 min con auto-limpieza RPC `cleanup_expired_holds`. |
-| [`20260504120000_conversations_runs_events.sql`](file:///c:/Users/di3go/Downloads/metaphorce-retos/nexo-ai/supabase/migrations/20260504120000_conversations_runs_events.sql) | Multi-canal, Trazabilidad & Idempotencia | Conversaciones, Mensajes (con payload A2UI), Runs del Supervisor Multiagente, Eventos granulares de nodos, Acciones idempotentes y Checkpoints de LangGraph. |
-| [`20260504130000_evaluations_judge.sql`](file:///c:/Users/di3go/Downloads/metaphorce-retos/nexo-ai/supabase/migrations/20260504130000_evaluations_judge.sql) | Evaluaciones LLM-as-Judge | Registro de evaluaciones de fidelidad, completitud, claridad y calidad visual A2UI por cada ejecución de agente. |
-| [`20260504140000_seeds_demo.sql`](file:///c:/Users/di3go/Downloads/metaphorce-retos/nexo-ai/supabase/migrations/20260504140000_seeds_demo.sql) | Seeds Demostración | Datos idempotentes iniciales: Tenant demo (`gobierno-demo`), Plan `enterprise`, los 5 módulos core, roles de sistema y fuentes documentales RAG para prueba E2E. |
+| [`20260504094442_initial_schema.sql`]| Core SaaS Multi-Tenant & RBAC | Estructura base de Tenants, Planes, Módulos, Suscripciones, Sucursales, Usuarios (vinculados a `auth.users`), Permisos RBAC, Invitaciones, Auditoría, Archivos y Facturación. Políticas RLS iniciales. |
+| [`20260504100000_rag_vector_store.sql`]
+ | RAG & Vector Store | Fuentes documentales (`sources`), Documentos (`documents`) y Chunks vectoriales (`chunks`) con pgvector 1536d. Índice HNSW Coseno y función RPC `match_chunks`. |
+| [`20260504110000_appointments_gist.sql`]| Citas & Pre-reservas (Holds) | Control de disponibilidad sin solapamiento vía constraint GiST sobre `tstzrange`. Holds temporales de 15 min con auto-limpieza RPC `cleanup_expired_holds`. |
+| [`20260504120000_conversations_runs_events.sql`]| Multi-canal, Trazabilidad & Idempotencia | Conversaciones, Mensajes (con payload A2UI), Runs del Supervisor Multiagente, Eventos granulares de nodos, Acciones idempotentes y Checkpoints de LangGraph. |
+| [`20260504130000_evaluations_judge.sql`] | Evaluaciones LLM-as-Judge | Registro de evaluaciones de fidelidad, completitud, claridad y calidad visual A2UI por cada ejecución de agente. |
+| [`20260504140000_seeds_demo.sql`] | Seeds Demostración | Datos idempotentes iniciales: Tenant demo (`gobierno-demo`), Plan `enterprise`, los 5 módulos core, roles de sistema y fuentes documentales RAG para prueba E2E. |
 
 ---
 
