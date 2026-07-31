@@ -28,3 +28,8 @@ async def create_conversation(user: UserProfile, body: ConversationCreate) -> Co
         title=body.title,
     )
     return _to_conversation(row)
+
+
+async def list_conversations(user: UserProfile, limit: int) -> list[Conversation]:
+    rows = await conv_repo.list_by_user(int(user.tenant_id), int(user.user_id), limit)
+    return [_to_conversation(row) for row in rows]

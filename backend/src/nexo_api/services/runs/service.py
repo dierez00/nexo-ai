@@ -17,7 +17,7 @@ from nexo_api.repositories import runs as runs_repo
 from nexo_api.repositories._base import load_json
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.schemas.conversation import MessageCreate
-from nexo_api.schemas.run import RunAccepted
+from nexo_api.schemas.run import RunAccepted, RunSummary
 from nexo_api.services.actions.pending_sink import PostgresPendingActionSink
 from nexo_api.services.orchestration.port import Orchestrator
 from nexo_api.services.runs.event_sink import PostgresEventSink
@@ -216,6 +216,41 @@ async def get_run_for_stream(user: UserProfile, run_id_wire: str) -> tuple[int, 
     if row is None:
         raise ProblemException(code="RESOURCE_NOT_FOUND", title="Run no encontrado")
     return run_id, RunStatus(row["status"])
+
+
+async def list_runs(
+    user: UserProfile,
+    *,
+    conversation_id_wire: str | None,
+    domain: str | None,
+    status: str | None,
+    limit: int,
+) -> list[RunSummary]:
+    """Runs recientes del tenant, para "mis trámites" en el portal."""
+    conversation_id = (
+        _decode(ids.CONVERSATION, conversation_id_wire, "conversación")
+        if conversation_id_wire
+        else None
+    )
+    rows = await runs_repo.list_by_tenant(
+        int(user.tenant_id),
+        conversation_id=conversation_id,
+        domain=domain,
+        status=status,
+        limit=limit,
+    )
+    return [
+        RunSummary(
+            run_id=ids.encode(ids.RUN, int(row["id"])),
+            trace_id=row["trace_id"],
+            status=RunStatus(row["status"]),
+            domain=row["domain"],
+            latency_ms=row["latency_ms"],
+            total_cost_usd=row["total_cost_usd"],
+            created_at=row["created_at"],
+        )
+        for row in rows
+    ]
 
 
 async def list_events(user: UserProfile, run_id_wire: str) -> list[RunEvent]:

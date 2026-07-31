@@ -60,3 +60,18 @@ async def get(tenant_id: int, conversation_id: int) -> RowMapping | None:
     async with read_session() as session:
         result = await session.execute(sql, {"id": conversation_id, "tenant_id": tenant_id})
         return result.mappings().first()
+
+
+async def list_by_user(tenant_id: int, user_id: int, limit: int) -> list[RowMapping]:
+    """Conversaciones más recientes de una persona (`GET /conversations`)."""
+    sql = text(f"""
+        select {_COLS} from public.conversations
+        where tenant_id = :tenant_id and user_id = :user_id
+        order by id desc
+        limit :limit
+    """)
+    async with read_session() as session:
+        result = await session.execute(
+            sql, {"tenant_id": tenant_id, "user_id": user_id, "limit": limit}
+        )
+        return list(result.mappings().all())
