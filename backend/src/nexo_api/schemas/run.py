@@ -7,6 +7,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from nexo_contracts import EventStatus, EventType, SafePayload
+
 RunStatus = Literal["running", "completed", "failed", "requires_action"]
 
 
@@ -29,17 +31,22 @@ class RunRequest(BaseModel):
     locale: str = "es-MX"
 
 
-class RunEvent(BaseModel):
-    """Evento de ejecución en el wire (deriva de public.run_events)."""
+class PublicRunEvent(BaseModel):
+    """Proyección pública de `nexo_contracts.RunEvent` para SSE."""
 
     event_id: str
     run_id: str
     trace_id: str
     sequence: int
-    type: str
-    node_name: str
+    type: EventType
+    status: EventStatus
+    actor_type: str
+    actor_name: str
     timestamp: datetime
-    data: dict[str, Any] = Field(default_factory=dict)
+    duration_ms: int | None = None
+    parent_event_id: str | None = None
+    correlation_id: str
+    data: SafePayload = Field(default_factory=dict)
 
 
 class RunResult(BaseModel):

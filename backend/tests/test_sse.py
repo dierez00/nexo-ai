@@ -11,6 +11,16 @@ from fastapi.testclient import TestClient
 from nexo_api.api.deps import get_current_user_sse
 from nexo_api.main import create_app
 from nexo_api.schemas.auth import UserProfile
+from nexo_api.services.runs.service import public_run_event
+
+from nexo_contracts import (
+    ActorType,
+    EventActor,
+    EventStatus,
+    EventType,
+    EventVisibility,
+    RunEvent,
+)
 
 USER = UserProfile(
     user_id="1",
@@ -59,7 +69,7 @@ def test_sse_streams_events_and_terminal_status(client: TestClient) -> None:
     assert resp.status_code == 200
     assert "text/event-stream" in resp.headers["content-type"]
     body = resp.text
-    assert "node_start" in body
+    assert "agent.started" in body
     assert "evt_100" in body
     assert "id: 101" in body
     assert "run.status" in body  # evento terminal
@@ -91,3 +101,25 @@ def test_sse_404_on_unknown_run(client: TestClient) -> None:
     ):
         resp = client.get("/api/v1/runs/run_999/events")
     assert resp.status_code == 404
+
+
+def test_public_run_event_uses_public_data_for_restricted_events() -> None:
+    event = RunEvent(
+        event_id="evt_000001",
+        trace_id="trace_abc",
+        run_id="run_42",
+        sequence=1,
+        type=EventType.MODEL_SELECTED,
+        timestamp=datetime.now(UTC),
+        actor=EventActor(type=ActorType.MODEL, name="internal-router"),
+        status=EventStatus.SUCCEEDED,
+        visibility=EventVisibility.RESTRICTED,
+        correlation_id="trace_abc",
+        data={"provider_detail": "solo auditoria"},
+        public_data={"outcome": "succeeded"},
+    )
+
+    public = public_run_event(event)
+
+    assert public.actor_name == "restringido"
+    assert public.data == {"outcome": "succeeded"}

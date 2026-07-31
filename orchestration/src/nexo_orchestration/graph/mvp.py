@@ -2,7 +2,7 @@
 
 Doce nodos (`DIE-F1-083`), en orden:
 
-    normalize → classify → plan → navigate → retrieve → read_tools →
+    normalize → classify → plan → retrieve → navigate → read_tools →
     verify → estimate → merge → build_a2ui → write_answer → finalize
 
 **Verificador y estimador son secuenciales en el MVP** (`DIE-F1-084`). Los
@@ -48,6 +48,7 @@ from nexo_contracts import (
     ErrorCode,
     EventStatus,
     EventType,
+    EventVisibility,
     ModelInvocation,
     NormalizedError,
     Outcome,
@@ -71,6 +72,7 @@ from ..ports.events import EventSinkPort
 
 if TYPE_CHECKING:
     from nexo_a2ui import CitizenSurfaceBuilder, SurfaceValidator
+    from nexo_agents.catalog import CentralCatalog
     from nexo_agents.classifier import Classifier
     from nexo_agents.estimator import Estimator
     from nexo_agents.navigator import DomainNavigator
@@ -146,6 +148,7 @@ class MVPDependencies:
     ]
     surface_builder: CitizenSurfaceBuilder | None = None
     surface_validator: SurfaceValidator | None = None
+    central_catalog: CentralCatalog | None = None
 
 
 @dataclass
@@ -188,9 +191,7 @@ class MVPGraph:
         for name, handler in handlers.items():
             graph.add_node(name, handler)
 
-        # El orden declarado en `DIE-F1-083` pone `navigate` antes de
-        # `retrieve`; se ejecuta al revés porque navegar sin evidencia no es
-        # posible. La discrepancia está anotada en los hallazgos.
+        # Orden ratificado: navegar requiere evidencia recuperada.
         order = [
             NODE_NORMALIZE,
             NODE_CLASSIFY,
@@ -255,6 +256,74 @@ class MVPGraph:
                 "model_invocations": [*state.model_invocations, *invocations],
             }
         )
+
+    async def _emit_model_events(
+        self, state: RunState, invocations: Sequence[ModelInvocation]
+    ) -> RunState:
+        """Proyecta invocaciones ya minimizadas para replay del workflow."""
+        current = state
+        for invocation in invocations:
+            decision = invocation.decision
+            if invocation.attempt > 1:
+                current = await self.emitter.emit(
+                    current,
+                    EventType.AGENT_RETRIED,
+                    actor_type=ActorType.MODEL,
+                    actor_name=decision.selected_alias,
+                    status=EventStatus.STARTED,
+                    data={"attempt": invocation.attempt},
+                    public_data={"attempt": invocation.attempt},
+                )
+            if decision.selected_alias != decision.requested_alias:
+                current = await self.emitter.emit(
+                    current,
+                    EventType.MODEL_FALLBACK,
+                    actor_type=ActorType.MODEL,
+                    actor_name=decision.selected_alias,
+                    status=EventStatus.SUCCEEDED,
+                    data={
+                        "requested_alias": decision.requested_alias,
+                        "selected_alias": decision.selected_alias,
+                        "reason": decision.reason.value,
+                    },
+                    public_data={"reason": decision.reason.value},
+                    visibility=EventVisibility.RESTRICTED,
+                )
+            current = await self.emitter.emit(
+                current,
+                EventType.MODEL_SELECTED,
+                actor_type=ActorType.MODEL,
+                actor_name=decision.selected_alias,
+                status=EventStatus.SUCCEEDED,
+                data={
+                    "invocation_id": invocation.invocation_id,
+                    "selected_alias": decision.selected_alias,
+                    "attempt": invocation.attempt,
+                },
+                public_data={"attempt": invocation.attempt},
+                visibility=EventVisibility.RESTRICTED,
+            )
+            failed = invocation.error is not None
+            current = await self.emitter.emit(
+                current,
+                EventType.MODEL_FAILED if failed else EventType.MODEL_COMPLETED,
+                actor_type=ActorType.MODEL,
+                actor_name=decision.selected_alias,
+                status=EventStatus.FAILED if failed else EventStatus.SUCCEEDED,
+                duration_ms=invocation.duration_ms,
+                data={
+                    "invocation_id": invocation.invocation_id,
+                    "input_units": invocation.input_tokens,
+                    "output_units": invocation.output_tokens,
+                    "schema_valid": invocation.schema_valid,
+                },
+                public_data={
+                    "schema_valid": invocation.schema_valid,
+                },
+                visibility=EventVisibility.RESTRICTED,
+                error=invocation.error,
+            )
+        return current
 
     async def _skip_or_start(self, state: GraphState, node: str) -> RunState | None:
         """`None` si el nodo debe ejecutarse; el estado ya avanzado si se salta.
@@ -368,6 +437,7 @@ class MVPGraph:
         outcome = await self.deps.classifier.classify(run.request, context)
 
         run = self._charge(run, outcome.invocations, ledger)
+        run = await self._emit_model_events(run, outcome.invocations)
         classification = outcome.classification
         run = run.model_copy(
             update={
@@ -420,6 +490,34 @@ class MVPGraph:
             return _graph(await self._persist(run, NODE_PLAN))
 
         run = await self.emitter.node_started(run, NODE_PLAN)
+        central = self.deps.central_catalog
+        if central is not None:
+            manifest = central.domain(domain)
+            if manifest is None:
+                return await self._fail(
+                    run,
+                    NODE_PLAN,
+                    NormalizedError.from_code(
+                        ErrorCode.CONFIGURATION_INVALID,
+                        f"el dominio {domain.value!r} no está activo en el catálogo central",
+                    ),
+                )
+            visible = await central.visible_tools(
+                institution_id=run.request.identity.institution_id,
+                roles=list(run.request.identity.roles),
+                domain=domain,
+            )
+            intents = run.classification.intent_slugs() if run.classification else ()
+            selected = central.select_skill(domain, intents)
+            run = run.model_copy(
+                update={
+                    "catalog_version": central.snapshot.version,
+                    "active_skill_id": selected[0] if selected else None,
+                    "active_skill_version": selected[1] if selected else None,
+                }
+            )
+        else:
+            visible = frozenset()
         run = run.model_copy(update={"status": RunStatus.RUNNING})
         run = await self.emitter.emit(
             run,
@@ -427,7 +525,12 @@ class MVPGraph:
             actor_type=ActorType.SUPERVISOR,
             actor_name="supervisor",
             status=EventStatus.SUCCEEDED,
-            data={"domain": domain.value},
+            data={
+                "domain": domain.value,
+                "catalog_version": run.catalog_version,
+                "visible_tools": len(visible),
+                "skill_id": run.active_skill_id or "",
+            },
         )
         run = await self.emitter.node_completed(run, NODE_PLAN, duration_ms=0)
         return _graph(await self._persist(run, NODE_PLAN))
@@ -521,11 +624,17 @@ class MVPGraph:
         )
 
         run = self._charge(run, result.invocations, ledger)
+        run = await self._emit_model_events(run, result.invocations)
+        questions = list(run.questions)
+        if result.question is not None and result.question not in questions:
+            questions.append(result.question)
         run = run.model_copy(
             update={
                 "candidate_facts": [*run.candidate_facts, *result.facts],
                 "proposed_tools": list(result.proposed_tools),
                 "warnings": [*run.warnings, *result.warnings],
+                "questions": questions,
+                "metrics": run.metrics.model_copy(update={"question_count": len(questions)}),
             }
         )
         run = await self.emitter.node_completed(run, NODE_NAVIGATE, duration_ms=0)
@@ -784,6 +893,7 @@ class MVPGraph:
             next_action=next_action,
         )
         run = self._charge(run, outcome.invocations, ledger)
+        run = await self._emit_model_events(run, outcome.invocations)
         run = run.model_copy(update={"answer": outcome.answer})
         run = await self.emitter.node_completed(run, NODE_WRITE_ANSWER, duration_ms=0)
         return _graph(await self._persist(run, NODE_WRITE_ANSWER))
@@ -845,11 +955,16 @@ class MVPGraph:
         if not eligible or run.verified_facts.has_blocking_contradiction():
             return None
 
+        navigator = self.deps.navigators.get(run.domain)
+        classification = run.classification
+        if navigator is None or classification is None:
+            return None
         write_tools = [
-            name
-            for name in self.deps.catalog.write_tools()
-            if name.split(".", 1)[0]
-            in {"vehiculos" if run.domain is Domain.VEHICULOS else "ayuntamiento"}
+            intent.write_tool
+            for detected in classification.intents
+            if detected.domain is run.domain
+            for intent in [navigator.manifest.intent(detected.intent)]
+            if intent is not None and intent.write_tool is not None
         ]
         if not write_tools:
             return None
@@ -1121,6 +1236,18 @@ def _default_parameters(tool_name: str, run: RunState) -> dict[str, JsonValue]:
             if available is not None and isinstance(available.get("slot_id"), str):
                 slot_id = available["slot_id"]
         return {"slot_id": slot_id, "vehiculo_ref": vehicle_ref}
+
+    if tool_name == "registro_civil.registrar_solicitud":
+        return {"acta_ref": "acta_demo", "tipo": "correccion"}
+
+    if tool_name == "ganaderia.registrar_vacuna":
+        return {
+            "animal_ref": "animal_demo_001",
+            "vacuna": "vacuna_demo_autorizada",
+            "fecha_aplicacion": "2026-07-30",
+            "actor_ref": "actor_demo_productor",
+            "regla_id": "sanidad_demo_2026_01",
+        }
 
     parameters: dict[str, JsonValue] = {
         "giro": "taqueria",

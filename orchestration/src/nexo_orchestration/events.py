@@ -16,6 +16,7 @@ from nexo_contracts import (
     EventActor,
     EventStatus,
     EventType,
+    EventVisibility,
     NormalizedError,
     RunEvent,
     RunState,
@@ -43,6 +44,8 @@ class EventEmitter:
         actor_name: str,
         status: EventStatus,
         data: dict[str, JsonValue] | None = None,
+        public_data: dict[str, JsonValue] | None = None,
+        visibility: EventVisibility = EventVisibility.PUBLIC,
         duration_ms: int | None = None,
         error: NormalizedError | None = None,
     ) -> RunState:
@@ -52,8 +55,10 @@ class EventEmitter:
         componente muta estado compartido (`DIE-F0-039`).
         """
         sequence = state.event_cursor + 1
+        event_id = self.ids.new_id("evt")
+        audit_data = data or {}
         event = RunEvent(
-            event_id=self.ids.new_id("evt"),
+            event_id=event_id,
             trace_id=state.trace_id,
             run_id=state.run_id,
             sequence=sequence,
@@ -61,13 +66,20 @@ class EventEmitter:
             timestamp=self.clock.now(),
             actor=EventActor(type=actor_type, name=actor_name),
             status=status,
+            visibility=visibility,
+            correlation_id=state.trace_id,
+            parent_event_id=state.last_event_id,
             duration_ms=duration_ms,
-            data=data or {},
+            data=audit_data,
+            public_data=public_data if public_data is not None else audit_data,
             error=error,
             policy_version=self.policy_version,
+            catalog_version=state.catalog_version,
+            skill_id=state.active_skill_id,
+            skill_version=state.active_skill_version,
         )
         await self.sink.emit(event)
-        return state.model_copy(update={"event_cursor": sequence})
+        return state.model_copy(update={"event_cursor": sequence, "last_event_id": event_id})
 
     async def node_started(self, state: RunState, node: str) -> RunState:
         return await self.emit(

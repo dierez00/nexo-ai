@@ -19,6 +19,7 @@ from typing import Any
 
 from nexo_a2ui import CitizenSurfaceBuilder, SurfaceValidator
 from nexo_a2ui.catalog import CITIZEN_CATALOG
+from nexo_agents.catalog import CentralCatalog
 from nexo_agents.classifier import Classifier
 from nexo_agents.domain_manifest import DomainManifest, load_domains
 from nexo_agents.estimator import Estimator, VehicleEstimator, load_permit_graph
@@ -42,7 +43,7 @@ from nexo_orchestration.testing import (
     Scenario,
     SequentialIdFactory,
 )
-from nexo_rag.corpus.cli import MVP_DOMAINS, repository_root
+from nexo_rag.corpus.cli import CORE_DOMAINS, repository_root
 from nexo_rag.testing import LoadedCorpus, load_corpus
 
 VALID_AT = date(2026, 7, 30)
@@ -58,6 +59,7 @@ class OfflineRuntime:
     executor: ToolExecutor
     corpus: LoadedCorpus
     manifests: dict[Domain, DomainManifest]
+    central_catalog: CentralCatalog
     clock: FrozenClock
 
     async def trace(self, run_id: str) -> tuple[str, ...]:
@@ -118,8 +120,8 @@ async def build_runtime(
     clock = FrozenClock()
     ids = SequentialIdFactory()
 
-    corpus = await load_corpus(root=resolved_root, domains=MVP_DOMAINS)
-    manifests = load_domains(resolved_root, MVP_DOMAINS)
+    corpus = await load_corpus(root=resolved_root, domains=CORE_DOMAINS)
+    manifests = load_domains(resolved_root, CORE_DOMAINS)
 
     gateway = ModelGateway(
         router=config.model_router,
@@ -131,6 +133,14 @@ async def build_runtime(
 
     permissions = PermissionMatrix(config=config.permissions)
     catalog = ToolCatalog(config=config.tool_registry, permissions=permissions)
+    central_catalog = CentralCatalog.load(
+        resolved_root,
+        domains=CORE_DOMAINS,
+        tools=catalog,
+        models=config.model_router,
+        policies=config.policies,
+        a2ui_components=frozenset(component.name for component in CITIZEN_CATALOG.components),
+    )
     executor = ToolExecutor(
         catalog=catalog, permissions=permissions, clock=clock, failures=failures or {}
     )
@@ -142,7 +152,7 @@ async def build_runtime(
             gateway=gateway,
             retriever=corpus.retriever(domain),
         )
-        for domain in MVP_DOMAINS
+        for domain in CORE_DOMAINS
     }
     estimators = {
         Domain.VEHICULOS: VehicleEstimator(),
@@ -166,6 +176,7 @@ async def build_runtime(
         tool_fact_projector=project_tool_results,
         surface_builder=CitizenSurfaceBuilder() if with_a2ui else None,
         surface_validator=SurfaceValidator(catalog=CITIZEN_CATALOG) if with_a2ui else None,
+        central_catalog=central_catalog,
     )
 
     events = InMemoryEventSink()
@@ -186,6 +197,7 @@ async def build_runtime(
         executor=executor,
         corpus=corpus,
         manifests=manifests,
+        central_catalog=central_catalog,
         clock=clock,
     )
 
@@ -206,8 +218,8 @@ async def retrieved_evidence(
     razón, y la prueba estaría midiendo el fixture en vez del sistema.
     """
     resolved_root = root or repository_root()
-    corpus = await load_corpus(root=resolved_root, domains=MVP_DOMAINS)
-    manifests = load_domains(resolved_root, MVP_DOMAINS)
+    corpus = await load_corpus(root=resolved_root, domains=CORE_DOMAINS)
+    manifests = load_domains(resolved_root, CORE_DOMAINS)
     navigator = DomainNavigator(
         domain=domain,
         manifest=manifests[domain],
@@ -234,6 +246,8 @@ def citizen_request(
     run_id: str = "run_000001",
     channel: Channel = Channel.WEB,
     received_at: Any = None,
+    roles: list[str] | None = None,
+    permissions: list[str] | None = None,
 ) -> RunRequest:
     return RunRequest(
         run_id=run_id,
@@ -244,8 +258,14 @@ def citizen_request(
         identity=Identity(
             user_id="usr_demo",
             institution_id="inst_demo",
-            roles=["citizen"],
-            permissions=["domain:vehiculos:read", "appointment:create"],
+            roles=roles or ["citizen"],
+            permissions=permissions
+            or [
+                "domain:vehiculos:read",
+                "domain:registro_civil:read",
+                "domain:salud:read",
+                "appointment:create",
+            ],
         ),
         received_at=received_at or FrozenClock().now(),
     )

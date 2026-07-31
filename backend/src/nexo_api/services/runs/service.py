@@ -17,8 +17,16 @@ from nexo_api.repositories import runs as runs_repo
 from nexo_api.repositories._base import load_json
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.schemas.conversation import MessageCreate
-from nexo_api.schemas.run import Identity, RunAccepted, RunEvent, RunRequest, RunResult, RunStatus
+from nexo_api.schemas.run import (
+    Identity,
+    PublicRunEvent,
+    RunAccepted,
+    RunRequest,
+    RunResult,
+    RunStatus,
+)
 from nexo_api.services.orchestration.port import Orchestrator
+from nexo_contracts import EventActor, EventType, EventVisibility, RunEvent
 
 
 def _decode(prefix: str, wire_id: str, label: str) -> int:
@@ -67,9 +75,7 @@ async def execute_run(
     )
     result = await orchestrator.run(request)
 
-    await event_repo.bulk_create(
-        run_id, trace_id, [(e.type, e.node_name, e.data) for e in result.events]
-    )
+    await event_repo.bulk_create(run_id, trace_id, result.events)
     metadata = {
         "answer": result.answer,
         "sources": result.sources,
@@ -157,17 +163,75 @@ async def get_run(user: UserProfile, run_id_wire: str) -> RunResult:
 # ---------------------------------------------------------------------------
 # SSE de eventos (Parte 3)
 # ---------------------------------------------------------------------------
+def public_run_event(event: RunEvent) -> PublicRunEvent:
+    """Adapter explícito: nunca expone `RunEvent.data` en el SSE público."""
+    restricted = event.visibility is EventVisibility.RESTRICTED
+    return PublicRunEvent(
+        event_id=event.event_id,
+        run_id=event.run_id,
+        trace_id=event.trace_id,
+        sequence=event.sequence,
+        type=event.type,
+        status=event.status,
+        actor_type=event.actor.type.value,
+        actor_name="restringido" if restricted else event.actor.name,
+        timestamp=event.timestamp,
+        duration_ms=event.duration_ms,
+        parent_event_id=event.parent_event_id,
+        correlation_id=event.correlation_id,
+        data=event.public_data,
+    )
+
+
 def _to_run_event(row: RowMapping, run_id_wire: str) -> RunEvent:
+    canonical = load_json(_row(row, "canonical_event")) if "canonical_event" in row else None
+    if canonical:
+        event = RunEvent.model_validate(canonical)
+        return event.model_copy(update={"run_id": run_id_wire})
+
+    payload = load_json(row["payload"]) or {}
+    public_data = load_json(_row(row, "public_data")) if "public_data" in row else None
     return RunEvent(
-        event_id=f"evt_{row['id']}",
+        event_id=str(_row(row, "event_id", f"evt_{row['id']}") or f"evt_{row['id']}"),
         run_id=run_id_wire,
         trace_id=row["trace_id"],
-        sequence=int(row["id"]),
-        type=row["event_type"],
-        node_name=row["node_name"],
+        sequence=int(_row(row, "sequence", row["id"]) or row["id"]),
+        type=_event_type(str(row["event_type"])),
         timestamp=row["created_at"],
-        data=load_json(row["payload"]) or {},
+        actor=EventActor(
+            type=_row(row, "actor_type", "system") or "system",
+            name=_row(row, "actor_name", row["node_name"]) or row["node_name"],
+        ),
+        status=_row(row, "status", "succeeded") or "succeeded",
+        visibility=_row(row, "visibility", "public") or "public",
+        correlation_id=_row(row, "correlation_id", row["trace_id"]) or row["trace_id"],
+        parent_event_id=_row(row, "parent_event_id"),
+        duration_ms=_row(row, "duration_ms"),
+        data=payload,
+        public_data=public_data or payload,
+        error=load_json(_row(row, "error")) if _row(row, "error") else None,
+        policy_version=_row(row, "policy_version"),
+        catalog_version=_row(row, "catalog_version"),
+        skill_id=_row(row, "skill_id"),
+        skill_version=_row(row, "skill_version"),
     )
+
+
+def _row(row: RowMapping, key: str, default: object | None = None) -> object | None:
+    return row[key] if key in row else default
+
+
+def _event_type(value: str) -> EventType:
+    legacy = {
+        "node_start": EventType.AGENT_STARTED,
+        "node_end": EventType.AGENT_COMPLETED,
+        "rag_retrieval": EventType.RAG_COMPLETED,
+        "mcp_call": EventType.TOOL_COMPLETED,
+        "error": EventType.AGENT_FAILED,
+    }
+    if value in legacy:
+        return legacy[value]
+    return EventType(value)
 
 
 async def get_run_for_stream(user: UserProfile, run_id_wire: str) -> tuple[int, str]:
@@ -181,13 +245,18 @@ async def get_run_for_stream(user: UserProfile, run_id_wire: str) -> tuple[int, 
 
 
 async def event_stream(
-    run_id_internal: int, run_id_wire: str, status: str, last_event_id: int
+    run_id_internal: int, run_id_wire: str, status: str, last_sequence: int
 ) -> AsyncGenerator[dict[str, str], None]:
-    """Genera frames SSE con los eventos posteriores a `last_event_id` (reanudable)."""
-    rows = await event_repo.list_after(run_id_internal, last_event_id)
+    """Genera frames SSE con eventos posteriores a `last_sequence` (reanudable)."""
+    rows = await event_repo.list_after(run_id_internal, last_sequence)
     for row in rows:
         event = _to_run_event(row, run_id_wire)
-        yield {"id": str(row["id"]), "event": event.type, "data": event.model_dump_json()}
+        public = public_run_event(event)
+        yield {
+            "id": str(event.sequence),
+            "event": event.type.value,
+            "data": public.model_dump_json(),
+        }
     # Evento terminal con el estado final del run.
     yield {
         "event": "run.status",
