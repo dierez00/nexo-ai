@@ -2035,6 +2035,43 @@ components:
       - cancelled
       title: RunStatus
       type: string
+    RunSummary:
+      description: Resumen liviano para listados (`GET /runs`); sin el snapshot completo.
+      properties:
+        created_at:
+          format: date-time
+          title: Created At
+          type: string
+        domain:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Domain
+        latency_ms:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Latency Ms
+        run_id:
+          title: Run Id
+          type: string
+        status:
+          $ref: '#/components/schemas/RunStatus'
+        total_cost_usd:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Total Cost Usd
+        trace_id:
+          title: Trace Id
+          type: string
+      required:
+      - run_id
+      - trace_id
+      - status
+      - created_at
+      title: RunSummary
+      type: object
     SourceCitation:
       additionalProperties: false
       description: 'Referencia puntual a un fragmento de una fuente (§5.2).
@@ -3092,6 +3129,45 @@ paths:
       tags:
       - auth
   /api/v1/conversations:
+    get:
+      operationId: list_conversations_api_v1_conversations_get
+      parameters:
+      - in: query
+        name: limit
+        required: false
+        schema:
+          default: 20
+          maximum: 100
+          minimum: 1
+          title: Limit
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Conversation'
+                title: Response List Conversations Api V1 Conversations Get
+                type: array
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - HTTPBearer: []
+      summary: Listar mis conversaciones más recientes
+      tags:
+      - conversations
     post:
       operationId: create_conversation_api_v1_conversations_post
       requestBody:
@@ -3176,6 +3252,70 @@ paths:
       summary: Postear mensaje y ejecutar un run (acceso público)
       tags:
       - conversations
+  /api/v1/runs:
+    get:
+      operationId: list_runs_api_v1_runs_get
+      parameters:
+      - in: query
+        name: conversation_id
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Conversation Id
+      - in: query
+        name: domain
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Domain
+      - in: query
+        name: status
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+      - in: query
+        name: limit
+        required: false
+        schema:
+          default: 20
+          maximum: 100
+          minimum: 1
+          title: Limit
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/RunSummary'
+                title: Response List Runs Api V1 Runs Get
+                type: array
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - HTTPBearer: []
+      summary: Listar mis runs recientes ("mis trámites")
+      tags:
+      - runs
   /api/v1/runs/{run_id}:
     get:
       operationId: get_run_api_v1_runs__run_id__get
@@ -3226,6 +3366,14 @@ paths:
         schema:
           title: Run Id
           type: string
+      - in: query
+        name: last_event_id
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Last Event Id
       - in: query
         name: access_token
         required: false

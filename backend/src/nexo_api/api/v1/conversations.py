@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status
 
 from nexo_api.api.deps import (
     enforce_rate_limit_public,
+    get_current_user,
     get_orchestrator,
     get_run_task_manager,
     get_user_or_public,
@@ -34,6 +35,19 @@ async def create_conversation(
     user: UserProfile = Depends(get_user_or_public),
 ) -> Conversation:
     return await conversations_service.create_conversation(user, body)
+
+
+@router.get(
+    "/conversations",
+    response_model=list[Conversation],
+    summary="Listar mis conversaciones más recientes",
+    responses=problem_responses(401),
+)
+async def list_conversations(
+    limit: int = Query(default=20, ge=1, le=100),
+    user: UserProfile = Depends(get_current_user),
+) -> list[Conversation]:
+    return await conversations_service.list_conversations(user, limit)
 
 
 @router.post(

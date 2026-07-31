@@ -8,10 +8,10 @@ import { AuthGate, useAuth } from "@/lib/auth/session";
 import { ThemeToggle } from "./theme-toggle";
 
 const nav = [
-  { to: "/portal", label: "Inicio", icon: Home },
-  { to: "/portal/chat", label: "Chat", icon: MessageSquare },
-  { to: "/agente-voz", label: "Voz", icon: Mic },
-  { to: "/admin/panel", label: "Admin", icon: ShieldCheck },
+  { to: "/portal", label: "Inicio", icon: Home, adminOnly: false },
+  { to: "/portal/chat", label: "Chat", icon: MessageSquare, adminOnly: false },
+  { to: "/agente-voz", label: "Voz", icon: Mic, adminOnly: false },
+  { to: "/admin/panel", label: "Admin", icon: ShieldCheck, adminOnly: true },
 ] as const;
 
 export function PortalShell({
@@ -27,6 +27,7 @@ export function PortalShell({
 }) {
   const pathname = usePathname();
   const { profile, logout } = useAuth();
+  const visibleNav = nav.filter((item) => !item.adminOnly || profile?.role === "admin");
 
   return (
     <AuthGate>
@@ -38,7 +39,7 @@ export function PortalShell({
           </Link>
           <div className="flex shrink-0 items-center gap-2">
             <nav className="hidden items-center gap-1 md:flex">
-              {nav.map((item) => {
+              {visibleNav.map((item) => {
                 const active =
                   item.to === "/portal" ? pathname === item.to : pathname.startsWith(item.to);
                 return (
@@ -87,8 +88,8 @@ export function PortalShell({
       )}
 
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 backdrop-blur md:hidden">
-        <ul className="mx-auto grid max-w-sm grid-cols-4">
-          {nav.map((item) => {
+        <ul className="mx-auto grid max-w-sm" style={{ gridTemplateColumns: `repeat(${visibleNav.length}, minmax(0, 1fr))` }}>
+          {visibleNav.map((item) => {
             const active =
               item.to === "/portal" ? pathname === item.to : pathname.startsWith(item.to);
             return (

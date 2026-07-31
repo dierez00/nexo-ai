@@ -1,7 +1,8 @@
-import type { RunEvent, RunResult } from "@/generated/contracts";
+import type { ActionResult, RunEvent, RunResult } from "@/generated/contracts";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_NEXO_API_URL ?? "http://localhost:8000";
 const SESSION_KEY = "nexo.auth.v1";
+const IDEMPOTENCY_PREFIX = "nexo.idempotency.";
 
 export type ProblemDetails = {
   type?: string;
@@ -56,6 +57,41 @@ export type RunAccepted = {
   status: string;
   events_url: string;
   created_at: string;
+};
+
+export type RunSummary = {
+  run_id: string;
+  trace_id: string;
+  status: string;
+  domain?: string | null;
+  latency_ms?: number | null;
+  total_cost_usd?: number | null;
+  created_at: string;
+};
+
+export type AppointmentSlot = {
+  starts_at: string;
+  ends_at: string;
+  available: boolean;
+};
+
+export type HoldCreate = {
+  branch_id: number;
+  module_code: string;
+  service_name: string;
+  starts_at: string;
+  ends_at: string;
+};
+
+export type AppointmentHold = {
+  appointment_id: string;
+  status: string;
+  branch_id: number;
+  module_code: string;
+  service_name: string;
+  starts_at: string;
+  ends_at: string;
+  hold_expires_at: string;
 };
 
 export type MetricSet = {
@@ -196,13 +232,88 @@ export async function loginWithPassword(email: string, password: string): Promis
   return writeStoredSession(response);
 }
 
-export function eventSourceUrl(eventsUrl: string) {
+export function eventSourceUrl(eventsUrl: string, options: { lastEventId?: number } = {}) {
   const session = readStoredSession();
   const url = new URL(urlFor(eventsUrl));
   if (session?.tokens.access_token) {
     url.searchParams.set("access_token", session.tokens.access_token);
   }
+  if (options.lastEventId) {
+    url.searchParams.set("last_event_id", String(options.lastEventId));
+  }
   return url.toString();
 }
 
-export type { RunEvent, RunResult };
+/**
+ * Idempotency-Key estable por intención de usuario (`scopeKey`, ej. un
+ * `actionId`). Un reintento de la misma intención reutiliza la clave para que
+ * el backend deduplique; un click nuevo (`reset`) genera una clave nueva.
+ */
+export function getOrCreateIdempotencyKey(scopeKey: string, options: { reset?: boolean } = {}) {
+  if (!hasStorage()) return crypto.randomUUID();
+  const storageKey = `${IDEMPOTENCY_PREFIX}${scopeKey}`;
+  if (!options.reset) {
+    const existing = window.sessionStorage.getItem(storageKey);
+    if (existing) return existing;
+  }
+  const next = crypto.randomUUID();
+  window.sessionStorage.setItem(storageKey, next);
+  return next;
+}
+
+export function clearIdempotencyKey(scopeKey: string) {
+  if (hasStorage()) window.sessionStorage.removeItem(`${IDEMPOTENCY_PREFIX}${scopeKey}`);
+}
+
+export async function listConversations(limit = 20): Promise<Conversation[]> {
+  return apiFetch<Conversation[]>(`/api/v1/conversations?limit=${limit}`);
+}
+
+export async function listRuns(
+  filters: { conversationId?: string; domain?: string; status?: string; limit?: number } = {},
+): Promise<RunSummary[]> {
+  const params = new URLSearchParams();
+  if (filters.conversationId) params.set("conversation_id", filters.conversationId);
+  if (filters.domain) params.set("domain", filters.domain);
+  if (filters.status) params.set("status", filters.status);
+  params.set("limit", String(filters.limit ?? 20));
+  return apiFetch<RunSummary[]>(`/api/v1/runs?${params.toString()}`);
+}
+
+export async function getAppointmentAvailability(
+  branchId: number,
+  moduleCode: string,
+  date: string,
+): Promise<AppointmentSlot[]> {
+  const params = new URLSearchParams({
+    branch_id: String(branchId),
+    module_code: moduleCode,
+    date,
+  });
+  return apiFetch<AppointmentSlot[]>(`/api/v1/appointments/availability?${params.toString()}`);
+}
+
+export async function createAppointmentHold(
+  body: HoldCreate,
+  idempotencyKey: string,
+): Promise<AppointmentHold> {
+  return apiFetch<AppointmentHold>("/api/v1/appointments/holds", {
+    method: "POST",
+    headers: { "Idempotency-Key": idempotencyKey },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function confirmAction(
+  actionId: string,
+  body: { consent: boolean; expected_version: number },
+  idempotencyKey: string,
+): Promise<ActionResult> {
+  return apiFetch<ActionResult>(`/api/v1/actions/${actionId}/confirm`, {
+    method: "POST",
+    headers: { "Idempotency-Key": idempotencyKey },
+    body: JSON.stringify(body),
+  });
+}
+
+export type { ActionResult, RunEvent, RunResult };

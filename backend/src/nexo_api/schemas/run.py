@@ -21,3 +21,15 @@ class RunAccepted(BaseModel):
     status: RunStatus
     events_url: str
     created_at: datetime
+
+
+class RunSummary(BaseModel):
+    """Resumen liviano para listados (`GET /runs`); sin el snapshot completo."""
+
+    run_id: str
+    trace_id: str
+    status: RunStatus
+    domain: str | None = None
+    latency_ms: int | None = None
+    total_cost_usd: float | None = None
+    created_at: datetime

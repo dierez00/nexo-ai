@@ -9,6 +9,7 @@ from sqlalchemy import RowMapping, text
 from nexo_api.repositories._base import dump_json, read_session, uow
 
 _GET_COLS = "id, trace_id, status, domain, latency_ms, total_cost_usd, metadata, created_at"
+_LIST_COLS = "id, trace_id, status, domain, latency_ms, total_cost_usd, created_at"
 
 
 async def create(
@@ -83,3 +84,39 @@ async def get(tenant_id: int, run_id: int) -> RowMapping | None:
     async with read_session() as session:
         result = await session.execute(sql, {"id": run_id, "tenant_id": tenant_id})
         return result.mappings().first()
+
+
+async def list_by_tenant(
+    tenant_id: int,
+    *,
+    conversation_id: int | None,
+    domain: str | None,
+    status: str | None,
+    limit: int,
+) -> list[RowMapping]:
+    """Runs más recientes del tenant, para "mis trámites" (`GET /runs`).
+
+    Sin `metadata` a propósito: el listado es un resumen liviano, no el
+    snapshot completo que ya sirve `GET /runs/{id}`.
+    """
+    sql = text(f"""
+        select {_LIST_COLS} from public.runs
+        where tenant_id = :tenant_id
+          and (:conversation_id::bigint is null or conversation_id = :conversation_id)
+          and (:domain::text is null or domain = :domain)
+          and (:status::text is null or status = :status)
+        order by id desc
+        limit :limit
+    """)
+    async with read_session() as session:
+        result = await session.execute(
+            sql,
+            {
+                "tenant_id": tenant_id,
+                "conversation_id": conversation_id,
+                "domain": domain,
+                "status": status,
+                "limit": limit,
+            },
+        )
+        return list(result.mappings().all())
