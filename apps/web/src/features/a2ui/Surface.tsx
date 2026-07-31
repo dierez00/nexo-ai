@@ -45,7 +45,15 @@ function renderNode(
   if (!component) return null;
 
   const Adapter = ADAPTERS[component.component];
-  if (!Adapter) return null;
+  if (!Adapter) {
+    // Inalcanzable en teoría: `guard.ts` ya rechazó cualquier `component` fuera
+    // del catálogo antes de llegar aquí. Si esto dispara, `ADAPTERS` y el
+    // catálogo (`catalog.ts`) se desincronizaron.
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(`[A2UI] componente sin adaptador registrado: "${component.component}"`);
+    }
+    return null;
+  }
 
   const children = (component.children ?? []).map((childId) =>
     renderNode(childId, surface, onAction, actionPending, depth + 1),
