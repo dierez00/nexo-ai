@@ -1,0 +1,8 @@
+{
+  "code": "PERMISSION_DENIED",
+  "details": [],
+  "message": "El rol no autoriza esta operación en el dominio solicitado.",
+  "outcome": "known_failure",
+  "retry_after_ms": null,
+  "retryable": false
+}

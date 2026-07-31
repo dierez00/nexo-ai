@@ -1,0 +1,19 @@
+{
+  "allowed_roles": [
+    "citizen",
+    "operator"
+  ],
+  "description": "Reserva un slot autorizado. Exige confirmación e idempotencia.",
+  "domain": "vehiculos",
+  "input_schema_ref": "contracts://tools/vehiculos.reservar_cita.input.v1",
+  "is_mock": true,
+  "max_attempts": 1,
+  "mode": "write",
+  "name": "autos.reservar_cita",
+  "output_schema_ref": "contracts://tools/vehiculos.reservar_cita.output.v1",
+  "requires_confirmation": true,
+  "requires_idempotency_key": true,
+  "risk": "medium",
+  "timeout_ms": 5000,
+  "version": "1.0.0"
+}

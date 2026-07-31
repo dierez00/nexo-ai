@@ -1,0 +1,141 @@
+# Router de modelos — configuración no secreta.
+#
+# Los agentes solo conocen aliases. Cambiar de proveedor es editar este archivo,
+# nunca tocar código de agente. Las credenciales se referencian con `secret://`
+# y se resuelven fuera del repositorio.
+#
+# Schema: nexo_contracts.config.ModelRouterConfig
+
+version: router-2026-07-30
+
+# Conjunto cerrado. Un alias que apunte a un proveedor ausente de esta lista
+# detiene el arranque.
+allowed_providers:
+  - fake
+  - provider_a
+  - provider_b
+
+aliases:
+  # Perfil offline obligatorio: la demo y toda la suite deben poder correr sin
+  # red ni credenciales.
+  - alias: offline_fake
+    provider_ref:
+      provider: fake
+      model: fake-deterministic-v1
+    capabilities:
+      supports_structured_output: true
+      max_context_tokens: 200000
+      max_output_tokens: 8192
+      cost_per_1k_input_usd: 0.0
+      cost_per_1k_output_usd: 0.0
+    enabled: true
+
+  - alias: general
+    provider_ref:
+      provider: provider_a
+      model: general-v1
+      api_key_ref: secret://providers/provider_a/api_key
+    capabilities:
+      supports_structured_output: true
+      max_context_tokens: 200000
+      max_output_tokens: 8192
+      cost_per_1k_input_usd: 0.003
+      cost_per_1k_output_usd: 0.015
+    enabled: false
+
+  - alias: structured_small
+    provider_ref:
+      provider: provider_a
+      model: small-v1
+      api_key_ref: secret://providers/provider_a/api_key
+    capabilities:
+      supports_structured_output: true
+      max_context_tokens: 128000
+      max_output_tokens: 4096
+      cost_per_1k_input_usd: 0.0005
+      cost_per_1k_output_usd: 0.0015
+    enabled: false
+
+  - alias: high_accuracy
+    provider_ref:
+      provider: provider_b
+      model: accurate-v1
+      api_key_ref: secret://providers/provider_b/api_key
+    capabilities:
+      supports_structured_output: true
+      max_context_tokens: 200000
+      max_output_tokens: 16384
+      allows_sensitive_data: false
+      cost_per_1k_input_usd: 0.01
+      cost_per_1k_output_usd: 0.04
+    enabled: false
+
+  # El judge usa deliberadamente otro proveedor que el generador.
+  - alias: judge_secondary
+    provider_ref:
+      provider: provider_b
+      model: judge-v1
+      api_key_ref: secret://providers/provider_b/api_key
+    capabilities:
+      supports_structured_output: true
+      max_context_tokens: 128000
+      max_output_tokens: 4096
+      cost_per_1k_input_usd: 0.002
+      cost_per_1k_output_usd: 0.008
+    enabled: false
+
+offline_alias: offline_fake
+
+policies:
+  - task_kind: classification
+    default_alias: structured_small
+    escalation_alias: general
+    fallback_alias: offline_fake
+    max_attempts: 2
+    min_accuracy_class: low
+    policy_version: router-2026-07-30
+
+  - task_kind: extraction
+    default_alias: structured_small
+    escalation_alias: general
+    fallback_alias: offline_fake
+    max_attempts: 2
+    min_accuracy_class: low
+    policy_version: router-2026-07-30
+
+  - task_kind: navigation
+    default_alias: general
+    fallback_alias: offline_fake
+    max_attempts: 2
+    min_accuracy_class: medium
+    policy_version: router-2026-07-30
+
+  - task_kind: supervision
+    default_alias: general
+    escalation_alias: high_accuracy
+    fallback_alias: offline_fake
+    max_attempts: 2
+    min_accuracy_class: medium
+    policy_version: router-2026-07-30
+
+  - task_kind: verification
+    default_alias: high_accuracy
+    fallback_alias: offline_fake
+    max_attempts: 2
+    min_accuracy_class: high
+    policy_version: router-2026-07-30
+
+  # La redacción nunca introduce hechos; si falla, se usa plantilla determinista.
+  - task_kind: drafting
+    default_alias: structured_small
+    fallback_alias: offline_fake
+    max_attempts: 2
+    min_accuracy_class: low
+    policy_version: router-2026-07-30
+
+  - task_kind: judge
+    default_alias: judge_secondary
+    fallback_alias: offline_fake
+    max_attempts: 1
+    min_accuracy_class: medium
+    policy_version: router-2026-07-30

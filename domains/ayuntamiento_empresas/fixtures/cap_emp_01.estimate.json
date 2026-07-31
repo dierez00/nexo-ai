@@ -1,0 +1,44 @@
+{
+  "derived_from": [
+    "fact_cost_01"
+  ],
+  "domain": "ayuntamiento_empresas",
+  "steps": [
+    {
+      "cost": {
+        "amount_minor": 85000,
+        "currency": "MXN"
+      },
+      "depends_on": [],
+      "derived_from": [
+        "fact_cost_01"
+      ],
+      "duration_days": 5,
+      "missing_documents": [],
+      "step_id": "uso_de_suelo",
+      "title": "Constancia de uso de suelo"
+    },
+    {
+      "cost": {
+        "amount_minor": 140000,
+        "currency": "MXN"
+      },
+      "depends_on": [
+        "uso_de_suelo"
+      ],
+      "derived_from": [
+        "fact_cost_01"
+      ],
+      "duration_days": 10,
+      "missing_documents": [
+        "Contrato de arrendamiento"
+      ],
+      "step_id": "licencia_funcionamiento",
+      "title": "Licencia de funcionamiento"
+    }
+  ],
+  "total_cost": {
+    "amount_minor": 225000,
+    "currency": "MXN"
+  }
+}

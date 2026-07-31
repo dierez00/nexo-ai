@@ -1,0 +1,17 @@
+{
+  "domain": "vehiculos",
+  "institution_id": "inst_demo",
+  "is_synthetic": true,
+  "license": "Uso interno de demostración",
+  "origin_url": "https://example.invalid/demo/licencias",
+  "owner": "equipo-nexo",
+  "publisher": "Dependencia de demostración",
+  "source_id": "src_licencias_v3",
+  "status": "active",
+  "title": "Renovación de licencia — versión demo 3",
+  "validity": {
+    "valid_from": "2026-01-01",
+    "valid_to": null
+  },
+  "verified_at": "2026-07-30T15:00:00Z"
+}

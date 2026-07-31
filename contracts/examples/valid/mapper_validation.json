@@ -1,0 +1,11 @@
+{
+  "blocked_reasons": [
+    "write_requires_human_review"
+  ],
+  "findings": [
+    "operación de escritura sin revisión humana"
+  ],
+  "integration_id": "intg_citas_demo",
+  "passed": false,
+  "validated_at": "2026-07-30T15:00:00Z"
+}

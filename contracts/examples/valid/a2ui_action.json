@@ -1,0 +1,8 @@
+{
+  "action_id": "act_reserve_01",
+  "expected_version": 1,
+  "input_schema_ref": "contracts://tools/vehiculos.reservar_cita.input.v1",
+  "label": "Confirmar cita",
+  "requires_confirmation": true,
+  "tool_name": "vehiculos.reservar_cita"
+}

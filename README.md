@@ -21,6 +21,30 @@ Hub omnicanal de asistentes e integración institucional. El repositorio se encu
 
 Los comandos `docker compose up --build` y `./run.sh` son entregables futuros. No se documentan como disponibles hasta que existan y tengan un smoke test.
 
+### Núcleo Python (Fase 0 — `implementada`)
+
+Existe un workspace Python con contratos tipados, puertos, dobles de prueba,
+configuración validada y un grafo mínimo verificable. Corre **sin red, sin base
+de datos y sin credenciales**.
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -e ./contracts -e ./rag -e ./mcp -e ./orchestration
+.venv/bin/python -m pip install pytest pytest-asyncio ruff
+.venv/bin/python -m pytest          # 490 pruebas
+```
+
+Regenerar los artefactos derivados de `contracts/` tras cambiar un modelo:
+
+```sh
+.venv/bin/python -m nexo_contracts.export
+```
+
+Alcance actual: contratos de la sección 5, puertos y fakes, configuración
+fail-fast y el recorrido `start → classify_fake → finalize_fake`. Los agentes,
+el RAG real, el server MCP y el builder A2UI son Fase 1. Ver
+[`docs/team/fase0_hallazgos.md`](./docs/team/fase0_hallazgos.md).
+
 ## Convenciones
 
 - Marcar capacidades como `planeada`, `mock` o `implementada`.

@@ -1,0 +1,25 @@
+{
+  "action_id": "act_reserve_01",
+  "confirmed": true,
+  "context": {
+    "institution_id": "inst_demo",
+    "permissions": [
+      "appointment:create"
+    ],
+    "roles": [
+      "citizen"
+    ],
+    "user_id": "usr_demo"
+  },
+  "deadline_ms": 5000,
+  "idempotency_key": "824a2b5c-1389-4ef5-a346-b00270fd1b42",
+  "mode": "write",
+  "name": "vehiculos.reservar_cita",
+  "parameters": {
+    "slot_id": "slot_101"
+  },
+  "run_id": "run_01JNE8ZP",
+  "tool_call_id": "tc_01",
+  "trace_id": "trace_01JNE8ZP",
+  "version": "1.0.0"
+}

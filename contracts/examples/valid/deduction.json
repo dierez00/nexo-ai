@@ -1,0 +1,15 @@
+{
+  "confidence": 0.8,
+  "confirmed_by_user": true,
+  "rationale": "El perfil declara Durango y la persona lo confirmó en el turno previo.",
+  "source": "profile",
+  "value": {
+    "boolean": null,
+    "date": null,
+    "items": null,
+    "money": null,
+    "number": null,
+    "text": "Durango"
+  },
+  "write_eligible": true
+}
