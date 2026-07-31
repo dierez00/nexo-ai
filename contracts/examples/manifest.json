@@ -181,6 +181,10 @@
       "contract": "catalog_descriptor",
       "file": "valid/catalog_descriptor.json"
     },
+    "catalog_entity_telemetry": {
+      "contract": "catalog_entity_telemetry",
+      "file": "valid/catalog_entity_telemetry.json"
+    },
     "channel_fallback": {
       "contract": "channel_fallback",
       "file": "valid/channel_fallback.json"
