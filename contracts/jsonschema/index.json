@@ -72,6 +72,12 @@
       "ref": "contracts://catalog_descriptor.v1",
       "schema": "jsonschema/catalog_descriptor.v1.json"
     },
+    "catalog_entity_telemetry": {
+      "model": "CatalogEntityTelemetry",
+      "module": "nexo_contracts.observability",
+      "ref": "contracts://catalog_entity_telemetry.v1",
+      "schema": "jsonschema/catalog_entity_telemetry.v1.json"
+    },
     "channel_fallback": {
       "model": "ChannelFallback",
       "module": "nexo_contracts.a2ui",

@@ -60,6 +60,7 @@ from .model_gateway import (
     ModelPolicy,
     ModelTask,
 )
+from .observability import CatalogEntityTelemetry
 from .rag import (
     Chunk,
     CorpusVersion,
@@ -172,6 +173,10 @@ EVENT_CONTRACTS: dict[str, type[NexoModel]] = {
     "event_sequence": EventSequence,
 }
 
+OBSERVABILITY_CONTRACTS: dict[str, type[NexoModel]] = {
+    "catalog_entity_telemetry": CatalogEntityTelemetry,
+}
+
 SHARED_CONTRACTS: dict[str, type[NexoModel]] = {
     "normalized_error": NormalizedError,
 }
@@ -185,6 +190,7 @@ CONTRACT_REGISTRY: dict[str, type[NexoModel]] = {
     **MODEL_CONTRACTS,
     **SKILL_CONTRACTS,
     **EVENT_CONTRACTS,
+    **OBSERVABILITY_CONTRACTS,
     **SHARED_CONTRACTS,
 }
 """Todos los contratos publicados de §5, por nombre estable."""

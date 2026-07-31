@@ -10,6 +10,7 @@
       "tool_name": "vehiculos.reservar_cita"
     }
   ],
+  "catalog_version": "unset",
   "error": null,
   "estimate": null,
   "fallback": null,
@@ -17,13 +18,17 @@
     "duration_ms": 4200,
     "first_event_ms": null,
     "model_invocation_count": 2,
+    "question_count": 0,
     "retrieval_count": 0,
     "tool_call_count": 0,
     "total_cost_usd": 0.012,
     "total_input_tokens": 0,
     "total_output_tokens": 0
   },
+  "questions": [],
   "run_id": "run_01JNE8ZP",
+  "skill_id": null,
+  "skill_version": null,
   "sources": [
     {
       "char_end": 180,

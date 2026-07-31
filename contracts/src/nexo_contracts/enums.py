@@ -430,3 +430,10 @@ class EventStatus(StrEnum):
     FAILED = "failed"
     DENIED = "denied"
     SKIPPED = "skipped"
+
+
+class EventVisibility(StrEnum):
+    """Quién puede consumir el payload detallado de un evento."""
+
+    PUBLIC = "public"
+    RESTRICTED = "restricted"

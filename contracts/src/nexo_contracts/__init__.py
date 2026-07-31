@@ -46,6 +46,7 @@ from .enums import (
     ErrorCode,
     EventStatus,
     EventType,
+    EventVisibility,
     FactCategory,
     FactOrigin,
     IngestionOutcome,
@@ -114,6 +115,7 @@ from .model_gateway import (
     ModelPolicy,
     ModelTask,
 )
+from .observability import CatalogEntityTelemetry, CatalogTelemetryState
 from .primitives import (
     CalendarDate,
     Confidence,
@@ -183,6 +185,8 @@ __all__ = [
     "CalendarDate",
     "CandidateFact",
     "CatalogDescriptor",
+    "CatalogEntityTelemetry",
+    "CatalogTelemetryState",
     "Classification",
     "Channel",
     "ChannelFallback",
@@ -214,6 +218,7 @@ __all__ = [
     "EventSequence",
     "EventStatus",
     "EventType",
+    "EventVisibility",
     "FactCategory",
     "FactOrigin",
     "FactValue",
