@@ -1,15 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ArrowRight,
-  CalendarDays,
-  MessageSquare,
-  Mic,
-  Route as RouteIcon,
-  Sparkle,
-} from "lucide-react";
+import { CalendarDays, MessageSquare, Mic, Route as RouteIcon } from "lucide-react";
 import { PortalShell } from "@/components/nexo/portal-shell";
-import { StatusBadge } from "@/components/nexo/status-badge";
+import { SuggestedTramite } from "@/features/tramite/SuggestedTramite";
 
 export const metadata: Metadata = {
   title: "Portal ciudadano — Nexo AI",
@@ -54,26 +47,7 @@ export default function Page() {
       title="Portal ciudadano"
       subtitle="Todo tu trámite ocurre en una sola conversación."
     >
-      <section className="rounded-2xl border border-accent/30 bg-accent/8 p-5 shadow-soft">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-          <div className="min-w-0">
-            <StatusBadge tone="accent">Trámite sugerido para ti</StatusBadge>
-            <h2 className="mt-3 text-lg font-bold">Renueva tu licencia de conducir</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Tu licencia vence el 18 de agosto. Puedes agendar la cita en el chat en 3 pasos.
-            </p>
-          </div>
-          <Sparkle className="hidden size-5 shrink-0 text-accent sm:block" />
-        </div>
-        <div className="mt-4">
-          <Link
-            href="/portal/chat"
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-          >
-            Empezar en el chat <ArrowRight className="size-4" />
-          </Link>
-        </div>
-      </section>
+      <SuggestedTramite />
 
       <section className="mt-10">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
