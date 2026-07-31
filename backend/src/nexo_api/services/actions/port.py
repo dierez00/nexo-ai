@@ -1,24 +1,25 @@
-"""Puerto de ejecución transaccional de acciones.
-
-La escritura real la hace una tool MCP transaccional (Diego). El backend solo
-depende de este Protocol; ver README backend: toda escritura exige permiso,
-consentimiento e idempotencia.
-"""
+"""Puerto para ejecutar una ``ActionRequest`` canónica."""
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Protocol
 
-from pydantic import BaseModel, Field
-
-
-class ActionExecution(BaseModel):
-    status: str  # completed | failed
-    folio: str | None = None
-    result_payload: dict[str, Any] = Field(default_factory=dict)
+from nexo_contracts import ActionRequest, ActionResult, ToolPermissionContext
 
 
 class ActionExecutor(Protocol):
     async def execute(
-        self, action_name: str, action_input: dict[str, Any], tenant_id: int
-    ) -> ActionExecution: ...
+        self,
+        action: ActionRequest,
+        *,
+        identity: ToolPermissionContext,
+        trace_id: str,
+    ) -> ActionResult:
+        """Ejecuta una acción ya autorizada sin reinterpretar sus parámetros.
+
+        `identity` y `trace_id` son la identidad efectiva y la traza del run: el
+        ejecutor real los propaga a la invocación de la tool para revalidar
+        permisos y correlacionar la auditoría. Un ejecutor de demo puede
+        ignorarlos.
+        """
+        ...

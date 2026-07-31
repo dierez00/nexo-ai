@@ -1,0 +1,47 @@
+skill_id: skill_rc_copia
+version: 1.0.0
+title: Copia certificada de acta
+domain: registro_civil
+owner: diego
+objective: Informar requisitos y oficialía para obtener una copia certificada.
+steps:
+  - step_id: clasificar
+    agent: classifier
+    objective: Identificar el tipo de acta solicitado.
+    deadline_ms: 3000
+  - step_id: recuperar
+    agent: domain_navigator
+    objective: Recuperar requisitos y oficialías vigentes.
+    depends_on: [clasificar]
+    deadline_ms: 6000
+  - step_id: verificar
+    agent: verifier
+    objective: Rechazar evidencia vencida o sin procedencia.
+    depends_on: [recuperar]
+    deadline_ms: 5000
+  - step_id: redactar
+    agent: writer
+    objective: Entregar la ruta administrativa verificada.
+    depends_on: [verificar]
+    deadline_ms: 5000
+allowed_sources: [src_rc_tramites, src_rc_oficialias]
+allowed_tools:
+  - registro_civil.localizar_oficialia
+  - registro_civil.consultar_disponibilidad
+reusable_inputs: [tipo_acta, municipio]
+question_conditions:
+  - Falta el tipo de acta y cambia la búsqueda.
+budgets:
+  deadline_ms: 15000
+  max_cost_usd: 0.12
+  max_questions: 1
+  max_concurrency: 2
+success_criteria:
+  - Los requisitos y la oficialía citan fuentes activas.
+  - No se afirma que una copia fue expedida.
+escalation_policy: Sin fuente vigente entrega sólo la ubicación verificable y una advertencia.
+prompt_refs:
+  - nexo_agents/prompts/classifier.v1.md
+  - nexo_agents/prompts/navigator_registro_civil.v1.md
+schema_refs: [contracts://classification.v1, contracts://verified_facts.v1]
+a2ui_components: [Checklist, StatusBanner, SourceList, SlotPicker]

@@ -176,6 +176,13 @@ class VerifiedFact(FrozenNexoModel):
     )
     confidence: Confidence
     citations: Annotated[list[SourceCitation], Field(max_length=20)] = Field(default_factory=list)
+    supporting_tool_call_id: ToolCallId | None = Field(
+        default=None,
+        description=(
+            "Invocación de tool que respalda el hecho cuando su evidencia no es "
+            "documental. Es la otra forma admisible de fundamentar un claim crítico."
+        ),
+    )
     depends_on: Annotated[list[FactId], Field(max_length=50)] = Field(default_factory=list)
     write_eligible: bool = False
 
@@ -183,15 +190,30 @@ class VerifiedFact(FrozenNexoModel):
     def is_critical(self) -> bool:
         return self.category in CRITICAL_FACT_CATEGORIES
 
+    @property
+    def has_active_evidence(self) -> bool:
+        """Si el hecho está fundamentado, por documento o por tool."""
+        return any(c.is_active for c in self.citations) or self.supporting_tool_call_id is not None
+
     @model_validator(mode="after")
-    def _critical_accepted_facts_need_active_citations(self) -> Self:
+    def _critical_accepted_facts_need_evidence(self) -> Self:
+        """Un hecho crítico aceptado debe estar fundamentado.
+
+        La evidencia admisible es de **dos** clases, no una: una citación activa
+        o una invocación de tool verificable. Exigir siempre citación documental
+        hacía inexpresable el caso más importante del sistema —«la cita quedó
+        reservada, folio NEXO-MOCK-01»—, porque `ACTION_RESULT` es crítico por
+        definición y jamás procede de un documento. Un adeudo consultado por
+        tool tiene el mismo problema.
+
+        Lo que no cambia: sin ninguna de las dos, no hay aceptación.
+        """
         if self.verification is VerificationStatus.ACCEPTED and self.is_critical:
-            active = [c for c in self.citations if c.is_active]
-            if not active:
+            if not self.has_active_evidence:
                 raise ValueError(
-                    f"el hecho crítico {self.fact_id!r} ({self.category.value}) fue aceptado sin "
-                    f"ninguna citación activa; el gate de grounding exige source_id y "
-                    f"fragment_id vigentes"
+                    f"el hecho crítico {self.fact_id!r} ({self.category.value}) fue aceptado "
+                    f"sin evidencia activa; el gate de grounding exige una citación vigente "
+                    f"o el tool_call_id que lo produjo"
                 )
         return self
 
@@ -229,8 +251,7 @@ class Contradiction(FrozenNexoModel):
     def _resolution_requires_winner(self) -> Self:
         if self.status is ContradictionStatus.RESOLVED and self.resolved_fact_id is None:
             raise ValueError(
-                "una contradicción resuelta debe indicar qué hecho prevaleció "
-                "(resolved_fact_id)"
+                "una contradicción resuelta debe indicar qué hecho prevaleció (resolved_fact_id)"
             )
         if self.resolved_fact_id is not None and self.resolved_fact_id not in self.fact_ids:
             raise ValueError(
@@ -294,9 +315,7 @@ class VerifiedFacts(FrozenNexoModel):
             if fact.verification is not VerificationStatus.ACCEPTED:
                 continue
             broken = [
-                dep
-                for dep in fact.depends_on
-                if status_by_id[dep] is VerificationStatus.REJECTED
+                dep for dep in fact.depends_on if status_by_id[dep] is VerificationStatus.REJECTED
             ]
             if broken:
                 raise ValueError(

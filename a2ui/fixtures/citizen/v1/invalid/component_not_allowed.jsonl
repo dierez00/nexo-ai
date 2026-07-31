@@ -1,0 +1,3 @@
+{"version":"v0.9.1","createSurface":{"surfaceId":"surf_invalid_component","catalogId":"urn:nexo-ia:a2ui:catalog:citizen:v1","sendDataModel":true}}
+{"version":"v0.9.1","updateDataModel":{"surfaceId":"surf_invalid_component","path":"/","value":{"title":"No ejecutar"}}}
+{"version":"v0.9.1","updateComponents":{"surfaceId":"surf_invalid_component","components":[{"id":"root","component":"Column","children":["malicioso"],"align":"stretch","gap":"md"},{"id":"malicioso","component":"ScriptTag","text":{"path":"/title"}}]}}

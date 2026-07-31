@@ -1,0 +1,77 @@
+# Skill operativa: consulta de adeudo vehicular (`DIE-F1-110`).
+#
+# Existe por separado de la renovación porque es un trámite independiente: se
+# consulta sin costo, sin cita y sin renovar nada. Fusionarla con la renovación
+# obligaría a quien solo quiere saber su saldo a recorrer un plan de siete pasos.
+#
+# Schema: nexo_contracts.skills.SkillManifest
+
+skill_id: skill_veh_adeudo
+version: 1.0.0
+title: Consulta de adeudo vehicular
+domain: vehiculos
+owner: diego
+objective: >-
+  Informar si existen adeudos o infracciones pendientes del titular, con el
+  monto citado, y advertir que bloquean la renovación.
+
+steps:
+  - step_id: clasificar
+    agent: classifier
+    objective: Reconocer la consulta de adeudo como intención propia.
+    deadline_ms: 3000
+    max_attempts: 2
+
+  - step_id: consultar
+    agent: domain_navigator
+    objective: Consultar el saldo mediante tool de lectura y recuperar la regla que lo bloquea.
+    depends_on: [clasificar]
+    deadline_ms: 5000
+
+  - step_id: verificar
+    agent: verifier
+    objective: Confirmar que el monto proviene de la tool y la regla de una fuente vigente.
+    depends_on: [consultar]
+    deadline_ms: 4000
+
+  - step_id: redactar
+    agent: writer
+    objective: Redactar la respuesta solo desde VerifiedFacts.
+    depends_on: [verificar]
+    deadline_ms: 6000
+
+allowed_sources:
+  - src_veh_licencias
+
+allowed_tools:
+  - vehiculos.consultar_adeudo
+
+reusable_inputs:
+  - tipo_licencia
+
+question_conditions:
+  - No hay forma de identificar al titular con el contexto disponible.
+
+budgets:
+  deadline_ms: 12000
+  max_cost_usd: 0.08
+  max_questions: 1
+  max_concurrency: 1
+
+success_criteria:
+  - El monto proviene de la tool, no del modelo.
+  - Si hay adeudo, se dice explícitamente que bloquea la renovación, con fuente.
+  - "No se ofrece agendar cita: esta skill no reserva nada."
+
+escalation_policy: >-
+  Si la tool falla o devuelve outcome desconocido, se informa que no se pudo
+  consultar y no se afirma que no haya adeudo. Ausencia de dato no es ausencia
+  de deuda.
+
+prompt_refs:
+  - nexo_agents/prompts/classifier.v1.md
+  - nexo_agents/prompts/navigator_vehiculos.v1.md
+
+schema_refs:
+  - contracts://classification.v1
+  - contracts://verified_facts.v1

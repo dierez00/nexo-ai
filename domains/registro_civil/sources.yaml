@@ -1,0 +1,101 @@
+version: sources-registro-civil-2026-07-30
+domain: registro_civil
+corpus_version: registro-civil-2026-07-30
+sources:
+  - source_id: src_rc_tramites
+    title: Copias, aclaraciones y correcciones de actas
+    institution_id: inst_demo
+    publisher: Registro Civil de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-20T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_rc_tramites
+        title: Guía vigente de trámites de actas
+        version: v2
+        media_type: text/markdown
+        path: data/documents/registro_civil/src_rc_tramites/v2/tramites.md
+        checksum: sha256:6c639702252661e2c7ba28cd4e2d222ea821bb59c2d201f422f93418ed75a3cd
+
+  - source_id: src_rc_oficialias
+    title: Directorio público de oficialías
+    institution_id: inst_demo
+    publisher: Registro Civil de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-20T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_rc_oficialias
+        title: Oficialías y horarios
+        version: v1
+        media_type: text/markdown
+        path: data/documents/registro_civil/src_rc_oficialias/v1/oficialias.md
+        checksum: sha256:95630bdece8ac90c784ae16e3f764e32ab13d246bfb66396b030d0c6d5eac7ac
+
+  - source_id: src_rc_tramites_2024
+    title: Guía de trámites de actas 2024 (sustituida)
+    institution_id: inst_demo
+    publisher: Registro Civil de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: superseded
+    superseded_by: src_rc_tramites
+    is_synthetic: true
+    verified_at: 2024-01-10T00:00:00Z
+    validity:
+      valid_from: 2024-01-01
+      valid_to: 2024-12-31
+    documents:
+      - document_id: doc_rc_tramites_2024
+        title: Guía sustituida de trámites de actas
+        version: v1
+        media_type: text/markdown
+        path: data/documents/registro_civil/src_rc_tramites/v1/tramites.md
+        checksum: sha256:d3ecd8ef1e9aec2113ba02c38bfcaf60e2b09900ca8c6810f12362d47873f7ac
+
+  - source_id: src_rc_avisos
+    title: Aviso manipulado de Registro Civil
+    institution_id: inst_demo
+    publisher: Registro Civil de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-20T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_rc_aviso_manipulado
+        title: Aviso con instrucción adversarial incrustada
+        version: v1
+        media_type: text/markdown
+        path: data/documents/registro_civil/src_rc_avisos/v1/aviso_manipulado.md
+        checksum: sha256:10bce8fb3f36dbdd41197733c2c072a88547554f0590200e30b897adb728d16c
+
+  - source_id: src_rc_oficialias_2023
+    title: Directorio de oficialías 2023 (vencido)
+    institution_id: inst_demo
+    publisher: Registro Civil de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: expired
+    is_synthetic: true
+    verified_at: 2023-01-10T00:00:00Z
+    validity:
+      valid_from: 2023-01-01
+      valid_to: 2023-12-31
+    documents:
+      - document_id: doc_rc_oficialias_2023
+        title: Directorio vencido de oficialías
+        version: v1
+        media_type: text/markdown
+        path: data/documents/registro_civil/src_rc_oficialias_2023/v1/oficialias.md
+        checksum: sha256:c638f7e2b3ddbadd2696acd27abe8ab13cb9f148102dc030c04ab20e5e59c085

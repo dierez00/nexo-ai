@@ -1,5 +1,185 @@
 {
+  "$defs": {
+    "A2UIComponent": {
+      "additionalProperties": false,
+      "description": "Nodo del árbol de componentes.\n\nLos datos viven en el data model y se referencian por binding (`{\"path\": ...}`);\nla estructura nunca los incrusta (`DIE-F1-102`).\n\nEn el protocolo, las propiedades específicas del componente viajan aplanadas\njunto a `id` y `component`. Aquí se validan agrupadas bajo `properties` para\nmantener el modelo cerrado, y la (de)serialización hace la conversión: los\nfixtures que consume el renderer de Cris salen con la forma del protocolo,\nsin traducción implícita a cargo del consumidor (`DIE-F0-019`).",
+      "properties": {
+        "actionId": {
+          "anyOf": [
+            {
+              "maxLength": 67,
+              "minLength": 5,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actionid"
+        },
+        "children": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9-]{0,62}$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Children",
+          "type": "array"
+        },
+        "component": {
+          "pattern": "^[A-Z][A-Za-z0-9]{1,40}$",
+          "title": "Component",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9-]{0,62}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "properties": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Properties",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "component"
+      ],
+      "title": "A2UIComponent",
+      "type": "object"
+    },
+    "CreateSurface": {
+      "additionalProperties": false,
+      "properties": {
+        "catalogId": {
+          "description": "URN inmutable del catálogo negociado, por ejemplo 'urn:nexo-ia:a2ui:catalog:citizen:v1'.",
+          "maxLength": 200,
+          "pattern": "^urn:nexo-ia:a2ui:catalog:[a-z0-9_-]+:v\\d+$",
+          "title": "Catalogid",
+          "type": "string"
+        },
+        "sendDataModel": {
+          "default": false,
+          "title": "Senddatamodel",
+          "type": "boolean"
+        },
+        "surfaceId": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Surfaceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "surfaceId",
+        "catalogId"
+      ],
+      "title": "CreateSurface",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "UpdateComponents": {
+      "additionalProperties": false,
+      "properties": {
+        "components": {
+          "items": {
+            "$ref": "#/$defs/A2UIComponent"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Components",
+          "type": "array"
+        },
+        "surfaceId": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Surfaceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "surfaceId",
+        "components"
+      ],
+      "title": "UpdateComponents",
+      "type": "object"
+    },
+    "UpdateDataModel": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "maxLength": 300,
+          "pattern": "^/[A-Za-z0-9_/-]*$",
+          "title": "Path",
+          "type": "string"
+        },
+        "surfaceId": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Surfaceid",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue"
+        }
+      },
+      "required": [
+        "surfaceId",
+        "path",
+        "value"
+      ],
+      "title": "UpdateDataModel",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/a2ui_message.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "A2UIMessage"
+  "additionalProperties": false,
+  "description": "Unidad JSONL del protocolo: exactamente uno de los tres mensajes.",
+  "properties": {
+    "createSurface": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CreateSurface"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "updateComponents": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/UpdateComponents"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "updateDataModel": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/UpdateDataModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "version": {
+      "default": "v0.9.1",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "title": "A2UIMessage",
+  "type": "object"
 }

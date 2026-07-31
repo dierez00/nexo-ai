@@ -1,5 +1,149 @@
 {
+  "$defs": {
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "SourceStatus": {
+      "description": "Estado de una fuente documental. Solo `ACTIVE` alimenta el retrieval.",
+      "enum": [
+        "draft",
+        "active",
+        "superseded",
+        "expired"
+      ],
+      "title": "SourceStatus",
+      "type": "string"
+    },
+    "ValidityWindow": {
+      "additionalProperties": false,
+      "description": "Ventana de vigencia de una fuente o una regla.\n\n`valid_to` nulo significa vigencia abierta. El retriever filtra por esta\nventana antes de entregar texto a un agente (`DIE-F1-022`).",
+      "properties": {
+        "valid_from": {
+          "format": "date",
+          "title": "Valid From",
+          "type": "string"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "valid_from"
+      ],
+      "title": "ValidityWindow",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/source.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Source"
+  "additionalProperties": false,
+  "description": "Fuente institucional registrada (§5.3).\n\nLos metadatos obligatorios son los que permiten auditar una respuesta: sin\ninstitución, responsable, licencia y vigencia, una fuente no puede activarse\n(`DIE-F2-022`).",
+  "properties": {
+    "domain": {
+      "$ref": "#/$defs/Domain"
+    },
+    "institution_id": {
+      "maxLength": 68,
+      "minLength": 6,
+      "title": "Institution Id",
+      "type": "string"
+    },
+    "is_synthetic": {
+      "default": true,
+      "description": "Marca el contenido sintético de demo frente al institucional autorizado.",
+      "title": "Is Synthetic",
+      "type": "boolean"
+    },
+    "license": {
+      "maxLength": 200,
+      "title": "License",
+      "type": "string"
+    },
+    "origin_url": {
+      "anyOf": [
+        {
+          "maxLength": 1000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Origin Url"
+    },
+    "owner": {
+      "description": "Responsable interno de la fuente.",
+      "maxLength": 200,
+      "title": "Owner",
+      "type": "string"
+    },
+    "publisher": {
+      "maxLength": 200,
+      "title": "Publisher",
+      "type": "string"
+    },
+    "source_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Source Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/SourceStatus",
+      "default": "draft"
+    },
+    "title": {
+      "maxLength": 300,
+      "title": "Title",
+      "type": "string"
+    },
+    "validity": {
+      "$ref": "#/$defs/ValidityWindow"
+    },
+    "verified_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Verified At"
+    }
+  },
+  "required": [
+    "source_id",
+    "title",
+    "institution_id",
+    "domain",
+    "publisher",
+    "owner",
+    "license",
+    "validity"
+  ],
+  "title": "Source",
+  "type": "object"
 }

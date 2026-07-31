@@ -1,24 +1,86 @@
-# Entornos y artefactos de Python
-.venv/
-venv/
+# =============================================================================
+# Python
+# =============================================================================
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
 *.egg-info/
+*.egg
+.eggs/
 build/
 dist/
-.pytest_cache/
-.ruff_cache/
+pip-wheel-metadata/
 .mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.cover
+.hypothesis/
 
-# Entornos y artefactos de Node
+# =============================================================================
+# Entornos y secretos  ← barrera principal
+# =============================================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+*.secret
+.secret
+
+# =============================================================================
+# Node / pnpm / Next.js
+# =============================================================================
 node_modules/
 .next/
+.nuxt/
+.pnpm-store/
+.npm/
+*.tsbuildinfo
+dist/
+out/
 
-# Secretos y configuración local
-.env
-.env.local
-!.env.example
+# =============================================================================
+# IDE / editores
+# =============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
 
-# Salidas generadas por evaluaciones
-evaluations/reports/*
-!evaluations/reports/.gitkeep
+# =============================================================================
+# Docker / infra local
+# =============================================================================
+*.local.yaml
+*.local.yml
+docker-compose.override.yml
+.docker/
+
+# =============================================================================
+# Logs y artefactos de runtime
+# =============================================================================
+*.log
+logs/
+# Los .jsonl de output runtime se ignoran; los de tests/fixtures NO
+/observability/runtime/
+/backend/runtime/
+
+# =============================================================================
+# uv.lock SÍ se versiona (workspace reproducible)
+# NO ignorar: uv.lock, pnpm-lock.yaml
+# =============================================================================

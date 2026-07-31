@@ -1,0 +1,101 @@
+version: sources-ganaderia-2026-07-30
+domain: ganaderia
+corpus_version: ganaderia-2026-07-30
+sources:
+  - source_id: src_gan_expediente
+    title: Expediente e historial sanitario animal
+    institution_id: inst_demo
+    publisher: Secretaría de Agricultura de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-20T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_gan_expediente
+        title: Consulta y actualización del expediente
+        version: v1
+        media_type: text/markdown
+        path: data/documents/ganaderia/src_gan_expediente/v1/expediente.md
+        checksum: sha256:2d722e88cee64a6c18469e728ed937b455162ea1a75339540907f44658737697
+
+  - source_id: src_gan_movilizacion
+    title: Requisitos de movilización pecuaria
+    institution_id: inst_demo
+    publisher: Secretaría de Agricultura de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-20T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_gan_movilizacion
+        title: Validación documental de movilización
+        version: v2
+        media_type: text/markdown
+        path: data/documents/ganaderia/src_gan_movilizacion/v2/movilizacion.md
+        checksum: sha256:c01b8a16a40b4ee97f28e022b51352e25eb4dfb5be0cb6f7d2e0883b92d44c95
+
+  - source_id: src_gan_movilizacion_2024
+    title: Requisitos de movilización 2024 (sustituidos)
+    institution_id: inst_demo
+    publisher: Secretaría de Agricultura de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: superseded
+    superseded_by: src_gan_movilizacion
+    is_synthetic: true
+    verified_at: 2024-01-10T00:00:00Z
+    validity:
+      valid_from: 2024-01-01
+      valid_to: 2024-12-31
+    documents:
+      - document_id: doc_gan_movilizacion_2024
+        title: Requisitos sustituidos de movilización
+        version: v1
+        media_type: text/markdown
+        path: data/documents/ganaderia/src_gan_movilizacion/v1/movilizacion.md
+        checksum: sha256:dfd1d93922c8cd8521d2503604ac88a926e8ffa8c5d1c4407b4809ad284afec1
+
+  - source_id: src_gan_avisos
+    title: Aviso manipulado de ganadería
+    institution_id: inst_demo
+    publisher: Secretaría de Agricultura de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-20T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_gan_aviso_manipulado
+        title: Aviso con instrucción adversarial incrustada
+        version: v1
+        media_type: text/markdown
+        path: data/documents/ganaderia/src_gan_avisos/v1/aviso_manipulado.md
+        checksum: sha256:fa6295f2e5ee583420ca06af1603ce3db5583b560bf9949e4a3b76f2472e438e
+
+  - source_id: src_gan_expediente_2023
+    title: Guía de expediente animal 2023 (vencida)
+    institution_id: inst_demo
+    publisher: Secretaría de Agricultura de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: expired
+    is_synthetic: true
+    verified_at: 2023-01-10T00:00:00Z
+    validity:
+      valid_from: 2023-01-01
+      valid_to: 2023-12-31
+    documents:
+      - document_id: doc_gan_expediente_2023
+        title: Guía vencida de expediente animal
+        version: v1
+        media_type: text/markdown
+        path: data/documents/ganaderia/src_gan_expediente_2023/v1/expediente.md
+        checksum: sha256:dd6719766f38b5651016105d69cf3cbbc3bcd2f19c1bc941a856ed0280a027d3

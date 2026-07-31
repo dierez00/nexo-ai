@@ -1,5 +1,100 @@
 {
+  "$defs": {
+    "ModelTaskKind": {
+      "description": "Tipo de tarea que consume el router para elegir política (`DIE-F3-001`).",
+      "enum": [
+        "classification",
+        "extraction",
+        "navigation",
+        "supervision",
+        "verification",
+        "drafting",
+        "vision",
+        "judge"
+      ],
+      "title": "ModelTaskKind",
+      "type": "string"
+    },
+    "RiskLevel": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "RiskLevel",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/model_policy.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "ModelPolicy"
+  "additionalProperties": false,
+  "description": "Política de selección para un tipo de tarea (§4.4 de la arquitectura).",
+  "properties": {
+    "allows_sensitive_data": {
+      "default": false,
+      "title": "Allows Sensitive Data",
+      "type": "boolean"
+    },
+    "default_alias": {
+      "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+      "pattern": "^[a-z][a-z0-9_]{2,40}$",
+      "title": "Default Alias",
+      "type": "string"
+    },
+    "escalation_alias": {
+      "anyOf": [
+        {
+          "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+          "pattern": "^[a-z][a-z0-9_]{2,40}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Escalation Alias"
+    },
+    "fallback_alias": {
+      "anyOf": [
+        {
+          "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+          "pattern": "^[a-z][a-z0-9_]{2,40}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fallback Alias"
+    },
+    "max_attempts": {
+      "default": 2,
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Max Attempts",
+      "type": "integer"
+    },
+    "min_accuracy_class": {
+      "$ref": "#/$defs/RiskLevel",
+      "default": "low",
+      "description": "Clase mínima de precisión; una tarea crítica no baja de aquí."
+    },
+    "policy_version": {
+      "maxLength": 40,
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "task_kind": {
+      "$ref": "#/$defs/ModelTaskKind"
+    }
+  },
+  "required": [
+    "task_kind",
+    "default_alias",
+    "policy_version"
+  ],
+  "title": "ModelPolicy",
+  "type": "object"
 }

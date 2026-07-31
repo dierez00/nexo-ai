@@ -1,5 +1,94 @@
 {
   "$id": "https://nexo.local/contracts/v1/deterministic_evaluation_result.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "DeterministicEvaluationResult"
+  "additionalProperties": false,
+  "description": "Métricas calculadas con código, no con un modelo (§5.6).\n\nEstas son las que constituyen un gate. El judge nunca las reemplaza.",
+  "properties": {
+    "a2ui_schema_valid": {
+      "title": "A2Ui Schema Valid",
+      "type": "boolean"
+    },
+    "case_id": {
+      "maxLength": 120,
+      "title": "Case Id",
+      "type": "string"
+    },
+    "citation_precision": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Citation Precision",
+      "type": "number"
+    },
+    "dataset_version": {
+      "maxLength": 60,
+      "title": "Dataset Version",
+      "type": "string"
+    },
+    "domain_match": {
+      "title": "Domain Match",
+      "type": "boolean"
+    },
+    "max_questions_allowed": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Max Questions Allowed",
+      "type": "integer"
+    },
+    "permission_compliance": {
+      "title": "Permission Compliance",
+      "type": "boolean"
+    },
+    "procedure_match": {
+      "title": "Procedure Match",
+      "type": "boolean"
+    },
+    "questions_asked": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Questions Asked",
+      "type": "integer"
+    },
+    "source_coverage": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Source Coverage",
+      "type": "number"
+    },
+    "tool_selection_correct": {
+      "title": "Tool Selection Correct",
+      "type": "boolean"
+    },
+    "unsupported_critical_claims": {
+      "minimum": 0,
+      "title": "Unsupported Critical Claims",
+      "type": "integer"
+    },
+    "write_verifiable": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Nulo si el caso no incluye escritura.",
+      "title": "Write Verifiable"
+    }
+  },
+  "required": [
+    "case_id",
+    "dataset_version",
+    "domain_match",
+    "procedure_match",
+    "source_coverage",
+    "citation_precision",
+    "unsupported_critical_claims",
+    "tool_selection_correct",
+    "permission_compliance",
+    "a2ui_schema_valid"
+  ],
+  "title": "DeterministicEvaluationResult",
+  "type": "object"
 }

@@ -1,29 +1,25 @@
-# Evaluaciones
+# Evaluaciones Core
 
-## Objetivo
+Este paquete contiene el dataset y los evaluadores deterministas de Fase 2. No
+autoriza acciones ni modifica runs: recibe una observación congelada y la
+compara con expectativas tipadas.
 
-Medir calidad, seguridad y regresiones del sistema multiagente.
+## Artefactos
 
-## Debe contener
+- `datasets/capstone_v1.jsonl`: cinco casos oficiales, paráfrasis, negativos y
+  ataques de prompt injection en mensaje, documento y respuesta de tool.
+- `baselines/core_v1_observations.jsonl`: recording offline de los cinco casos
+  oficiales, ligado al catálogo y a las versiones de skill.
+- `src/nexo_evaluations/evaluator.py`: exact match de dominio/trámite, cobertura
+  de fuentes, precisión de citas, tools, permisos, A2UI, escritura y preguntas.
+- `reports/core_baseline_v1.{json,md}`: baseline comparable entre commits.
 
-Datasets, expected facts/tools, rúbricas, evaluadores deterministas, LLM-as-judge y reportes.
+## Reproducir
 
-## No debe contener
+```bash
+uv run --frozen pytest evaluations/tests
+uv run --frozen python evaluations/scripts/export_core_report.py
+```
 
-PII real, prompts secretos ni resultados imposibles de reproducir.
-
-## Convenciones
-
-Cada caso tiene ID/versión; guardar configuración/seed; separar generación de evaluación; usar judge distinto y nunca como único gate.
-
-## Dependencias y responsable
-
-Depende de contratos y fixtures de dominio. Diego es responsable; cada integrante aporta aceptación de su módulo.
-
-## Ejemplos y tareas
-
-`datasets/capstone_v1.jsonl`, `rubrics/faithfulness.yaml`, `reports/`. Crear cinco casos, adversariales, baseline y judge Extremo.
-
-## Terminado
-
-Una orden produce métricas comparables y detecta regresiones conocidas en dominio, tool, fidelidad, permisos y A2UI.
+La validez de los recordings se sostiene además con los E2E offline de
+`tests/e2e/`; el reporte no reemplaza esas pruebas.

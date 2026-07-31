@@ -1,0 +1,27 @@
+{
+  "audience": "citizen",
+  "catalog_id": "urn:nexo-ia:a2ui:catalog:citizen:v1",
+  "components": [
+    {
+      "allows_children": true,
+      "is_interactive": false,
+      "name": "Column",
+      "schema_ref": "a2ui://basic/Column"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": false,
+      "name": "Text",
+      "schema_ref": "a2ui://basic/Text"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": true,
+      "name": "Button",
+      "schema_ref": "a2ui://basic/Button"
+    }
+  ],
+  "title": "Nexo IA Citizen Catalog v1",
+  "unexpected_field": "valor",
+  "version": "1.0.0"
+}

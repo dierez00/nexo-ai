@@ -1,5 +1,85 @@
 {
+  "$defs": {
+    "A2UIValidationError": {
+      "additionalProperties": false,
+      "description": "Error de validación seguro: describe el problema sin filtrar el payload.",
+      "properties": {
+        "component_id": {
+          "anyOf": [
+            {
+              "maxLength": 63,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Component Id"
+        },
+        "detail": {
+          "maxLength": 300,
+          "title": "Detail",
+          "type": "string"
+        },
+        "rule": {
+          "description": "Regla violada, en snake_case.",
+          "maxLength": 100,
+          "title": "Rule",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule",
+        "detail"
+      ],
+      "title": "A2UIValidationError",
+      "type": "object"
+    },
+    "A2UIValidationOutcome": {
+      "enum": [
+        "valid",
+        "invalid"
+      ],
+      "title": "A2UIValidationOutcome",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/a2ui_validation_result.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "A2UIValidationResult"
+  "additionalProperties": false,
+  "description": "Resultado de validar una superficie contra su catálogo (§5.5).",
+  "properties": {
+    "catalog_id": {
+      "description": "URN inmutable del catálogo negociado, por ejemplo 'urn:nexo-ia:a2ui:catalog:citizen:v1'.",
+      "maxLength": 200,
+      "pattern": "^urn:nexo-ia:a2ui:catalog:[a-z0-9_-]+:v\\d+$",
+      "title": "Catalog Id",
+      "type": "string"
+    },
+    "errors": {
+      "items": {
+        "$ref": "#/$defs/A2UIValidationError"
+      },
+      "maxItems": 100,
+      "title": "Errors",
+      "type": "array"
+    },
+    "outcome": {
+      "$ref": "#/$defs/A2UIValidationOutcome"
+    },
+    "surface_id": {
+      "maxLength": 68,
+      "minLength": 6,
+      "title": "Surface Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "surface_id",
+    "catalog_id",
+    "outcome"
+  ],
+  "title": "A2UIValidationResult",
+  "type": "object"
 }

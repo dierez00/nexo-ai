@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-from nexo_api.api.deps import get_current_user
+from nexo_api.api.deps import get_user_or_public
 from nexo_api.main import create_app
 from nexo_api.schemas.auth import UserProfile
 from sqlalchemy.exc import IntegrityError
@@ -22,11 +22,13 @@ ADMIN = UserProfile(
     role="admin",
     permissions=["vehiculos.read", "vehiculos.write"],
 )
+KEY = "idem-hold-123"
+_RECORD = {"id": 1, "request_hash": "hash", "status": "processing"}
 
 
 def _client(user: UserProfile) -> TestClient:
     app = create_app()
-    app.dependency_overrides[get_current_user] = lambda: user
+    app.dependency_overrides[get_user_or_public] = lambda: user
     return TestClient(app)
 
 
@@ -59,6 +61,25 @@ def test_availability_marks_taken_slot(client: TestClient) -> None:
     assert slots[1]["available"] is True  # 09:30 libre
 
 
+def test_availability_public_without_token() -> None:
+    """Sin token: la ciudadanía consulta disponibilidad (permiso público de lectura)."""
+    app = create_app()
+    with (
+        TestClient(app) as c,
+        patch("nexo_api.api.deps.tenants_repo.id_by_slug", new=AsyncMock(return_value=1)),
+        patch(
+            "nexo_api.services.appointments.service.appts_repo.list_active_in_range",
+            new=AsyncMock(return_value=[]),
+        ),
+    ):
+        resp = c.get(
+            "/api/v1/appointments/availability",
+            params={"branch_id": 1, "module_code": "vehiculos", "date": "2026-08-01"},
+        )
+    assert resp.status_code == 200
+    assert len(resp.json()) > 0
+
+
 def test_create_hold_ok(client: TestClient) -> None:
     row = {
         "id": 3,
@@ -76,9 +97,15 @@ def test_create_hold_ok(client: TestClient) -> None:
             "nexo_api.services.appointments.service.appts_repo.create_hold",
             new=AsyncMock(return_value=row),
         ),
+        patch(
+            "nexo_api.services.appointments.service.idempotency.claim",
+            new=AsyncMock(return_value=(_RECORD, True)),
+        ),
+        patch("nexo_api.services.appointments.service.idempotency_repo.complete", new=AsyncMock()),
     ):
         resp = client.post(
             "/api/v1/appointments/holds",
+            headers={"Idempotency-Key": KEY},
             json={
                 "branch_id": 1,
                 "module_code": "vehiculos",
@@ -103,9 +130,15 @@ def test_create_hold_overlap_409(client: TestClient) -> None:
             "nexo_api.services.appointments.service.appts_repo.create_hold",
             new=AsyncMock(side_effect=err),
         ),
+        patch(
+            "nexo_api.services.appointments.service.idempotency.claim",
+            new=AsyncMock(return_value=(_RECORD, True)),
+        ),
+        patch("nexo_api.services.appointments.service.idempotency_repo.complete", new=AsyncMock()),
     ):
         resp = client.post(
             "/api/v1/appointments/holds",
+            headers={"Idempotency-Key": KEY},
             json={
                 "branch_id": 1,
                 "module_code": "vehiculos",
@@ -125,6 +158,7 @@ def test_create_hold_unknown_branch_404(client: TestClient) -> None:
     ):
         resp = client.post(
             "/api/v1/appointments/holds",
+            headers={"Idempotency-Key": KEY},
             json={
                 "branch_id": 999,
                 "module_code": "vehiculos",
@@ -134,6 +168,20 @@ def test_create_hold_unknown_branch_404(client: TestClient) -> None:
             },
         )
     assert resp.status_code == 404
+
+
+def test_create_hold_requires_idempotency_key(client: TestClient) -> None:
+    resp = client.post(
+        "/api/v1/appointments/holds",
+        json={
+            "branch_id": 1,
+            "module_code": "vehiculos",
+            "service_name": "renovacion",
+            "starts_at": "2026-08-01T10:00:00Z",
+            "ends_at": "2026-08-01T10:30:00Z",
+        },
+    )
+    assert resp.status_code == 400
 
 
 def test_availability_permission_denied_403() -> None:

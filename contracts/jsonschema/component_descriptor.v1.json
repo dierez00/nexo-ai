@@ -1,5 +1,35 @@
 {
   "$id": "https://nexo.local/contracts/v1/component_descriptor.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "ComponentDescriptor"
+  "additionalProperties": false,
+  "description": "Descriptor de un componente permitido dentro de un catálogo (§5.5).",
+  "properties": {
+    "allows_children": {
+      "default": false,
+      "title": "Allows Children",
+      "type": "boolean"
+    },
+    "is_interactive": {
+      "default": false,
+      "description": "Si puede emitir una acción; obliga a validar action_id y permiso.",
+      "title": "Is Interactive",
+      "type": "boolean"
+    },
+    "name": {
+      "pattern": "^[A-Z][A-Za-z0-9]{1,40}$",
+      "title": "Name",
+      "type": "string"
+    },
+    "schema_ref": {
+      "maxLength": 400,
+      "title": "Schema Ref",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "schema_ref"
+  ],
+  "title": "ComponentDescriptor",
+  "type": "object"
 }

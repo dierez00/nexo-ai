@@ -4,14 +4,18 @@ Sin red, sin PostgreSQL y sin pgvector. Aplican las mismas reglas de filtrado y
 el mismo orden determinista que el repositorio real.
 """
 
+from .corpus import DEFAULT_NOW, LoadedCorpus, load_corpus
 from .embeddings import DIMENSION, MODEL_NAME, DeterministicEmbeddings
 from .retriever import InMemoryChunkRepository, InMemoryRetriever, detect_injection
 
 __all__ = [
+    "DEFAULT_NOW",
     "DIMENSION",
     "MODEL_NAME",
     "DeterministicEmbeddings",
     "InMemoryChunkRepository",
     "InMemoryRetriever",
+    "LoadedCorpus",
     "detect_injection",
+    "load_corpus",
 ]

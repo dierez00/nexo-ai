@@ -25,6 +25,7 @@ from nexo_contracts import (
     ErrorCode,
     EventStatus,
     EventType,
+    ModelTaskKind,
     NexoModel,
     NormalizedError,
     RunRequest,
@@ -102,7 +103,7 @@ class MinimalGraph:
     # -- construcción ----------------------------------------------------
 
     def _build(self) -> Any:
-        graph: StateGraph = StateGraph(GraphState)
+        graph = StateGraph(GraphState)
         graph.add_node(NODE_START, self._start)
         graph.add_node(NODE_CLASSIFY, self._classify_fake)
         graph.add_node(NODE_FINALIZE, self._finalize_fake)
@@ -162,9 +163,7 @@ class MinimalGraph:
         )
         failed = await self.emitter.emit(
             failed,
-            EventType.RUN_PARTIAL
-            if failed.status is RunStatus.PARTIAL
-            else EventType.RUN_FAILED,
+            EventType.RUN_PARTIAL if failed.status is RunStatus.PARTIAL else EventType.RUN_FAILED,
             actor_type=ActorType.SUPERVISOR,
             actor_name="supervisor",
             status=EventStatus.FAILED,
@@ -219,7 +218,7 @@ class MinimalGraph:
             response = await self.model.generate(
                 ChatRequest(
                     purpose=CLASSIFY_PURPOSE,
-                    task_kind="classification",
+                    task_kind=ModelTaskKind.CLASSIFICATION,
                     alias=self.policies_alias(),
                     output_contract="fake_classification",
                     prompt=current.request.user_message,
@@ -236,8 +235,7 @@ class MinimalGraph:
             # Salida inválida: es un fallo del modelo, no del contrato del run.
             error = NormalizedError.from_code(
                 ErrorCode.MODEL_OUTPUT_INVALID,
-                f"la salida del modelo no cumple 'fake_classification': "
-                f"{exc.errors()[0]['msg']}",
+                f"la salida del modelo no cumple 'fake_classification': {exc.errors()[0]['msg']}",
             )
             return await self._fail(current, NODE_CLASSIFY, error)
 
@@ -270,9 +268,7 @@ class MinimalGraph:
             duration_ms=duration,
             data={"domain": classification.domain.value, "confidence": classification.confidence},
         )
-        current = await self.emitter.node_completed(
-            current, NODE_CLASSIFY, duration_ms=duration
-        )
+        current = await self.emitter.node_completed(current, NODE_CLASSIFY, duration_ms=duration)
         return {"run": await self._persist(current, NODE_CLASSIFY)}
 
     async def _finalize_fake(self, state: GraphState) -> GraphState:

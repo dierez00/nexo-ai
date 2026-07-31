@@ -19,8 +19,10 @@ from collections.abc import Callable, Iterable, Sequence
 
 from nexo_contracts import (
     TERMINAL_RUN_STATUSES,
+    ActionResult,
     CandidateFact,
     Contradiction,
+    ModelInvocation,
     RunState,
 )
 
@@ -55,6 +57,34 @@ def merge_contradictions(
     return merge_unique(left, right, key=lambda item: item.contradiction_id)
 
 
+def merge_model_invocations(
+    left: Sequence[ModelInvocation], right: Sequence[ModelInvocation]
+) -> list[ModelInvocation]:
+    """Consolida invocaciones por `invocation_id`, en orden estable.
+
+    **Deduplicar es obligatorio, no una optimización.** El reducer se aplica en
+    cada retorno de nodo, y cada nodo devuelve el estado completo —que ya
+    contiene las invocaciones anteriores—. Concatenando, un run de tres llamadas
+    a modelo terminaba con 577 invocaciones registradas y reventaba el límite
+    del contrato al guardar el checkpoint.
+
+    Es el mismo criterio que ya aplicaban los hechos candidatos: un merge debe
+    ser idempotente, porque se ejecuta más veces de las que uno cuenta.
+    """
+    return merge_unique(left, right, key=lambda item: item.invocation_id)
+
+
+def merge_action_results(
+    left: Sequence[ActionResult], right: Sequence[ActionResult]
+) -> list[ActionResult]:
+    """Consolida resultados de acción por `action_id`.
+
+    Dos resultados para la misma acción serían dos escrituras registradas donde
+    solo hubo una confirmación.
+    """
+    return merge_unique(left, right, key=lambda item: item.action_id)
+
+
 def merge_warnings(left: Iterable[str], right: Iterable[str]) -> list[str]:
     """Deduplica y ordena los warnings; un warning repetido no aporta información."""
     return sorted(set(left) | set(right))
@@ -87,15 +117,16 @@ def merge_run_state(current: RunState, update: RunState) -> RunState:
             "candidate_facts": merge_candidate_facts(
                 current.candidate_facts, update.candidate_facts
             ),
-            "contradictions": merge_contradictions(
-                current.contradictions, update.contradictions
-            ),
+            "contradictions": merge_contradictions(current.contradictions, update.contradictions),
             "warnings": merge_warnings(current.warnings, update.warnings),
             "completed_nodes": merge_completed_nodes(
                 current.completed_nodes, update.completed_nodes
             ),
             "attempts": {**current.attempts, **update.attempts},
-            "model_invocations": [*current.model_invocations, *update.model_invocations],
+            "model_invocations": merge_model_invocations(
+                current.model_invocations, update.model_invocations
+            ),
+            "action_results": merge_action_results(current.action_results, update.action_results),
             "event_cursor": event_cursor,
         }
     )

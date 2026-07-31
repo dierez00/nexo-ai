@@ -64,9 +64,7 @@ def test_wire_dump_drops_internal_fields(name: str) -> None:
 _ABSORBS_UNKNOWN_PROPERTIES = {"a2ui_component"}
 
 
-@pytest.mark.parametrize(
-    "name", sorted(set(VALID_EXAMPLES) - _ABSORBS_UNKNOWN_PROPERTIES)
-)
+@pytest.mark.parametrize("name", sorted(set(VALID_EXAMPLES) - _ABSORBS_UNKNOWN_PROPERTIES))
 def test_contracts_reject_unknown_properties(name: str) -> None:
     """`extra=forbid` es transversal: un campo desconocido es un error de contrato."""
     payload = VALID_EXAMPLES[name].model_dump(mode="json", by_alias=True)
@@ -95,6 +93,4 @@ def test_a2ui_component_absorbs_unknown_properties_by_design() -> None:
     assert absorbed.properties == {"propiedad_inventada": "x"}
 
     with pytest.raises(ValidationError):
-        A2UIComponent.model_validate(
-            {"id": "title", "component": "Text", "api_key": "sk-demo"}
-        )
+        A2UIComponent.model_validate({"id": "title", "component": "Text", "api_key": "sk-demo"})

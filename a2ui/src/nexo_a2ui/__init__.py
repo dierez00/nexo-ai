@@ -17,11 +17,16 @@ from .catalog import (
     CITIZEN_CATALOG,
     CITIZEN_CATALOG_ID,
     CITIZEN_CATALOG_PATH,
+    CITIZEN_FREEZE_PATH,
+    FrozenCatalogManifest,
     export_catalog,
     load_catalog,
+    load_freeze_manifest,
     render_catalog_json,
+    verify_frozen_catalog,
 )
 from .fallback import build_fallback
+from .fixtures import load_jsonl, parse_jsonl, render_jsonl, surface_from_messages
 from .validator import ALLOWED_URL_SCHEMES, SurfaceValidator
 
 __all__ = [
@@ -31,11 +36,19 @@ __all__ = [
     "CITIZEN_CATALOG",
     "CITIZEN_CATALOG_ID",
     "CITIZEN_CATALOG_PATH",
+    "CITIZEN_FREEZE_PATH",
     "CitizenSurfaceBuilder",
+    "FrozenCatalogManifest",
     "SurfaceValidator",
     "build_fallback",
+    "load_jsonl",
+    "parse_jsonl",
+    "render_jsonl",
+    "surface_from_messages",
     "export_catalog",
     "format_money",
+    "load_freeze_manifest",
     "load_catalog",
     "render_catalog_json",
+    "verify_frozen_catalog",
 ]

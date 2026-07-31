@@ -1,0 +1,101 @@
+{
+  "catalog_version": "core-catalog-2026-07-30",
+  "config_version": "core-offline-2026-07-30",
+  "corpus_versions": {
+    "ayuntamiento_empresas": "ayuntamiento_empresas-2026-07-30",
+    "ganaderia": "ganaderia-2026-07-30",
+    "registro_civil": "registro-civil-2026-07-30",
+    "salud": "salud-2026-07-30",
+    "vehiculos": "vehiculos-2026-07-30"
+  },
+  "dataset_version": "capstone_v1",
+  "deterministic_results": [
+    {
+      "a2ui_schema_valid": true,
+      "case_id": "cap_veh_01",
+      "citation_precision": 1.0,
+      "dataset_version": "capstone_v1",
+      "domain_match": true,
+      "max_questions_allowed": 1,
+      "permission_compliance": true,
+      "procedure_match": true,
+      "questions_asked": 0,
+      "source_coverage": 1.0,
+      "tool_selection_correct": true,
+      "unsupported_critical_claims": 0,
+      "write_verifiable": true
+    },
+    {
+      "a2ui_schema_valid": true,
+      "case_id": "cap_emp_01",
+      "citation_precision": 1.0,
+      "dataset_version": "capstone_v1",
+      "domain_match": true,
+      "max_questions_allowed": 1,
+      "permission_compliance": true,
+      "procedure_match": true,
+      "questions_asked": 0,
+      "source_coverage": 1.0,
+      "tool_selection_correct": true,
+      "unsupported_critical_claims": 0,
+      "write_verifiable": true
+    },
+    {
+      "a2ui_schema_valid": true,
+      "case_id": "cap_rc_01",
+      "citation_precision": 1.0,
+      "dataset_version": "capstone_v1",
+      "domain_match": true,
+      "max_questions_allowed": 1,
+      "permission_compliance": true,
+      "procedure_match": true,
+      "questions_asked": 1,
+      "source_coverage": 1.0,
+      "tool_selection_correct": true,
+      "unsupported_critical_claims": 0,
+      "write_verifiable": true
+    },
+    {
+      "a2ui_schema_valid": true,
+      "case_id": "cap_sal_01",
+      "citation_precision": 1.0,
+      "dataset_version": "capstone_v1",
+      "domain_match": true,
+      "max_questions_allowed": 1,
+      "permission_compliance": true,
+      "procedure_match": true,
+      "questions_asked": 0,
+      "source_coverage": 1.0,
+      "tool_selection_correct": true,
+      "unsupported_critical_claims": 0,
+      "write_verifiable": null
+    },
+    {
+      "a2ui_schema_valid": true,
+      "case_id": "cap_gan_01",
+      "citation_precision": 1.0,
+      "dataset_version": "capstone_v1",
+      "domain_match": true,
+      "max_questions_allowed": 1,
+      "permission_compliance": true,
+      "procedure_match": true,
+      "questions_asked": 0,
+      "source_coverage": 1.0,
+      "tool_selection_correct": true,
+      "unsupported_critical_claims": 0,
+      "write_verifiable": true
+    }
+  ],
+  "generated_at": "2026-07-30T15:00:00Z",
+  "judge_results": [],
+  "report_id": "eval_core_baseline_20260730",
+  "rubric_version": "deterministic-core-v1",
+  "seed": 20260730,
+  "skill_versions": {
+    "skill_emp_apertura": "1.0.0",
+    "skill_gan_vacunacion": "1.0.0",
+    "skill_rc_correccion": "1.0.0",
+    "skill_sal_navegacion": "1.0.0",
+    "skill_veh_renovacion": "1.0.0"
+  }
+}

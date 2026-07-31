@@ -80,9 +80,7 @@ async def test_resume_does_not_replay_completed_nodes(
     assert model.call_count("classify_request") == invocations_before
 
     resumed_events = [
-        event
-        for event in await event_sink.read("run_000001")
-        if event.type.value == "run.resumed"
+        event for event in await event_sink.read("run_000001") if event.type.value == "run.resumed"
     ]
     assert {event.data["node"] for event in resumed_events} == {
         NODE_START,
@@ -108,9 +106,7 @@ async def test_resume_without_checkpoint_fails_loudly(graph):
         await graph.resume("run_999999")
 
 
-async def test_deadline_produces_a_normalized_error(
-    graph, request_factory, clock, event_sink
-):
+async def test_deadline_produces_a_normalized_error(graph, request_factory, clock, event_sink):
     """`DIE-F0-043`: agotar el deadline produce un error normalizado, no una traza rota."""
     request = request_factory()
     clock.advance(request.budgets.deadline_ms + 1)
@@ -159,9 +155,7 @@ async def test_run_result_hides_internal_state(graph, request_factory):
         assert internal not in payload
 
 
-async def test_state_stays_serializable_through_the_whole_run(
-    graph, request_factory, checkpoints
-):
+async def test_state_stays_serializable_through_the_whole_run(graph, request_factory, checkpoints):
     """`DIE-F0-015`: el estado guardado se relee sin pérdida."""
     await graph.invoke(request_factory())
     state = await checkpoints.load("run_000001")

@@ -480,7 +480,7 @@ Para cada tool:
 
 ### 8.13 Paquete F1.11 — grafo MVP secuencial
 
-- [ ] `DIE-F1-083` Implementar nodos `normalize`, `classify`, `plan`, `navigate`, `retrieve`, `read_tools`, `verify`, `estimate`, `merge`, `build_a2ui`, `write_answer` y `finalize`.
+- [ ] `DIE-F1-083` Implementar nodos `normalize`, `classify`, `plan`, `retrieve`, `navigate`, `read_tools`, `verify`, `estimate`, `merge`, `build_a2ui`, `write_answer` y `finalize`.
 - [ ] `DIE-F1-084` Mantener verificador y estimador secuenciales en MVP, conservando contratos aptos para fan-out posterior.
 - [ ] `DIE-F1-085` Crear interrupt antes de toda escritura.
 - [ ] `DIE-F1-086` Persistir action pendiente con schema y versión esperada.

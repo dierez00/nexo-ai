@@ -64,9 +64,7 @@ def _request(clock: FrozenClock) -> RunRequest:
 async def _run_once() -> tuple[str, list[dict]]:
     graph, sink, clock = _build()
     result = await graph.invoke(_request(clock))
-    events = [
-        json.loads(event.model_dump_json()) for event in await sink.read("run_000001")
-    ]
+    events = [json.loads(event.model_dump_json()) for event in await sink.read("run_000001")]
     return result.model_dump_json(), events
 
 

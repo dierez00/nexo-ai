@@ -92,9 +92,7 @@ def test_dangling_alias_is_rejected(config_dir: Path) -> None:
 
 def test_offline_alias_must_resolve(config_dir: Path) -> None:
     """El perfil offline es obligatorio: la demo sin red debe poder resolverlo."""
-    _patch(
-        config_dir, "model_router.yaml", lambda data: data.update({"offline_alias": "ninguno"})
-    )
+    _patch(config_dir, "model_router.yaml", lambda data: data.update({"offline_alias": "ninguno"}))
     with pytest.raises(ConfigurationError):
         load_config(config_dir)
 

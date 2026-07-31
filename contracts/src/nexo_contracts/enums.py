@@ -38,6 +38,20 @@ class Audience(StrEnum):
     LOW_DIGITAL_LITERACY = "low_digital_literacy"
 
 
+class OperationalUrgency(StrEnum):
+    """Urgencia **operativa** de una solicitud, no clínica ni jurídica.
+
+    Describe cuánto aprieta el plazo del trámite, y nada más. En salud (Fase 2)
+    la distinción es crítica: `URGENT` significa «la cita vence mañana», nunca
+    «esta persona necesita atención inmediata». Clasificar urgencia clínica
+    sería diagnosticar, que está prohibido (§2.3).
+    """
+
+    ROUTINE = "routine"
+    TIME_SENSITIVE = "time_sensitive"
+    URGENT = "urgent"
+
+
 class RunStatus(StrEnum):
     """Estados de un run (arquitectura §9.11).
 
@@ -416,3 +430,10 @@ class EventStatus(StrEnum):
     FAILED = "failed"
     DENIED = "denied"
     SKIPPED = "skipped"
+
+
+class EventVisibility(StrEnum):
+    """Quién puede consumir el payload detallado de un evento."""
+
+    PUBLIC = "public"
+    RESTRICTED = "restricted"

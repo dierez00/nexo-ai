@@ -1,0 +1,174 @@
+{
+  "events": [
+    {
+      "actor": {
+        "name": "navigate",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_partial",
+      "data": {
+        "node": "navigate"
+      },
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_wf_partial_001",
+      "parent_event_id": null,
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "node": "navigate"
+      },
+      "run_id": "run_wf_partial",
+      "sequence": 1,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "started",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_partial",
+      "type": "agent.started",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "navigate",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_partial",
+      "data": {
+        "node": "navigate",
+        "outcome": "partial"
+      },
+      "duration_ms": 12,
+      "error": {
+        "code": "PROVIDER_ERROR",
+        "details": [],
+        "message": "La operación no pudo completarse de forma segura.",
+        "outcome": "known_failure",
+        "retry_after_ms": null,
+        "retryable": true
+      },
+      "event_id": "evt_wf_partial_002",
+      "parent_event_id": "evt_wf_partial_001",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "node": "navigate",
+        "outcome": "partial"
+      },
+      "run_id": "run_wf_partial",
+      "sequence": 2,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "failed",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_partial",
+      "type": "agent.failed",
+      "visibility": "public"
+    },
+    {
+      "actor": {
+        "name": "supervisor",
+        "type": "supervisor"
+      },
+      "catalog_version": "core-catalog-2026-07-30",
+      "correlation_id": "trace_wf_partial",
+      "data": {
+        "outcome": "partial"
+      },
+      "duration_ms": null,
+      "error": {
+        "code": "PROVIDER_ERROR",
+        "details": [],
+        "message": "La operación no pudo completarse de forma segura.",
+        "outcome": "known_failure",
+        "retry_after_ms": null,
+        "retryable": true
+      },
+      "event_id": "evt_wf_partial_003",
+      "parent_event_id": "evt_wf_partial_002",
+      "policy_version": "policies-2026-07-30",
+      "public_data": {
+        "outcome": "partial"
+      },
+      "run_id": "run_wf_partial",
+      "sequence": 3,
+      "skill_id": "skill_sal_navegacion",
+      "skill_version": "1.0.0",
+      "status": "failed",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_wf_partial",
+      "type": "run.partial",
+      "visibility": "public"
+    }
+  ],
+  "replay": {
+    "catalog_version": "core-catalog-2026-07-30",
+    "correlation_id": "trace_wf_partial",
+    "edges": [],
+    "final_event_type": "run.partial",
+    "last_sequence": 3,
+    "mapping_version": "workflow-event-mapping-v1",
+    "nodes": [
+      {
+        "completed_sequence": 2,
+        "duration_ms": 12,
+        "kind": "agent",
+        "label": "navigate",
+        "node_id": "navigate",
+        "started_sequence": 1,
+        "status": "failed"
+      }
+    ],
+    "run_id": "run_wf_partial",
+    "skill_id": "skill_sal_navegacion",
+    "skill_version": "1.0.0",
+    "timeline": [
+      {
+        "actor_name": "navigate",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_partial",
+        "data": {
+          "node": "navigate"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_partial_001",
+        "parent_event_id": null,
+        "sequence": 1,
+        "status": "started",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "agent.started"
+      },
+      {
+        "actor_name": "navigate",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_partial",
+        "data": {
+          "node": "navigate",
+          "outcome": "partial"
+        },
+        "duration_ms": 12,
+        "event_id": "evt_wf_partial_002",
+        "parent_event_id": "evt_wf_partial_001",
+        "sequence": 2,
+        "status": "failed",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "agent.failed"
+      },
+      {
+        "actor_name": "supervisor",
+        "actor_type": "supervisor",
+        "correlation_id": "trace_wf_partial",
+        "data": {
+          "outcome": "partial"
+        },
+        "duration_ms": null,
+        "event_id": "evt_wf_partial_003",
+        "parent_event_id": "evt_wf_partial_002",
+        "sequence": 3,
+        "status": "failed",
+        "timestamp": "2026-07-30T15:00:00+00:00",
+        "type": "run.partial"
+      }
+    ]
+  }
+}

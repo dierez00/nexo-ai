@@ -1,0 +1,120 @@
+[
+  {
+    "name": "valid__small",
+    "valid": true,
+    "components": 8,
+    "facts": 4,
+    "bytes": 1859
+  },
+  {
+    "name": "valid__medium",
+    "valid": true,
+    "components": 8,
+    "facts": 25,
+    "bytes": 2948
+  },
+  {
+    "name": "valid__large",
+    "valid": true,
+    "components": 8,
+    "facts": 100,
+    "bytes": 6446
+  },
+  {
+    "name": "valid__catalog",
+    "valid": true,
+    "components": 11,
+    "facts": 0,
+    "bytes": 2470
+  },
+  {
+    "name": "invalid__unknown-catalog",
+    "valid": false,
+    "rule": "unknown-catalog",
+    "bytes": 298
+  },
+  {
+    "name": "invalid__component-not-in-catalog",
+    "valid": false,
+    "rule": "component-not-in-catalog",
+    "bytes": 372
+  },
+  {
+    "name": "invalid__unknown-property",
+    "valid": false,
+    "rule": "unknown-property",
+    "bytes": 413
+  },
+  {
+    "name": "invalid__html-injection",
+    "valid": false,
+    "rule": "html-injection",
+    "bytes": 604
+  },
+  {
+    "name": "invalid__broken-binding",
+    "valid": false,
+    "rule": "broken-binding",
+    "bytes": 391
+  },
+  {
+    "name": "invalid__action-on-non-interactive",
+    "valid": false,
+    "rule": "action-on-non-interactive",
+    "bytes": 403
+  },
+  {
+    "name": "invalid__action-not-declared",
+    "valid": false,
+    "rule": "action-not-declared",
+    "bytes": 415
+  },
+  {
+    "name": "invalid__property-off-allowlist",
+    "valid": false,
+    "rule": "property-off-allowlist",
+    "bytes": 417
+  },
+  {
+    "name": "invalid__url-scheme-not-allowed",
+    "valid": false,
+    "rule": "url-scheme-not-allowed",
+    "bytes": 479
+  },
+  {
+    "name": "invalid__unsafe-url",
+    "valid": false,
+    "rule": "unsafe-url",
+    "bytes": 468
+  },
+  {
+    "name": "invalid__missing-create-surface",
+    "valid": false,
+    "rule": "missing-create-surface",
+    "bytes": 156
+  },
+  {
+    "name": "invalid__without-root",
+    "valid": false,
+    "rule": "without-root",
+    "bytes": 303
+  },
+  {
+    "name": "invalid__duplicate-ids",
+    "valid": false,
+    "rule": "duplicate-ids",
+    "bytes": 433
+  },
+  {
+    "name": "invalid__children-not-allowed",
+    "valid": false,
+    "rule": "children-not-allowed",
+    "bytes": 438
+  },
+  {
+    "name": "invalid__wrong-version",
+    "valid": false,
+    "rule": "wrong-version",
+    "bytes": 144
+  }
+]

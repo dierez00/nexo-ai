@@ -19,6 +19,7 @@ from pydantic import Field, model_validator
 
 from .a2ui import A2UIAction, A2UISurface, ChannelFallback
 from .base import CONTRACTS_SCHEMA_VERSION, NexoModel
+from .classification import Classification
 from .enums import (
     ActionStatus,
     AgentName,
@@ -37,6 +38,7 @@ from .facts import CandidateFact, Contradiction, Deduction, SourceCitation, Veri
 from .ids import (
     ActionId,
     ConversationId,
+    EventId,
     FactId,
     IdempotencyKey,
     InstitutionId,
@@ -49,6 +51,7 @@ from .ids import (
 )
 from .model_gateway import ModelAlias, ModelInvocation
 from .primitives import Confidence, PositiveMillis, SemanticVersion, Slug, UtcDatetime
+from .rag import RetrievalResult
 from .safety import SafePayload
 from .tools import ToolName, ToolResult
 
@@ -135,8 +138,7 @@ class AgentTask(NexoModel):
             return self
         if self.agent is AgentName.WRITER and (self.allowed_sources or self.allowed_tools):
             raise ValueError(
-                "el redactor es un agente cerrado: no puede recibir fuentes ni tools "
-                "(`DIE-F1-094`)"
+                "el redactor es un agente cerrado: no puede recibir fuentes ni tools (`DIE-F1-094`)"
             )
         return self
 
@@ -217,7 +219,10 @@ class ActionRequest(NexoModel):
     @model_validator(mode="after")
     def _confirmed_actions_are_complete(self) -> Self:
         """Confirmar exige consentimiento e idempotencia, en ese mismo momento."""
-        if self.status is ActionStatus.PENDING_CONFIRMATION:
+        if self.status in {
+            ActionStatus.PENDING_CONFIRMATION,
+            ActionStatus.CANCELLED,
+        }:
             return self
         if self.requires_confirmation and not self.consent:
             raise ValueError(
@@ -276,6 +281,7 @@ class RunMetrics(NexoModel):
     model_invocation_count: int = Field(default=0, ge=0)
     tool_call_count: int = Field(default=0, ge=0)
     retrieval_count: int = Field(default=0, ge=0)
+    question_count: int = Field(default=0, ge=0)
     first_event_ms: PositiveMillis | None = None
 
 
@@ -297,6 +303,14 @@ class RunState(NexoModel):
     updated_at: UtcDatetime
 
     domain: Domain | None = None
+    classification: Classification | None = Field(
+        default=None,
+        json_schema_extra={"nexo_visibility": "internal"},
+        description=(
+            "Clasificación persistida; reanudar después del nodo classify no depende "
+            "de memoria del proceso."
+        ),
+    )
     tasks: Annotated[list[AgentTask], Field(max_length=200)] = Field(default_factory=list)
     candidate_facts: Annotated[list[CandidateFact], Field(max_length=500)] = Field(
         default_factory=list,
@@ -315,6 +329,7 @@ class RunState(NexoModel):
     fallback: ChannelFallback | None = None
     answer: str | None = Field(default=None, max_length=20000)
     warnings: Annotated[list[str], Field(max_length=100)] = Field(default_factory=list)
+    questions: Annotated[list[str], Field(max_length=5)] = Field(default_factory=list)
     metrics: RunMetrics = Field(default_factory=RunMetrics)
     error: NormalizedError | None = None
 
@@ -323,6 +338,7 @@ class RunState(NexoModel):
         ge=0,
         description="Última `sequence` emitida; el siguiente evento usa `event_cursor + 1`.",
     )
+    last_event_id: EventId | None = None
     completed_nodes: Annotated[list[str], Field(max_length=100)] = Field(
         default_factory=list,
         json_schema_extra={"nexo_visibility": "internal"},
@@ -336,7 +352,25 @@ class RunState(NexoModel):
         default_factory=list,
         json_schema_extra={"nexo_visibility": "internal"},
     )
+    retrieval_results: Annotated[list[RetrievalResult], Field(max_length=100)] = Field(
+        default_factory=list,
+        json_schema_extra={"nexo_visibility": "internal"},
+        description="Evidencia exacta del run, necesaria para reanudar antes de verify.",
+    )
+    proposed_tools: Annotated[list[ProposedToolCall], Field(max_length=20)] = Field(
+        default_factory=list,
+        json_schema_extra={"nexo_visibility": "internal"},
+        description="Tools de lectura propuestas y filtradas por el navegador.",
+    )
+    tool_results: Annotated[list[ToolResult], Field(max_length=100)] = Field(
+        default_factory=list,
+        json_schema_extra={"nexo_visibility": "internal"},
+        description="Resultados de lectura persistidos para reanudar antes de verify.",
+    )
     policy_version: str = Field(default="unset", max_length=40)
+    catalog_version: str = Field(default="unset", max_length=80)
+    active_skill_id: str | None = Field(default=None, max_length=80)
+    active_skill_version: str | None = Field(default=None, max_length=40)
 
     @model_validator(mode="after")
     def _waiting_confirmation_has_a_pending_action(self) -> Self:
@@ -386,8 +420,12 @@ class RunResult(NexoModel):
         default_factory=list
     )
     warnings: Annotated[list[str], Field(max_length=100)] = Field(default_factory=list)
+    questions: Annotated[list[str], Field(max_length=5)] = Field(default_factory=list)
     metrics: RunMetrics = Field(default_factory=RunMetrics)
     error: NormalizedError | None = None
+    catalog_version: str = Field(default="unset", max_length=80)
+    skill_id: str | None = Field(default=None, max_length=80)
+    skill_version: str | None = Field(default=None, max_length=40)
 
     @classmethod
     def from_state(cls, state: RunState, *, action_label: str = "Confirmar") -> RunResult:
@@ -408,7 +446,10 @@ class RunResult(NexoModel):
                         sources.append(citation)
 
         actions: list[A2UIAction] = []
-        if state.pending_action is not None:
+        if (
+            state.pending_action is not None
+            and state.pending_action.status is ActionStatus.PENDING_CONFIRMATION
+        ):
             actions.append(state.pending_action.to_a2ui_action(label=action_label))
 
         return cls(
@@ -423,8 +464,12 @@ class RunResult(NexoModel):
             sources=sources,
             available_actions=actions,
             warnings=list(state.warnings),
+            questions=list(state.questions),
             metrics=state.metrics,
             error=state.error,
+            catalog_version=state.catalog_version,
+            skill_id=state.active_skill_id,
+            skill_version=state.active_skill_version,
         )
 
 

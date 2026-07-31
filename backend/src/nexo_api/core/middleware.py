@@ -8,6 +8,7 @@ estructurado y lo devuelve en el header `X-Trace-Id` de cada respuesta
 
 from __future__ import annotations
 
+import re
 import secrets
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
@@ -16,10 +17,18 @@ from starlette.responses import Response
 
 TRACE_HEADER = "X-Trace-Id"
 
+# El validador canónico de IDs opacos (nexo_contracts) rechaza cuerpos con una
+# corrida de >=10 dígitos (posible PII). Un hex aleatorio la produce ~1 de cada 5
+# veces, así que regeneramos hasta obtener un cuerpo válido.
+_LONG_DIGIT_RUN = re.compile(r"\d{10,}")
+
 
 def new_trace_id() -> str:
-    """Genera un ID opaco con prefijo `trace_`."""
-    return f"trace_{secrets.token_hex(16)}"
+    """Genera un `trace_id` opaco y válido según el contrato (sin corridas de dígitos)."""
+    while True:
+        body = secrets.token_hex(16)
+        if not _LONG_DIGIT_RUN.search(body):
+            return f"trace_{body}"
 
 
 class TraceIdMiddleware(BaseHTTPMiddleware):

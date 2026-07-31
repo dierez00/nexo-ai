@@ -1,6 +1,6 @@
 # Documentación de la Base de Datos Nexo IA (Supabase / PostgreSQL)
 
-Este documento contiene la especificación completa, arquitectura, esquema de tablas, funciones almacenadas, seguridad (RLS), índices y datos de inicialización (seeds) de la base de datos de **Nexo IA**, derivados directamente de las migraciones oficiales de Supabase en [`supabase/migrations`].
+Este documento contiene la especificación completa, arquitectura, esquema de tablas, funciones almacenadas, seguridad (RLS), índices y datos de inicialización (seeds) de la base de datos de **Nexo IA**, derivados directamente de las migraciones oficiales de Supabase en [`supabase/migrations`](../../supabase/migrations).
 
 ---
 
@@ -206,7 +206,9 @@ Fuentes documentales oficiales (reglamentos, leyes, normas).
 - `name` (text, NOT NULL): Título de la norma o fuente.
 - `publisher`, `source_url` (text): Emisor y URL original.
 - `version` (text, default `'v1.0'`): Versión de la norma.
-- `status` (text, CHECK in `'active'`, `'expired'`, `'deprecated'`, `'draft'`)
+- `source_key` (text): ID estable del contrato (`Source.source_id`).
+- `institution_id` (text): institución/tenant lógico que autoriza la evidencia.
+- `status` (text, CHECK in `'active'`, `'expired'`, `'superseded'`, `'draft'`)
 - `valid_from`, `valid_to` (timestamptz): Ventana temporal de vigencia de la norma.
 - `checksum` (text, NOT NULL): Hash para verificar cambios.
 
@@ -215,6 +217,8 @@ Documentos o capítulos pertenecientes a una fuente documental.
 - `id` (bigint, PK, identity)
 - `tenant_id`, `source_id` (FKs ON DELETE CASCADE)
 - `title` (text, NOT NULL)
+- `document_key` (text): ID estable del contrato (`Document.document_id`).
+- `document_version` (text): versión inmutable usada en citas.
 - `content_raw` (text): Contenido crudo extraído del archivo.
 - `file_id` (bigint, NULLABLE, FK -> `files.id` ON DELETE SET NULL)
 
@@ -224,7 +228,11 @@ Segmentos procesados con embeddings vectoriales de 1536 dimensiones (OpenAI / pg
 - `tenant_id`, `document_id` (FKs ON DELETE CASCADE)
 - `domain` (text, NOT NULL)
 - `chunk_index` (int, default `0`)
+- `chunk_key`, `fragment_key`, `source_key`, `document_key` (text): IDs estables del contrato.
 - `content` (text, NOT NULL): Texto del fragmento.
+- `heading`, `char_start`, `char_end`, `chunk_checksum`: linaje citable exacto.
+- `source_status`, `valid_from`, `valid_to`, `institution_id`: filtros canónicos aplicados antes de puntuar.
+- `embedding_model`, `embedding_dimension`: metadatos del vector usado en ingesta.
 - `embedding` (`vector(1536)`): Vector denso de 1536 dimensiones.
 - **Índice HNSW**: `idx_chunks_embedding_hnsw` indexa mediante `vector_cosine_ops` para recuperaciones sub-milisegundo.
 
@@ -257,6 +265,13 @@ Gestión de citas y trámites presenciales o virtuales con soporte para Holds te
 ---
 
 ### 4.5. Sistema Conversacional, Trazo de Agentes (Runs) e Idempotencia
+
+La migración `20260730000000_reliability_ledger_and_event_sequence.sql` añade
+`idempotency_records`: ledger por tenant, operación y clave con hash del request,
+estado (`processing`, `succeeded`, `failed`, `unknown`) y respuesta serializada.
+Una clave en `unknown` nunca se reintenta automáticamente. `run_events` incorpora
+`event_id` y `sequence`, única y 1-indexada por run; SSE usa esa secuencia como
+`Last-Event-ID`, no el identificador físico de la fila.
 
 #### Tabla `public.conversations`
 Hilos de interacción entre usuarios y la plataforma multiagente.
@@ -292,7 +307,12 @@ Eventos paso a paso emitidos por el grafo multiagente.
 - `run_id` (bigint, FK -> `runs.id` ON DELETE CASCADE)
 - `trace_id` (text, NOT NULL)
 - `event_type` (text, NOT NULL): Ej. `'node_start'`, `'node_end'`, `'mcp_call'`, `'rag_retrieval'`, `'error'`.
-- `node_name` (text, NOT NULL): Nombre del nodo en LangGraph.
+- `node_name` (text, NOT NULL): Nombre del nodo en LangGraph, conservado por compatibilidad.
+- `event_id` (text): ID opaco canónico de `nexo_contracts.RunEvent`.
+- `sequence` (int): Posición monotónica por run; `Last-Event-ID` del SSE usa este valor.
+- `actor_type`, `actor_name`, `status`, `visibility`, `correlation_id`, `parent_event_id`: campos expandidos del contrato.
+- `public_data` (jsonb): carga segura para clientes; `payload`/`canonical_event.data` quedan para auditoría.
+- `canonical_event` (jsonb): `RunEvent` completo validado por contrato antes de persistir.
 - `payload` (jsonb): Parámetros de entrada/salida del nodo.
 
 #### Tabla `public.actions`
@@ -373,7 +393,10 @@ create function public.match_chunks(
   match_threshold float default 0.6,
   match_count int default 5,
   filter_domain text default null,
-  filter_tenant_id bigint default null
+  filter_tenant_id bigint default null,
+  filter_valid_at date default current_date,
+  filter_status text[] default array['active']::text[],
+  allowed_source_ids text[] default null
 )
 returns table (
   id bigint,
@@ -381,10 +404,21 @@ returns table (
   domain text,
   content text,
   metadata jsonb,
-  similarity float
+  similarity float,
+  source_id text,
+  chunk_id text,
+  fragment_id text,
+  document_version text,
+  chunk_checksum text,
+  valid_from timestamptz,
+  valid_to timestamptz,
+  source_status text,
+  institution_id text,
+  embedding_model text,
+  embedding_dimension int
 );
 ```
-*Filtra por institución, dominio temático y vigencia activa de la norma documental en `sources` (`valid_to > now()`).*
+*Filtra por tenant/institución, dominio, status, allowlist de fuentes y vigencia antes de puntuar.*
 
 ### 5.4. Limpieza Automática de Holds Expirados de Citas
 

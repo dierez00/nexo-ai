@@ -1,8 +1,12 @@
 {
   "action_results": [],
+  "active_skill_id": null,
+  "active_skill_version": null,
   "answer": "Puedes renovar tu licencia presentando identificación oficial vigente.",
   "attempts": {},
   "candidate_facts": [],
+  "catalog_version": "unset",
+  "classification": null,
   "completed_nodes": [
     "start",
     "classify_fake"
@@ -15,10 +19,12 @@
   "estimate": null,
   "event_cursor": 7,
   "fallback": null,
+  "last_event_id": null,
   "metrics": {
     "duration_ms": 4200,
     "first_event_ms": null,
     "model_invocation_count": 2,
+    "question_count": 0,
     "retrieval_count": 0,
     "tool_call_count": 0,
     "total_cost_usd": 0.012,
@@ -46,6 +52,8 @@
     "tool_version": "1.0.0"
   },
   "policy_version": "policies-2026-07-30",
+  "proposed_tools": [],
+  "questions": [],
   "request": {
     "budgets": {
       "deadline_ms": 20000,
@@ -77,6 +85,7 @@
     "trace_id": "trace_01JNE8ZP",
     "user_message": "Quiero renovar mi licencia y saber si debo algo"
   },
+  "retrieval_results": [],
   "run_id": "run_01JNE8ZP",
   "schema_revision": "v1",
   "status": "waiting_confirmation",
@@ -156,6 +165,7 @@
     "surface_id": "surf_licencia"
   },
   "tasks": [],
+  "tool_results": [],
   "trace_id": "trace_01JNE8ZP",
   "updated_at": "2026-07-30T15:00:00Z",
   "verified_facts": {
@@ -183,6 +193,7 @@
         "domain": "vehiculos",
         "fact_id": "fact_req_01",
         "reason": "citation_supports_claim",
+        "supporting_tool_call_id": null,
         "value": {
           "boolean": null,
           "date": null,
@@ -217,6 +228,7 @@
         "domain": "vehiculos",
         "fact_id": "fact_cost_01",
         "reason": "citation_supports_claim",
+        "supporting_tool_call_id": null,
         "value": {
           "boolean": null,
           "date": null,

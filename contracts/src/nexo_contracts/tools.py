@@ -122,9 +122,7 @@ class ToolMetadata(NexoModel):
                     f"la tool de escritura {self.name!r} debe exigir confirmación explícita"
                 )
             if not self.requires_idempotency_key:
-                raise ValueError(
-                    f"la tool de escritura {self.name!r} debe exigir idempotency_key"
-                )
+                raise ValueError(f"la tool de escritura {self.name!r} debe exigir idempotency_key")
             if self.max_attempts != 1:
                 raise ValueError(
                     f"la tool de escritura {self.name!r} declara max_attempts="

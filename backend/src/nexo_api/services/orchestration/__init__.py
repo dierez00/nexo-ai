@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+from nexo_api.services.orchestration.assembly import GraphAssembly, build_graph_deps
 from nexo_api.services.orchestration.fake import FakeOrchestrator
-from nexo_api.services.orchestration.port import (
-    EmittedEvent,
-    OrchestrationResult,
-    Orchestrator,
-)
+from nexo_api.services.orchestration.port import Orchestrator, PendingActionSink
+from nexo_api.services.orchestration.real import RealOrchestrator
 
-__all__ = ["EmittedEvent", "FakeOrchestrator", "OrchestrationResult", "Orchestrator"]
+__all__ = [
+    "FakeOrchestrator",
+    "GraphAssembly",
+    "Orchestrator",
+    "PendingActionSink",
+    "RealOrchestrator",
+    "build_graph_deps",
+]

@@ -1,0 +1,19 @@
+{
+  "confirmation": {
+    "identifier": "NEXO-MOCK-2026-000101",
+    "identifier_kind": "folio",
+    "is_mock": true,
+    "issued_at": "2026-07-30T15:00:00Z"
+  },
+  "data": {
+    "appointment_id": "apt_01JNE9"
+  },
+  "duration_ms": 84,
+  "error": null,
+  "idempotency_replayed": false,
+  "is_mock": true,
+  "name": "vehiculos.reservar_cita",
+  "provider": "mock",
+  "status": "failed",
+  "tool_call_id": "tc_01"
+}

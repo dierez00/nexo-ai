@@ -27,6 +27,7 @@ from .a2ui import (
     UpdateDataModel,
 )
 from .base import CONTRACTS_SCHEMA_VERSION, FrozenNexoModel, NexoModel
+from .classification import Classification, DetectedIntent
 from .enums import (
     CRITICAL_FACT_CATEGORIES,
     RETRYABLE_ERROR_CODES,
@@ -45,6 +46,7 @@ from .enums import (
     ErrorCode,
     EventStatus,
     EventType,
+    EventVisibility,
     FactCategory,
     FactOrigin,
     IngestionOutcome,
@@ -52,6 +54,7 @@ from .enums import (
     ModelDecisionReason,
     ModelHealth,
     ModelTaskKind,
+    OperationalUrgency,
     Outcome,
     RetrievalMode,
     RiskLevel,
@@ -112,6 +115,7 @@ from .model_gateway import (
     ModelPolicy,
     ModelTask,
 )
+from .observability import CatalogEntityTelemetry, CatalogTelemetryState
 from .primitives import (
     CalendarDate,
     Confidence,
@@ -181,6 +185,9 @@ __all__ = [
     "CalendarDate",
     "CandidateFact",
     "CatalogDescriptor",
+    "CatalogEntityTelemetry",
+    "CatalogTelemetryState",
+    "Classification",
     "Channel",
     "ChannelFallback",
     "Chunk",
@@ -196,6 +203,7 @@ __all__ = [
     "CreateSurface",
     "CurrencyCode",
     "DeducedContextItem",
+    "DetectedIntent",
     "Deduction",
     "DeterministicEvaluationResult",
     "Document",
@@ -210,6 +218,7 @@ __all__ = [
     "EventSequence",
     "EventStatus",
     "EventType",
+    "EventVisibility",
     "FactCategory",
     "FactOrigin",
     "FactValue",
@@ -236,6 +245,7 @@ __all__ = [
     "Money",
     "NexoModel",
     "NormalizedError",
+    "OperationalUrgency",
     "Outcome",
     "PositiveMillis",
     "Profile",

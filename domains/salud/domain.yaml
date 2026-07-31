@@ -1,0 +1,58 @@
+version: domain-salud-2026-07-30
+domain: salud
+title: Navegación de servicios de salud
+owner: diego
+
+agents:
+  - domain_navigator
+
+intents:
+  - slug: localizar_unidad
+    title: Localizar unidad de salud
+    description: Encontrar unidades por municipio y afiliación sin consejo clínico.
+    keywords:
+      - centro de salud
+      - clinica
+      - clínica
+      - hospital
+      - unidad de salud
+      - donde me atienden
+      - dónde me atienden
+    skill_id: skill_sal_navegacion
+
+  - slug: consultar_servicio
+    title: Consultar servicios y requisitos administrativos
+    description: Informar servicios, documentación y horarios públicos.
+    keywords:
+      - servicio
+      - requisitos
+      - documentos
+      - horario
+      - consulta
+      - afiliacion
+      - afiliación
+    skill_id: skill_sal_navegacion
+
+allowed_sources:
+  - src_sal_directorio
+  - src_sal_servicios
+  - src_sal_avisos
+
+allowed_tools:
+  - salud.localizar_unidad_salud
+  - salud.consultar_servicios
+  - salud.consultar_requisitos
+  - salud.buscar_horarios
+
+prompt_ref: nexo_agents/prompts/navigator_salud.v1.md
+
+policies:
+  max_questions: 1
+  retrieval_top_k: 5
+  navigator_deadline_ms: 8000
+
+a2ui_components:
+  - Checklist
+  - StatusBanner
+  - SourceList
+  - List

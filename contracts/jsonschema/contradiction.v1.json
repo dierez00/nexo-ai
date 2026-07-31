@@ -1,5 +1,107 @@
 {
+  "$defs": {
+    "ContradictionSeverity": {
+      "description": "Una contradicción crítica bloquea toda escritura dependiente (`DIE-F4-020`).",
+      "enum": [
+        "informational",
+        "material",
+        "critical"
+      ],
+      "title": "ContradictionSeverity",
+      "type": "string"
+    },
+    "ContradictionStatus": {
+      "enum": [
+        "detected",
+        "resolved",
+        "unresolved"
+      ],
+      "title": "ContradictionStatus",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/contradiction.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Contradiction"
+  "additionalProperties": false,
+  "description": "Conflicto detectado entre hechos, fuentes o resultados de tools (§5.2).",
+  "properties": {
+    "conflicting_sources": {
+      "items": {
+        "maxLength": 67,
+        "minLength": 5,
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Conflicting Sources",
+      "type": "array"
+    },
+    "conflicting_tool_calls": {
+      "items": {
+        "maxLength": 66,
+        "minLength": 4,
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Conflicting Tool Calls",
+      "type": "array"
+    },
+    "contradiction_id": {
+      "maxLength": 70,
+      "minLength": 8,
+      "title": "Contradiction Id",
+      "type": "string"
+    },
+    "explanation": {
+      "maxLength": 1000,
+      "title": "Explanation",
+      "type": "string"
+    },
+    "fact_ids": {
+      "items": {
+        "maxLength": 68,
+        "minLength": 6,
+        "type": "string"
+      },
+      "maxItems": 10,
+      "minItems": 2,
+      "title": "Fact Ids",
+      "type": "array"
+    },
+    "resolved_fact_id": {
+      "anyOf": [
+        {
+          "maxLength": 68,
+          "minLength": 6,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Resolved Fact Id"
+    },
+    "rule": {
+      "description": "Regla de precedencia aplicada. Ejemplo: 'newer_source_wins'.",
+      "maxLength": 200,
+      "title": "Rule",
+      "type": "string"
+    },
+    "severity": {
+      "$ref": "#/$defs/ContradictionSeverity"
+    },
+    "status": {
+      "$ref": "#/$defs/ContradictionStatus",
+      "default": "detected"
+    }
+  },
+  "required": [
+    "contradiction_id",
+    "fact_ids",
+    "severity",
+    "rule",
+    "explanation"
+  ],
+  "title": "Contradiction",
+  "type": "object"
 }

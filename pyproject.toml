@@ -12,7 +12,27 @@ members = [
     "backend",
     "integrations",
     "observability",
+    # Núcleo inteligente (Diego). `contracts` va primero por ser la raíz de
+    # dependencias: ningún otro paquete puede compilarse sin él.
+    "contracts",
+    "orchestration",
+    "rag",
+    "mcp",
+    "agents",
+    "a2ui",
+    "evaluations",
 ]
+
+# Los paquetes del núcleo se resuelven entre sí desde el workspace, no desde un
+# índice: `nexo-orchestration` depende de `nexo-contracts` local.
+[tool.uv.sources]
+nexo-contracts = { workspace = true }
+nexo-orchestration = { workspace = true }
+nexo-rag = { workspace = true }
+nexo-mcp = { workspace = true }
+nexo-agents = { workspace = true }
+nexo-a2ui = { workspace = true }
+nexo-evaluations = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -21,6 +41,7 @@ dev = [
     "httpx>=0.27",
     "ruff>=0.6",
     "mypy>=1.11",
+    "psycopg[binary]>=3.1",
     "pyyaml>=6",
     "types-pyyaml>=6",
 ]
@@ -52,9 +73,35 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S", "ANN"]
 "**/migrations/**" = ["ANN"]
+# Los hooks de Pydantic (`model_serializer`, `model_validator(mode="before")`) y
+# `StateGraph.compile()` de LangGraph tienen firmas con `Any` que no elegimos
+# nosotros. Anotarlas de otro modo rompería el hook.
+"contracts/src/nexo_contracts/base.py" = ["ANN401"]
+"contracts/src/nexo_contracts/a2ui.py" = ["ANN401"]
+"contracts/src/nexo_contracts/facts.py" = ["ANN401"]
+"orchestration/src/nexo_orchestration/graph/minimal.py" = ["ANN401"]
 # Repositorios: SQL siempre parametrizado; los f-strings solo interpolan listas
 # de columnas constantes (nunca input de usuario) → S608 es ruido aquí.
 "**/repositories/**" = ["S608"]
+
+# Los paquetes del núcleo son código propio: sus imports van en su propio bloque,
+# después de las dependencias externas. Sin esto, isort los mezclaría con
+# `pydantic` y `yaml`, que es justo la distinción que hace legible un módulo.
+[tool.ruff.lint.isort]
+known-first-party = [
+    "nexo_contracts",
+    "nexo_orchestration",
+    "nexo_rag",
+    "nexo_mcp",
+    "nexo_agents",
+    "nexo_a2ui",
+    "nexo_evaluations",
+]
+
+# `**kwargs: Any` es la firma correcta de un passthrough; exigir un TypedDict ahí
+# no añade seguridad, solo ruido.
+[tool.ruff.lint.flake8-annotations]
+allow-star-arg-any = true
 
 # FastAPI usa Depends/Query/etc. como valores por defecto de argumentos:
 # es el idiom del framework, no el bug que B008 busca.
@@ -72,13 +119,20 @@ extend-immutable-calls = [
 # mypy — type checking compartido
 # =============================================================================
 [tool.mypy]
+# Sin el plugin de Pydantic, mypy no entiende `default_factory` dentro de un
+# `Annotated` y reporta como obligatorio cada campo con default. Era la mitad
+# del ruido que impedía ejecutar el type checker.
+plugins = ["pydantic.mypy"]
 python_version = "3.12"
 strict = true
 warn_return_any = true
 warn_unused_ignores = true
 no_implicit_reexport = true
 explicit_package_bases = true
-mypy_path = "backend/src:integrations/src:observability/src"
+mypy_path = """\
+backend/src:integrations/src:observability/src:\
+contracts/src:orchestration/src:rag/src:mcp/src:agents/src:a2ui/src:evaluations/src\
+"""
 exclude = ['\.agents/', '\.venv/']
 
 # El SDK de twilio no publica py.typed / stubs.
@@ -86,9 +140,46 @@ exclude = ['\.agents/', '\.venv/']
 module = ["twilio.*"]
 ignore_missing_imports = true
 
+# Estos backends de RAG son extras opcionales y se cargan de forma diferida.
+# La validación del núcleo no debe requerir descargar sus modelos ni `torch`.
+[[tool.mypy.overrides]]
+module = [
+    "model2vec",
+    "model2vec.*",
+    "sentence_transformers",
+    "sentence_transformers.*",
+]
+ignore_missing_imports = true
+
 # =============================================================================
 # pytest
 # =============================================================================
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["tests", "backend/tests", "integrations/tests", "observability/tests"]
+testpaths = [
+    "tests",
+    "backend/tests",
+    "integrations/tests",
+    "observability/tests",
+    "contracts/tests",
+    "orchestration/tests",
+    "rag/tests",
+    "mcp/tests",
+    "agents/tests",
+    "a2ui/tests",
+    "evaluations/tests",
+]
+markers = [
+    "unit: determinista, sin I/O de ningún tipo",
+    "contract: fixtures compartidos entre módulos; un fallo aquí rompe a otro equipo",
+    "e2e: recorrido completo offline, sin red ni base de datos",
+    "security: injection, permisos, escalamiento y A2UI malicioso",
+    "integration: exige un recurso externo (DB, proveedor); se omite por defecto",
+]
+# Un warning no atendido acaba siendo un bug. La única excepción es el aviso de
+# LangGraph sobre `allowed_objects`, que no depende de nuestro código (TD-06).
+filterwarnings = [
+    "error",
+    "ignore:The default value of `allowed_objects` will change:DeprecationWarning",
+    "ignore:The default value of `allowed_objects` will change:PendingDeprecationWarning",
+]

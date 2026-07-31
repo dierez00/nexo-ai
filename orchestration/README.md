@@ -28,7 +28,7 @@ Depende de `contracts`, `agents` e interfaces RAG/MCP/observabilidad. Responsabl
 
 La traza reconstruye decisiones; reanudar no duplica efectos; las ramas paralelas consolidan igual sin importar el orden.
 
-## Estado tras Fase 0
+## Estado tras Fase 1
 
 Implementado:
 
@@ -40,9 +40,14 @@ Implementado:
 - Grafo mínimo `start → classify_fake → finalize_fake` sobre LangGraph
   (`graph/minimal.py`), con eventos secuenciados, checkpoints y reanudación.
 - Carga y validación fail-fast de `config/` (`configuration.py`).
+- Gateway de modelos con routing, presupuesto, redacción de logs y fallback.
+- Grafo MVP de doce nodos (`graph/mvp.py`), checkpoints autocontenidos,
+  confirmación/reanudación, cancelación, budgets y eventos monotónicos.
+- Resultados de tools de lectura persistidos y proyectados a hechos antes de
+  verificar; una escritura confirmada no duplica efectos.
 
-Pendiente (Fase 1, F1.11): nodos completos del MVP, interrupt de confirmación,
-model router y fan-out.
+El fan-out real queda para Fase 4; Fase 1 mantiene verificación y estimación
+secuenciales como exige el plan.
 
 Este es el **único** módulo que importa LangGraph. `contracts`, `agents`, `rag`
 y `mcp` no conocen el framework del grafo.

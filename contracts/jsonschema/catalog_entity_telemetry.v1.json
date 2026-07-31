@@ -1,0 +1,68 @@
+{
+  "$id": "https://nexo.local/contracts/v1/catalog_entity_telemetry.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Estado observable de una entidad del catálogo durante una ventana temporal.",
+  "properties": {
+    "entity_id": {
+      "maxLength": 200,
+      "title": "Entity Id",
+      "type": "string"
+    },
+    "last_checked_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Last Checked At"
+    },
+    "state": {
+      "default": "no_telemetry",
+      "enum": [
+        "no_telemetry",
+        "healthy",
+        "degraded",
+        "down"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "window_ended_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Window Ended At"
+    },
+    "window_started_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Window Started At"
+    }
+  },
+  "required": [
+    "entity_id"
+  ],
+  "title": "CatalogEntityTelemetry",
+  "type": "object"
+}

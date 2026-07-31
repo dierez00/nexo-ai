@@ -29,6 +29,8 @@ Dependencias permitidas: CLIs públicas de los módulos y variables documentadas
 | `lint.ps1` / `lint.sh` | ruff format --check + ruff check + mypy |
 | `test.ps1` / `test.sh` | pytest (exit 5 = sin tests = OK en bootstrap) |
 | `seed_demo.py` | Siembra permisos + role_permissions + usuario demo (Supabase Auth + `public.users`). Idempotente. Credenciales por `SEED_DEMO_EMAIL`/`SEED_DEMO_PASSWORD`. Uso: `uv run python scripts/seed_demo.py` |
+| `export_openapi.py` | Exporta el OpenAPI a `contracts/openapi/v1.yaml` (test de drift lo cuida). Uso: `uv run python scripts/export_openapi.py` |
+| `run.sh` / `run.ps1` | Arranque de una línea. Docker Compose por defecto; `--local` / `-Mode local` = uvicorn. Espera health e imprime URLs. |
 
 ## Terminado
 

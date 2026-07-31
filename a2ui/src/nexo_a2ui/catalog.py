@@ -10,17 +10,27 @@ exige publicar `v2`. No es rigidez por gusto —es lo que permite que el rendere
 de Cris declare qué versión soporta y que el servidor no le mande nunca algo que
 no sabe dibujar.
 
-Esta es la instalación **mínima**: los nueve componentes que los dos recorridos
+Esta es la instalación **mínima**: los diez componentes que los dos recorridos
 del MVP necesitan y ni uno más. Formularios, tablas y superficies
 administrativas son Fase 3.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
+from typing import Annotated, Literal
 
-from nexo_contracts import CatalogDescriptor, ComponentDescriptor
+from pydantic import Field, ValidationError
+
+from nexo_contracts import (
+    A2UI_PROTOCOL_VERSION,
+    CatalogDescriptor,
+    ComponentDescriptor,
+    ConfigurationError,
+    NexoModel,
+)
 
 CITIZEN_CATALOG_ID = "urn:nexo-ia:a2ui:catalog:citizen:v1"
 CITIZEN_CATALOG_VERSION = "1.0.0"
@@ -28,6 +38,22 @@ CITIZEN_CATALOG_VERSION = "1.0.0"
 # Ruta relativa a la raíz del repositorio, la misma que declara
 # `config/catalogs.yaml`.
 CITIZEN_CATALOG_PATH = Path("a2ui/catalogs/citizen/v1/catalog.json")
+CITIZEN_FREEZE_PATH = Path("a2ui/catalogs/citizen/v1/freeze.json")
+
+
+class FrozenCatalogManifest(NexoModel):
+    """Huellas que hacen inmutable un catálogo entregado al renderer."""
+
+    schema_version: Literal["1"]
+    status: Literal["frozen"]
+    frozen_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    protocol_version: Literal["v0.9.1"]
+    catalog_id: str
+    catalog_version: str
+    artifacts: dict[
+        str,
+        Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")],
+    ]
 
 
 def _component(
@@ -100,22 +126,93 @@ def render_catalog_json(catalog: CatalogDescriptor | None = None) -> str:
     return json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
 
 
-def export_catalog(root: Path) -> Path:
-    """Escribe el catálogo en la ruta que declara `config/catalogs.yaml`."""
+def export_catalog(
+    root: Path,
+    catalog: CatalogDescriptor | None = None,
+) -> Path:
+    """Escribe el catálogo, salvo que altere el citizen v1 congelado."""
     path = root / CITIZEN_CATALOG_PATH
+    payload = render_catalog_json(catalog)
+    freeze_path = root / CITIZEN_FREEZE_PATH
+    if freeze_path.exists():
+        manifest = load_freeze_manifest(root)
+        expected = manifest.artifacts.get(CITIZEN_CATALOG_PATH.as_posix())
+        actual = _sha256(payload.encode())
+        if expected is None or actual != expected:
+            raise ConfigurationError(
+                str(freeze_path),
+                f"artifacts.{CITIZEN_CATALOG_PATH.as_posix()}",
+                "citizen v1 está congelado; publique un catalog_id v2 para cambiarlo",
+            )
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(render_catalog_json(), encoding="utf-8")
+    path.write_text(payload, encoding="utf-8")
     return path
 
 
 def load_catalog(root: Path, path: Path | None = None) -> CatalogDescriptor:
     """Carga el catálogo publicado y lo valida contra el contrato."""
-    target = root / (path or CITIZEN_CATALOG_PATH)
+    relative = path or CITIZEN_CATALOG_PATH
+    if relative == CITIZEN_CATALOG_PATH:
+        verify_frozen_catalog(root)
+    target = root / relative
     raw = json.loads(target.read_text(encoding="utf-8"))
     # Las claves añadidas para el renderer no forman parte del contrato.
     raw.pop("allowed_properties", None)
     raw.pop("allowed_tones", None)
     return CatalogDescriptor.model_validate(raw)
+
+
+def load_freeze_manifest(root: Path) -> FrozenCatalogManifest:
+    """Carga la decisión de congelación con errores accionables."""
+    path = root / CITIZEN_FREEZE_PATH
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        manifest = FrozenCatalogManifest.model_validate(raw)
+    except (OSError, json.JSONDecodeError, ValidationError) as exc:
+        raise ConfigurationError(str(path), "<raíz>", str(exc)) from exc
+    if (
+        manifest.catalog_id != CITIZEN_CATALOG_ID
+        or manifest.catalog_version != CITIZEN_CATALOG_VERSION
+        or manifest.protocol_version != A2UI_PROTOCOL_VERSION
+    ):
+        raise ConfigurationError(
+            str(path),
+            "catalog_id",
+            "el manifiesto congelado no coincide con las constantes citizen v1",
+        )
+    return manifest
+
+
+def verify_frozen_catalog(root: Path) -> FrozenCatalogManifest:
+    """Comprueba que ningún artefacto entregado cambió bajo el mismo ID."""
+    manifest = load_freeze_manifest(root)
+    resolved_root = root.resolve()
+    for relative, expected in manifest.artifacts.items():
+        target = (root / relative).resolve()
+        if not target.is_relative_to(resolved_root):
+            raise ConfigurationError(
+                str(root / CITIZEN_FREEZE_PATH),
+                f"artifacts.{relative}",
+                "la ruta sale de la raíz del repositorio",
+            )
+        try:
+            # Git puede materializar los JSON/JSONL con CRLF en Windows por
+            # `core.autocrlf`. Las huellas congeladas se calculan sobre el
+            # contenido textual canónico LF, no sobre esa representación local.
+            actual = _sha256(target.read_bytes().replace(b"\r\n", b"\n"))
+        except OSError as exc:
+            raise ConfigurationError(str(target), "<archivo>", str(exc)) from exc
+        if actual != expected:
+            raise ConfigurationError(
+                str(target),
+                "sha256",
+                ("el artefacto citizen v1 cambió después de congelarse; restáurelo o publique v2"),
+            )
+    return manifest
+
+
+def _sha256(payload: bytes) -> str:
+    return hashlib.sha256(payload).hexdigest()
 
 
 def main() -> None:  # pragma: no cover - utilidad de línea de comandos

@@ -1,5 +1,118 @@
 {
+  "$defs": {
+    "ActionStatus": {
+      "enum": [
+        "pending_confirmation",
+        "confirmed",
+        "succeeded",
+        "failed",
+        "partial",
+        "cancelled"
+      ],
+      "title": "ActionStatus",
+      "type": "string"
+    },
+    "JsonValue": {}
+  },
   "$id": "https://nexo.local/contracts/v1/action_request.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "ActionRequest"
+  "additionalProperties": false,
+  "description": "Acción pendiente de confirmación (§5.1).\n\nSe persiste en el checkpoint antes del interrupt, con el schema y la versión\nesperada, para que la reanudación no dependa de nada en memoria\n(`DIE-F1-086`).",
+  "properties": {
+    "action_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Action Id",
+      "type": "string"
+    },
+    "consent": {
+      "default": false,
+      "title": "Consent",
+      "type": "boolean"
+    },
+    "expected_version": {
+      "minimum": 1,
+      "title": "Expected Version",
+      "type": "integer"
+    },
+    "idempotency_key": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 8,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_\\-]{7,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Idempotency Key"
+    },
+    "input_schema_ref": {
+      "maxLength": 300,
+      "title": "Input Schema Ref",
+      "type": "string"
+    },
+    "parameters": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Parameters",
+      "type": "object"
+    },
+    "required_permission": {
+      "maxLength": 120,
+      "title": "Required Permission",
+      "type": "string"
+    },
+    "requires_confirmation": {
+      "default": true,
+      "title": "Requires Confirmation",
+      "type": "boolean"
+    },
+    "run_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ActionStatus",
+      "default": "pending_confirmation"
+    },
+    "supporting_fact_ids": {
+      "items": {
+        "maxLength": 68,
+        "minLength": 6,
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Supporting Fact Ids",
+      "type": "array"
+    },
+    "tool_name": {
+      "description": "Nombre `dominio.verbo_objeto`, por ejemplo 'vehiculos.reservar_cita'.",
+      "maxLength": 95,
+      "title": "Tool Name",
+      "type": "string"
+    },
+    "tool_version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Tool Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "action_id",
+    "run_id",
+    "tool_name",
+    "input_schema_ref",
+    "tool_version",
+    "expected_version",
+    "required_permission"
+  ],
+  "title": "ActionRequest",
+  "type": "object"
 }

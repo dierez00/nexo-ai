@@ -12,6 +12,8 @@ from nexo_api.core.config import get_settings
 from nexo_api.main import create_app
 from twilio.request_validator import RequestValidator
 
+from nexo_contracts import RunMetrics, RunResult, RunStatus
+
 # La URL debe coincidir con la que el server usa para validar la firma
 # (PUBLIC_BASE_URL + path), sin importar qué valor tenga hoy el .env.
 _BASE = get_settings().public_base_url.rstrip("/")
@@ -59,11 +61,23 @@ def test_whatsapp_valid_signature_triggers_run(client: TestClient) -> None:
         ),
         patch("nexo_api.services.channels.service.msg_repo.create", new=AsyncMock(return_value=1)),
         patch(
-            "nexo_api.services.runs.service.runs_repo.create",
-            new=AsyncMock(return_value={"id": 3, "trace_id": "t", "created_at": datetime.now(UTC)}),
+            "nexo_api.services.channels.service.runs_repo.create",
+            new=AsyncMock(
+                return_value={"id": 3, "trace_id": "trace_test", "created_at": datetime.now(UTC)}
+            ),
         ),
-        patch("nexo_api.services.runs.service.event_repo.bulk_create", new=AsyncMock()),
-        patch("nexo_api.services.runs.service.runs_repo.finalize", new=AsyncMock()),
+        patch(
+            "nexo_api.services.channels.service.execute_run",
+            new=AsyncMock(
+                return_value=RunResult(
+                    run_id="run_3",
+                    trace_id="trace_test",
+                    status=RunStatus.SUCCEEDED,
+                    answer="respuesta",
+                    metrics=RunMetrics(duration_ms=0),
+                )
+            ),
+        ),
     ):
         resp = client.post(
             "/webhooks/twilio/whatsapp",
@@ -109,7 +123,7 @@ def test_whatsapp_duplicate_is_deduped(client: TestClient) -> None:
             "nexo_api.services.channels.service.msg_repo.exists_provider_message",
             new=AsyncMock(return_value=True),
         ),
-        patch("nexo_api.services.runs.service.runs_repo.create", new=run_create),
+        patch("nexo_api.services.channels.service.runs_repo.create", new=run_create),
     ):
         resp = client.post(
             "/webhooks/twilio/whatsapp",
@@ -123,9 +137,13 @@ def test_whatsapp_duplicate_is_deduped(client: TestClient) -> None:
 
 def test_status_valid_signature_204(client: TestClient) -> None:
     params = {"MessageSid": "SM1", "MessageStatus": "delivered"}
-    resp = client.post(
-        "/webhooks/twilio/status",
-        data=params,
-        headers={"X-Twilio-Signature": _sign(STATUS_URL, params)},
-    )
+    with patch(
+        "nexo_api.services.channels.service.msg_repo.set_delivery_status",
+        new=AsyncMock(return_value=None),
+    ):
+        resp = client.post(
+            "/webhooks/twilio/status",
+            data=params,
+            headers={"X-Twilio-Signature": _sign(STATUS_URL, params)},
+        )
     assert resp.status_code == 204

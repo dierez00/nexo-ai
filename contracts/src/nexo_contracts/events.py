@@ -13,7 +13,7 @@ from typing import Annotated, Self
 from pydantic import Field, model_validator
 
 from .base import FrozenNexoModel, NexoModel
-from .enums import ActorType, EventStatus, EventType
+from .enums import ActorType, EventStatus, EventType, EventVisibility
 from .errors import NormalizedError
 from .ids import EventId, RunId, TraceId
 from .primitives import PositiveMillis, UtcDatetime
@@ -42,14 +42,30 @@ class RunEvent(FrozenNexoModel):
     timestamp: UtcDatetime
     actor: EventActor
     status: EventStatus
+    visibility: EventVisibility = EventVisibility.PUBLIC
+    correlation_id: str = Field(max_length=120)
+    parent_event_id: EventId | None = None
     duration_ms: PositiveMillis | None = None
-    data: SafePayload
+    # El default vive dentro de `SafePayload`, pero repetirlo aquí lo hace
+    # visible para quien lee el contrato y para el análisis estático.
+    data: SafePayload = Field(default_factory=dict)
+    public_data: SafePayload = Field(
+        default_factory=dict,
+        description="Proyección minimizada para workflow público; `data` queda para auditoría.",
+    )
     error: NormalizedError | None = None
     policy_version: str | None = Field(
         default=None,
         max_length=40,
         description="Versión de políticas vigente, propagada a evaluaciones (`DIE-F0-037`).",
     )
+    catalog_version: str | None = Field(
+        default=None,
+        max_length=80,
+        description="Snapshot del catálogo central usado para decidir este run (`DIE-F2-008`).",
+    )
+    skill_id: str | None = Field(default=None, max_length=80)
+    skill_version: str | None = Field(default=None, max_length=40)
 
     @model_validator(mode="after")
     def _failures_carry_an_error(self) -> Self:

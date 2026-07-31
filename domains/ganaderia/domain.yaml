@@ -1,0 +1,71 @@
+version: domain-ganaderia-2026-07-30
+domain: ganaderia
+title: Ganadería
+owner: diego
+
+agents:
+  - domain_navigator
+
+intents:
+  - slug: consultar_expediente
+    title: Consultar expediente e historial animal
+    description: Consultar ficha e historial sanitario mediante referencia opaca.
+    keywords:
+      - animal
+      - arete
+      - expediente
+      - historial
+      - vacuna
+      - vacunas
+    skill_id: skill_gan_expediente
+
+  - slug: registrar_vacuna
+    title: Registrar una vacuna
+    description: Registrar de forma confirmada una aplicación en el expediente.
+    keywords:
+      - registrar vacuna
+      - aplique vacuna
+      - apliqué vacuna
+      - vacune
+      - vacuné
+      - actualizar historial
+    write_tool: ganaderia.registrar_vacuna
+    skill_id: skill_gan_vacunacion
+
+  - slug: validar_movilizacion
+    title: Validar requisitos de movilización
+    description: Verificar documentalmente una movilización sin emitir autorización.
+    keywords:
+      - movilizacion
+      - movilización
+      - mover ganado
+      - traslado
+      - guia
+      - guía
+      - alertas
+    skill_id: skill_gan_movilizacion
+
+allowed_sources:
+  - src_gan_expediente
+  - src_gan_movilizacion
+  - src_gan_avisos
+
+allowed_tools:
+  - ganaderia.consultar_animal
+  - ganaderia.consultar_historial
+  - ganaderia.registrar_vacuna
+  - ganaderia.validar_movilizacion
+  - ganaderia.consultar_alertas
+
+prompt_ref: nexo_agents/prompts/navigator_ganaderia.v1.md
+
+policies:
+  max_questions: 1
+  retrieval_top_k: 5
+  navigator_deadline_ms: 8000
+
+a2ui_components:
+  - Checklist
+  - StatusBanner
+  - SourceList
+  - ConfirmButton

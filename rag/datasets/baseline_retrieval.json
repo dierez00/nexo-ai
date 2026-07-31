@@ -1,0 +1,13 @@
+{
+  "case_count": 15,
+  "cases_passed": 15,
+  "citation_precision": 1.0,
+  "corpus_versions": {
+    "ayuntamiento_empresas": "ayuntamiento_empresas-2026-07-30",
+    "vehiculos": "vehiculos-2026-07-30"
+  },
+  "dataset_version": "retrieval-mvp-v1",
+  "embeddings_model": "model2vec:minishlab/potion-multilingual-128M",
+  "recall_at_k": 1.0,
+  "retrieval_mode": "hybrid"
+}

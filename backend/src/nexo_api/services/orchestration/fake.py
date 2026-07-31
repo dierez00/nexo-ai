@@ -1,43 +1,57 @@
-"""Orquestador fake para fase MVP (fixtures, §16).
-
-Produce un `RunResult` canned y unos eventos, sin LLM ni RAG, para que el flujo
-de chat funcione end-to-end. Se reemplaza por el orquestador real de Diego sin
-tocar el backend (mismo `Orchestrator` Protocol).
-"""
+"""Orquestador fake con el mismo contrato que el core canónico."""
 
 from __future__ import annotations
 
-from nexo_api.schemas.run import RunRequest
-from nexo_api.services.orchestration.port import EmittedEvent, OrchestrationResult
+from datetime import UTC, datetime
+
+from nexo_api.services.orchestration.port import PendingActionSink
+from nexo_contracts import (
+    ActorType,
+    EventActor,
+    EventStatus,
+    EventType,
+    RunEvent,
+    RunMetrics,
+    RunRequest,
+    RunResult,
+    RunStatus,
+)
+from nexo_orchestration.ports import EventSinkPort
 
 
 class FakeOrchestrator:
-    async def run(self, request: RunRequest) -> OrchestrationResult:
-        events = [
-            EmittedEvent(
-                type="node_start",
-                node_name="classifier",
-                data={"user_message": request.user_message},
-            ),
-            EmittedEvent(
-                type="node_end",
-                node_name="classifier",
-                data={"domain": "general", "confidence": 0.5},
-            ),
-            EmittedEvent(
-                type="node_end",
-                node_name="redactor",
-                data={"channel": request.channel},
-            ),
-        ]
-        return OrchestrationResult(
-            status="completed",
-            answer=(
-                f"(demo) Recibí tu mensaje: «{request.user_message}». "
-                "El orquestador real aún no está conectado."
-            ),
-            domain="general",
+    async def run(
+        self,
+        request: RunRequest,
+        event_sink: EventSinkPort,
+        pending_actions: PendingActionSink,
+        *,
+        tenant_id: int,
+    ) -> RunResult:
+        del pending_actions, tenant_id
+        for sequence, event_type, status in (
+            (1, EventType.RUN_STARTED, EventStatus.STARTED),
+            (2, EventType.RUN_COMPLETED, EventStatus.SUCCEEDED),
+        ):
+            await event_sink.emit(
+                RunEvent(
+                    event_id=f"evt_{str(request.run_id).removeprefix('run_')}_{sequence}",
+                    trace_id=request.trace_id,
+                    run_id=request.run_id,
+                    sequence=sequence,
+                    type=event_type,
+                    timestamp=datetime.now(UTC),
+                    actor=EventActor(type=ActorType.SUPERVISOR, name="fake_orchestrator"),
+                    status=status,
+                    correlation_id=request.trace_id,
+                    data={"channel": request.channel.value},
+                )
+            )
+        return RunResult(
+            run_id=request.run_id,
+            trace_id=request.trace_id,
+            status=RunStatus.SUCCEEDED,
+            answer=f"(demo) Recibí tu mensaje: «{request.user_message}».",
             warnings=["fake_orchestrator"],
-            metrics={"latency_ms": 5, "total_cost_usd": 0.0},
-            events=events,
+            metrics=RunMetrics(duration_ms=0),
         )

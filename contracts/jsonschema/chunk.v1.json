@@ -1,5 +1,189 @@
 {
+  "$defs": {
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "SourceStatus": {
+      "description": "Estado de una fuente documental. Solo `ACTIVE` alimenta el retrieval.",
+      "enum": [
+        "draft",
+        "active",
+        "superseded",
+        "expired"
+      ],
+      "title": "SourceStatus",
+      "type": "string"
+    },
+    "ValidityWindow": {
+      "additionalProperties": false,
+      "description": "Ventana de vigencia de una fuente o una regla.\n\n`valid_to` nulo significa vigencia abierta. El retriever filtra por esta\nventana antes de entregar texto a un agente (`DIE-F1-022`).",
+      "properties": {
+        "valid_from": {
+          "format": "date",
+          "title": "Valid From",
+          "type": "string"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "valid_from"
+      ],
+      "title": "ValidityWindow",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/chunk.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Chunk"
+  "additionalProperties": false,
+  "description": "Fragmento indexado y citable.\n\n`fragment_id` es la unidad que aparece en una citación; `char_start` y\n`char_end` permiten reconstruir el tramo exacto sobre el original.",
+  "properties": {
+    "char_end": {
+      "minimum": 0,
+      "title": "Char End",
+      "type": "integer"
+    },
+    "char_start": {
+      "minimum": 0,
+      "title": "Char Start",
+      "type": "integer"
+    },
+    "checksum": {
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "title": "Checksum",
+      "type": "string"
+    },
+    "chunk_id": {
+      "maxLength": 69,
+      "minLength": 7,
+      "title": "Chunk Id",
+      "type": "string"
+    },
+    "document_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Document Id",
+      "type": "string"
+    },
+    "document_version": {
+      "maxLength": 40,
+      "title": "Document Version",
+      "type": "string"
+    },
+    "domain": {
+      "$ref": "#/$defs/Domain"
+    },
+    "embedding_dimension": {
+      "anyOf": [
+        {
+          "maximum": 8192,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Embedding Dimension"
+    },
+    "embedding_model": {
+      "anyOf": [
+        {
+          "maxLength": 120,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Embedding Model"
+    },
+    "fragment_id": {
+      "maxLength": 68,
+      "minLength": 6,
+      "title": "Fragment Id",
+      "type": "string"
+    },
+    "heading": {
+      "anyOf": [
+        {
+          "maxLength": 300,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Heading"
+    },
+    "institution_id": {
+      "maxLength": 68,
+      "minLength": 6,
+      "title": "Institution Id",
+      "type": "string"
+    },
+    "ordinal": {
+      "minimum": 0,
+      "title": "Ordinal",
+      "type": "integer"
+    },
+    "source_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Source Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/SourceStatus"
+    },
+    "text": {
+      "maxLength": 8000,
+      "title": "Text",
+      "type": "string"
+    },
+    "validity": {
+      "$ref": "#/$defs/ValidityWindow"
+    }
+  },
+  "required": [
+    "chunk_id",
+    "fragment_id",
+    "document_id",
+    "source_id",
+    "domain",
+    "institution_id",
+    "document_version",
+    "ordinal",
+    "text",
+    "char_start",
+    "char_end",
+    "checksum",
+    "validity",
+    "status"
+  ],
+  "title": "Chunk",
+  "type": "object"
 }

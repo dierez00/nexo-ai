@@ -1,6 +1,16 @@
 {
   "contracts_schema_version": "v1",
   "invalid": {
+    "a2ui_action__expected_version_below_one": {
+      "contract": "a2ui_action",
+      "file": "invalid/a2ui_action__expected_version_below_one.json",
+      "rejected_by": "expected_version debe ser al menos 1"
+    },
+    "a2ui_component__lowercase_name": {
+      "contract": "a2ui_component",
+      "file": "invalid/a2ui_component__lowercase_name.json",
+      "rejected_by": "el nombre del componente debe iniciar con mayúscula"
+    },
     "a2ui_component_tree__without_root": {
       "contract": "a2ui_message",
       "file": "invalid/a2ui_component_tree__without_root.json",
@@ -15,6 +25,11 @@
       "contract": "a2ui_surface",
       "file": "invalid/a2ui_surface__missing_create_surface.json",
       "rejected_by": "la superficie debe abrir con createSurface"
+    },
+    "a2ui_validation_result__valid_outcome_with_errors": {
+      "contract": "a2ui_validation_result",
+      "file": "invalid/a2ui_validation_result__valid_outcome_with_errors.json",
+      "rejected_by": "una validación válida no puede reportar errores"
     },
     "action_request__confirmed_without_consent": {
       "contract": "action_request",
@@ -31,6 +46,36 @@
       "file": "invalid/agent_result__non_transactional_proposes_write.json",
       "rejected_by": "solo el agente transaccional puede proponer tools de escritura"
     },
+    "approval__non_semantic_version": {
+      "contract": "approval",
+      "file": "invalid/approval__non_semantic_version.json",
+      "rejected_by": "la versión aprobada debe seguir semver estricto"
+    },
+    "catalog_descriptor__unknown_property": {
+      "contract": "catalog_descriptor",
+      "file": "invalid/catalog_descriptor__unknown_property.json",
+      "rejected_by": "los contratos rechazan propiedades desconocidas"
+    },
+    "channel_fallback__empty_text": {
+      "contract": "channel_fallback",
+      "file": "invalid/channel_fallback__empty_text.json",
+      "rejected_by": "el fallback nunca queda con texto vacío"
+    },
+    "component_descriptor__lowercase_name": {
+      "contract": "component_descriptor",
+      "file": "invalid/component_descriptor__lowercase_name.json",
+      "rejected_by": "el nombre del componente debe iniciar con mayúscula"
+    },
+    "controlled_test_result__real_data_used": {
+      "contract": "controlled_test_result",
+      "file": "invalid/controlled_test_result__real_data_used.json",
+      "rejected_by": "una prueba controlada exige datos sintéticos"
+    },
+    "deterministic_evaluation_result__unknown_property": {
+      "contract": "deterministic_evaluation_result",
+      "file": "invalid/deterministic_evaluation_result__unknown_property.json",
+      "rejected_by": "los contratos rechazan propiedades desconocidas"
+    },
     "estimate__cyclic_dependencies": {
       "contract": "estimate",
       "file": "invalid/estimate__cyclic_dependencies.json",
@@ -46,10 +91,20 @@
       "file": "invalid/event_sequence__non_monotonic.json",
       "rejected_by": "la secuencia por run es estrictamente monotónica"
     },
+    "ingestion_result__unchanged_run_creates_chunks": {
+      "contract": "ingestion_result",
+      "file": "invalid/ingestion_result__unchanged_run_creates_chunks.json",
+      "rejected_by": "una ingesta sin altas ni sustituciones no puede crear chunks"
+    },
     "judge_request__same_model_as_generator": {
       "contract": "judge_request",
       "file": "invalid/judge_request__same_model_as_generator.json",
       "rejected_by": "el judge usa un modelo distinto al generador"
+    },
+    "judge_result__unsupported_claims_but_passed": {
+      "contract": "judge_result",
+      "file": "invalid/judge_result__unsupported_claims_but_passed.json",
+      "rejected_by": "el judge no puede aprobar con claims sin fundamento"
     },
     "normalized_error__retryable_with_unknown_outcome": {
       "contract": "normalized_error",
@@ -91,6 +146,11 @@
       "file": "invalid/run_request__unregistered_id_prefix.json",
       "rejected_by": "los IDs usan prefijos registrados"
     },
+    "run_result__unknown_property": {
+      "contract": "run_result",
+      "file": "invalid/run_result__unknown_property.json",
+      "rejected_by": "los contratos rechazan propiedades desconocidas"
+    },
     "run_state__waiting_confirmation_without_action": {
       "contract": "run_state",
       "file": "invalid/run_state__waiting_confirmation_without_action.json",
@@ -100,6 +160,16 @@
       "contract": "skill_manifest",
       "file": "invalid/skill_manifest__confirmation_outside_allowlist.json",
       "rejected_by": "una skill no amplía permisos"
+    },
+    "source__active_without_verified_at": {
+      "contract": "source",
+      "file": "invalid/source__active_without_verified_at.json",
+      "rejected_by": "una fuente activa exige verified_at"
+    },
+    "source_citation__char_end_before_char_start": {
+      "contract": "source_citation",
+      "file": "invalid/source_citation__char_end_before_char_start.json",
+      "rejected_by": "el tramo de citación exige char_end mayor que char_start"
     },
     "tool_call__write_without_idempotency_key": {
       "contract": "tool_call",
@@ -115,6 +185,11 @@
       "contract": "tool_metadata",
       "file": "invalid/tool_metadata__write_without_confirmation.json",
       "rejected_by": "una tool de escritura debe exigir confirmación"
+    },
+    "tool_result__status_mismatch": {
+      "contract": "tool_result",
+      "file": "invalid/tool_result__status_mismatch.json",
+      "rejected_by": "un resultado no exitoso debe incluir un error normalizado"
     },
     "verified_fact__critical_accepted_with_expired_citation": {
       "contract": "verified_fact",
@@ -181,6 +256,10 @@
       "contract": "catalog_descriptor",
       "file": "valid/catalog_descriptor.json"
     },
+    "catalog_entity_telemetry": {
+      "contract": "catalog_entity_telemetry",
+      "file": "valid/catalog_entity_telemetry.json"
+    },
     "channel_fallback": {
       "contract": "channel_fallback",
       "file": "valid/channel_fallback.json"
@@ -188,6 +267,10 @@
     "chunk": {
       "contract": "chunk",
       "file": "valid/chunk.json"
+    },
+    "classification": {
+      "contract": "classification",
+      "file": "valid/classification.json"
     },
     "component_descriptor": {
       "contract": "component_descriptor",

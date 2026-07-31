@@ -1,0 +1,17 @@
+{
+  "case_id": "cap_sal_01",
+  "catalog_version": "core-catalog-2026-07-30",
+  "domain": "salud",
+  "procedure": "localizar_unidad",
+  "skill_id": "skill_sal_navegacion",
+  "max_questions": 1,
+  "clinical_claims_allowed": false,
+  "required_sources": ["src_sal_directorio"],
+  "required_tools": [
+    "salud.localizar_unidad_salud",
+    "salud.consultar_servicios",
+    "salud.consultar_requisitos",
+    "salud.buscar_horarios"
+  ],
+  "required_a2ui_components": ["Checklist", "List", "SourceList"]
+}

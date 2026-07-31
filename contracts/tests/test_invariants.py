@@ -56,9 +56,7 @@ def _request(**overrides) -> RunRequest:
         "conversation_id": "conv_000001",
         "user_message": "hola",
         "channel": Channel.WEB,
-        "identity": Identity(
-            user_id="usr_demo", institution_id="inst_demo", roles=["citizen"]
-        ),
+        "identity": Identity(user_id="usr_demo", institution_id="inst_demo", roles=["citizen"]),
         "received_at": NOW,
     }
     payload.update(overrides)
@@ -235,9 +233,7 @@ def test_unknown_outcome_is_never_retryable() -> None:
 
 
 def test_from_code_never_marks_unknown_outcomes_retryable() -> None:
-    error = NormalizedError.from_code(
-        ErrorCode.TOOL_TIMEOUT, "timeout", outcome=Outcome.UNKNOWN
-    )
+    error = NormalizedError.from_code(ErrorCode.TOOL_TIMEOUT, "timeout", outcome=Outcome.UNKNOWN)
     assert error.retryable is False
 
 
@@ -260,15 +256,35 @@ def _critical_fact(**overrides) -> VerifiedFact:
     return VerifiedFact(**payload)
 
 
-def test_critical_accepted_fact_requires_an_active_citation() -> None:
-    with pytest.raises(ValidationError, match="citación activa"):
+def test_critical_accepted_fact_requires_evidence() -> None:
+    with pytest.raises(ValidationError, match="sin evidencia activa"):
         _critical_fact(citations=[])
 
 
 def test_expired_citation_does_not_support_a_critical_fact() -> None:
     expired = LICENSE_CITATION.model_copy(update={"is_active": False})
-    with pytest.raises(ValidationError, match="citación activa"):
+    with pytest.raises(ValidationError, match="sin evidencia activa"):
         _critical_fact(citations=[expired])
+
+
+def test_a_tool_call_is_the_other_admissible_evidence() -> None:
+    """La evidencia admisible es de dos clases, no una.
+
+    Exigir siempre citación documental hacía **inexpresable** el caso más
+    importante del sistema —«la cita quedó reservada, folio NEXO-MOCK-01»—,
+    porque `ACTION_RESULT` es crítico por definición y jamás procede de un
+    documento. Lo detectó el verificador al construirlo (F1.6).
+    """
+    fact = _critical_fact(citations=[], supporting_tool_call_id="tc_01")
+
+    assert fact.is_critical is True
+    assert fact.has_active_evidence is True
+
+
+def test_neither_kind_of_evidence_still_fails() -> None:
+    """Lo que no cambia: sin ninguna de las dos, no hay aceptación."""
+    with pytest.raises(ValidationError, match="sin evidencia activa"):
+        _critical_fact(citations=[], supporting_tool_call_id=None)
 
 
 def test_non_critical_fact_may_lack_citations() -> None:
@@ -302,9 +318,7 @@ def test_accepted_fact_cannot_depend_on_a_rejected_one() -> None:
     )
     dependent = _critical_fact(depends_on=["fact_req_01"])
     with pytest.raises(ValidationError, match="depende de hechos rechazados"):
-        VerifiedFacts(
-            snapshot_id="snap_1", created_at=NOW, facts=(rejected, dependent)
-        )
+        VerifiedFacts(snapshot_id="snap_1", created_at=NOW, facts=(rejected, dependent))
 
 
 def test_dependencies_must_exist_in_the_snapshot() -> None:

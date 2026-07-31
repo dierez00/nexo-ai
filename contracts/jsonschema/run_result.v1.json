@@ -1,5 +1,1292 @@
 {
+  "$defs": {
+    "A2UIAction": {
+      "additionalProperties": false,
+      "description": "Acción opaca ligada a un schema, una versión y un run concreto (§5.5).",
+      "properties": {
+        "action_id": {
+          "maxLength": 67,
+          "minLength": 5,
+          "title": "Action Id",
+          "type": "string"
+        },
+        "expected_version": {
+          "minimum": 1,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "input_schema_ref": {
+          "maxLength": 300,
+          "title": "Input Schema Ref",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 120,
+          "title": "Label",
+          "type": "string"
+        },
+        "requires_confirmation": {
+          "default": true,
+          "title": "Requires Confirmation",
+          "type": "boolean"
+        },
+        "tool_name": {
+          "maxLength": 95,
+          "title": "Tool Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action_id",
+        "tool_name",
+        "input_schema_ref",
+        "expected_version",
+        "label"
+      ],
+      "title": "A2UIAction",
+      "type": "object"
+    },
+    "A2UIComponent": {
+      "additionalProperties": false,
+      "description": "Nodo del árbol de componentes.\n\nLos datos viven en el data model y se referencian por binding (`{\"path\": ...}`);\nla estructura nunca los incrusta (`DIE-F1-102`).\n\nEn el protocolo, las propiedades específicas del componente viajan aplanadas\njunto a `id` y `component`. Aquí se validan agrupadas bajo `properties` para\nmantener el modelo cerrado, y la (de)serialización hace la conversión: los\nfixtures que consume el renderer de Cris salen con la forma del protocolo,\nsin traducción implícita a cargo del consumidor (`DIE-F0-019`).",
+      "properties": {
+        "actionId": {
+          "anyOf": [
+            {
+              "maxLength": 67,
+              "minLength": 5,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actionid"
+        },
+        "children": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9-]{0,62}$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Children",
+          "type": "array"
+        },
+        "component": {
+          "pattern": "^[A-Z][A-Za-z0-9]{1,40}$",
+          "title": "Component",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9-]{0,62}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "properties": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Properties",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "component"
+      ],
+      "title": "A2UIComponent",
+      "type": "object"
+    },
+    "A2UIMessage": {
+      "additionalProperties": false,
+      "description": "Unidad JSONL del protocolo: exactamente uno de los tres mensajes.",
+      "properties": {
+        "createSurface": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CreateSurface"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "updateComponents": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UpdateComponents"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "updateDataModel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UpdateDataModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "version": {
+          "default": "v0.9.1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "title": "A2UIMessage",
+      "type": "object"
+    },
+    "A2UISurface": {
+      "additionalProperties": false,
+      "description": "Superficie completa: la secuencia ordenada de mensajes más sus acciones.",
+      "properties": {
+        "actions": {
+          "items": {
+            "$ref": "#/$defs/A2UIAction"
+          },
+          "maxItems": 20,
+          "title": "Actions",
+          "type": "array"
+        },
+        "catalog_id": {
+          "description": "URN inmutable del catálogo negociado, por ejemplo 'urn:nexo-ia:a2ui:catalog:citizen:v1'.",
+          "maxLength": 200,
+          "pattern": "^urn:nexo-ia:a2ui:catalog:[a-z0-9_-]+:v\\d+$",
+          "title": "Catalog Id",
+          "type": "string"
+        },
+        "channel": {
+          "$ref": "#/$defs/Channel"
+        },
+        "messages": {
+          "items": {
+            "$ref": "#/$defs/A2UIMessage"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Messages",
+          "type": "array"
+        },
+        "surface_id": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Surface Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "surface_id",
+        "catalog_id",
+        "channel",
+        "messages"
+      ],
+      "title": "A2UISurface",
+      "type": "object"
+    },
+    "Channel": {
+      "enum": [
+        "web",
+        "whatsapp",
+        "voice"
+      ],
+      "title": "Channel",
+      "type": "string"
+    },
+    "ChannelFallback": {
+      "additionalProperties": false,
+      "description": "Representación segura cuando la superficie no puede renderizarse (§5.5).\n\nNunca queda vacío: si A2UI falla, el canal recibe texto plano equivalente en\nlugar de nada (`DIE-F1-106`).",
+      "properties": {
+        "action_hint": {
+          "anyOf": [
+            {
+              "maxLength": 300,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Action Hint"
+        },
+        "channel": {
+          "$ref": "#/$defs/Channel"
+        },
+        "numbered_items": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Numbered Items",
+          "type": "array"
+        },
+        "reason": {
+          "maxLength": 200,
+          "title": "Reason",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "channel",
+        "reason",
+        "text"
+      ],
+      "title": "ChannelFallback",
+      "type": "object"
+    },
+    "Contradiction": {
+      "additionalProperties": false,
+      "description": "Conflicto detectado entre hechos, fuentes o resultados de tools (§5.2).",
+      "properties": {
+        "conflicting_sources": {
+          "items": {
+            "maxLength": 67,
+            "minLength": 5,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Conflicting Sources",
+          "type": "array"
+        },
+        "conflicting_tool_calls": {
+          "items": {
+            "maxLength": 66,
+            "minLength": 4,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Conflicting Tool Calls",
+          "type": "array"
+        },
+        "contradiction_id": {
+          "maxLength": 70,
+          "minLength": 8,
+          "title": "Contradiction Id",
+          "type": "string"
+        },
+        "explanation": {
+          "maxLength": 1000,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "fact_ids": {
+          "items": {
+            "maxLength": 68,
+            "minLength": 6,
+            "type": "string"
+          },
+          "maxItems": 10,
+          "minItems": 2,
+          "title": "Fact Ids",
+          "type": "array"
+        },
+        "resolved_fact_id": {
+          "anyOf": [
+            {
+              "maxLength": 68,
+              "minLength": 6,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resolved Fact Id"
+        },
+        "rule": {
+          "description": "Regla de precedencia aplicada. Ejemplo: 'newer_source_wins'.",
+          "maxLength": 200,
+          "title": "Rule",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/ContradictionSeverity"
+        },
+        "status": {
+          "$ref": "#/$defs/ContradictionStatus",
+          "default": "detected"
+        }
+      },
+      "required": [
+        "contradiction_id",
+        "fact_ids",
+        "severity",
+        "rule",
+        "explanation"
+      ],
+      "title": "Contradiction",
+      "type": "object"
+    },
+    "ContradictionSeverity": {
+      "description": "Una contradicción crítica bloquea toda escritura dependiente (`DIE-F4-020`).",
+      "enum": [
+        "informational",
+        "material",
+        "critical"
+      ],
+      "title": "ContradictionSeverity",
+      "type": "string"
+    },
+    "ContradictionStatus": {
+      "enum": [
+        "detected",
+        "resolved",
+        "unresolved"
+      ],
+      "title": "ContradictionStatus",
+      "type": "string"
+    },
+    "CreateSurface": {
+      "additionalProperties": false,
+      "properties": {
+        "catalogId": {
+          "description": "URN inmutable del catálogo negociado, por ejemplo 'urn:nexo-ia:a2ui:catalog:citizen:v1'.",
+          "maxLength": 200,
+          "pattern": "^urn:nexo-ia:a2ui:catalog:[a-z0-9_-]+:v\\d+$",
+          "title": "Catalogid",
+          "type": "string"
+        },
+        "sendDataModel": {
+          "default": false,
+          "title": "Senddatamodel",
+          "type": "boolean"
+        },
+        "surfaceId": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Surfaceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "surfaceId",
+        "catalogId"
+      ],
+      "title": "CreateSurface",
+      "type": "object"
+    },
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "ErrorCode": {
+      "description": "Códigos de error estables (arquitectura §9.11).\n\nEl consumidor decide por `code`, nunca por el texto del mensaje.",
+      "enum": [
+        "VALIDATION_ERROR",
+        "AUTHENTICATION_REQUIRED",
+        "PERMISSION_DENIED",
+        "RESOURCE_NOT_FOUND",
+        "APPOINTMENT_CONFLICT",
+        "VERSION_CONFLICT",
+        "ACTION_CONFIRMATION_REQUIRED",
+        "RATE_LIMITED",
+        "BUDGET_EXCEEDED",
+        "PROVIDER_ERROR",
+        "MODEL_UNAVAILABLE",
+        "MODEL_OUTPUT_INVALID",
+        "TOOL_TIMEOUT",
+        "TOOL_NOT_FOUND",
+        "RUN_TIMEOUT",
+        "RUN_CANCELLED",
+        "UNKNOWN_OUTCOME",
+        "CONFIGURATION_INVALID",
+        "CONTRACT_INVALID"
+      ],
+      "title": "ErrorCode",
+      "type": "string"
+    },
+    "ErrorDetail": {
+      "additionalProperties": false,
+      "description": "Detalle accionable de un error, sin contenido sensible.",
+      "properties": {
+        "field": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ruta del campo que falló, en notación de puntos.",
+          "title": "Field"
+        },
+        "reason": {
+          "description": "Motivo estable y corto, en snake_case. Ejemplo: 'conflict'.",
+          "maxLength": 200,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "title": "ErrorDetail",
+      "type": "object"
+    },
+    "Estimate": {
+      "additionalProperties": false,
+      "description": "Resultado del estimador: pasos ordenados, costo total y trazabilidad.",
+      "properties": {
+        "derived_from": {
+          "items": {
+            "maxLength": 68,
+            "minLength": 6,
+            "type": "string"
+          },
+          "maxItems": 200,
+          "title": "Derived From",
+          "type": "array"
+        },
+        "domain": {
+          "$ref": "#/$defs/Domain"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/EstimateStep"
+          },
+          "maxItems": 100,
+          "title": "Steps",
+          "type": "array"
+        },
+        "total_cost": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "domain"
+      ],
+      "title": "Estimate",
+      "type": "object"
+    },
+    "EstimateStep": {
+      "additionalProperties": false,
+      "description": "Un trámite dentro de la ruta calculada, con dependencias estables.",
+      "properties": {
+        "cost": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "depends_on": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]{1,62}$",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Depends On",
+          "type": "array"
+        },
+        "derived_from": {
+          "items": {
+            "maxLength": 68,
+            "minLength": 6,
+            "type": "string"
+          },
+          "maxItems": 50,
+          "minItems": 1,
+          "title": "Derived From",
+          "type": "array"
+        },
+        "duration_days": {
+          "anyOf": [
+            {
+              "maximum": 3650,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Days"
+        },
+        "missing_documents": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Missing Documents",
+          "type": "array"
+        },
+        "step_id": {
+          "pattern": "^[a-z][a-z0-9_]{1,62}$",
+          "title": "Step Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "step_id",
+        "title",
+        "derived_from"
+      ],
+      "title": "EstimateStep",
+      "type": "object"
+    },
+    "FactCategory": {
+      "description": "Naturaleza de un hecho. Determina si su citación es obligatoria.",
+      "enum": [
+        "requirement",
+        "cost",
+        "location",
+        "validity",
+        "schedule",
+        "dependency",
+        "procedure",
+        "action_result",
+        "context"
+      ],
+      "title": "FactCategory",
+      "type": "string"
+    },
+    "FactValue": {
+      "additionalProperties": false,
+      "description": "Valor tipado de un hecho.\n\nSe modela como una unión explícita en lugar de `Any` para que el estimador\nnunca tenga que adivinar el tipo antes de sumar o comparar.",
+      "properties": {
+        "boolean": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Boolean"
+        },
+        "date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Date"
+        },
+        "items": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 100,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Items"
+        },
+        "money": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "number": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Number"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        }
+      },
+      "title": "FactValue",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "Money": {
+      "additionalProperties": false,
+      "description": "Monto en unidades menores más moneda (§2.3).\n\nNunca se representa un monto en flotante ni se suma en un prompt: el\nestimador opera sobre `amount_minor` con código determinista.",
+      "properties": {
+        "amount_minor": {
+          "description": "Monto en la unidad menor de la moneda; 125000 son 1,250.00 MXN.",
+          "title": "Amount Minor",
+          "type": "integer"
+        },
+        "currency": {
+          "description": "Código ISO 4217, por ejemplo 'MXN'.",
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount_minor",
+        "currency"
+      ],
+      "title": "Money",
+      "type": "object"
+    },
+    "NormalizedError": {
+      "additionalProperties": false,
+      "description": "Error normalizado que cruza cualquier frontera de Nexo IA.\n\n`outcome` es el campo que impide reintentos peligrosos: un `UNKNOWN`\nsignifica que no sabemos si la operación tuvo efecto, y por tanto nunca se\nreintenta de forma automática (`DIE-F0-035`).",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "details": {
+          "items": {
+            "$ref": "#/$defs/ErrorDetail"
+          },
+          "maxItems": 50,
+          "title": "Details",
+          "type": "array"
+        },
+        "message": {
+          "description": "Mensaje para operadores. Nunca incluye prompts, secretos ni PII.",
+          "maxLength": 500,
+          "title": "Message",
+          "type": "string"
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome",
+          "default": "known_failure",
+          "description": "Certeza sobre el efecto producido antes del fallo."
+        },
+        "retry_after_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After Ms"
+        },
+        "retryable": {
+          "description": "Si la operación puede reintentarse tal cual, sin intervención.",
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "title": "NormalizedError",
+      "type": "object"
+    },
+    "Outcome": {
+      "description": "Certeza sobre el efecto de una operación.\n\n`UNKNOWN` es el caso peligroso: un write con outcome desconocido nunca se\nreintenta automáticamente y produce `partial` (`DIE-F1-077`, `DIE-F1-081`).",
+      "enum": [
+        "known_success",
+        "known_failure",
+        "unknown"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "RunMetrics": {
+      "additionalProperties": false,
+      "description": "Métricas obligatorias del run. El gate exige que el 100% las registre.",
+      "properties": {
+        "duration_ms": {
+          "default": 0,
+          "maximum": 3600000,
+          "minimum": 0,
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "first_event_ms": {
+          "anyOf": [
+            {
+              "maximum": 3600000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "First Event Ms"
+        },
+        "model_invocation_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Model Invocation Count",
+          "type": "integer"
+        },
+        "question_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Question Count",
+          "type": "integer"
+        },
+        "retrieval_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Retrieval Count",
+          "type": "integer"
+        },
+        "tool_call_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Tool Call Count",
+          "type": "integer"
+        },
+        "total_cost_usd": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Total Cost Usd",
+          "type": "number"
+        },
+        "total_input_tokens": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total Input Tokens",
+          "type": "integer"
+        },
+        "total_output_tokens": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total Output Tokens",
+          "type": "integer"
+        }
+      },
+      "title": "RunMetrics",
+      "type": "object"
+    },
+    "RunStatus": {
+      "description": "Estados de un run (arquitectura §9.11).\n\n`queued → planning → running → waiting_confirmation → running →\nsucceeded | partial | failed`; `cancelled` puede ocurrir antes del final.",
+      "enum": [
+        "queued",
+        "planning",
+        "running",
+        "waiting_confirmation",
+        "succeeded",
+        "partial",
+        "failed",
+        "cancelled"
+      ],
+      "title": "RunStatus",
+      "type": "string"
+    },
+    "SourceCitation": {
+      "additionalProperties": false,
+      "description": "Referencia puntual a un fragmento de una fuente (§5.2).\n\nEs inmutable a propósito: una citación es evidencia, y la evidencia no se\nedita después de recogerse.",
+      "properties": {
+        "char_end": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char End"
+        },
+        "char_start": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inicio del tramo relevante dentro del fragmento.",
+          "title": "Char Start"
+        },
+        "corpus_version": {
+          "description": "Versión de corpus vigente cuando se recuperó el fragmento.",
+          "maxLength": 120,
+          "title": "Corpus Version",
+          "type": "string"
+        },
+        "fragment_id": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Fragment Id",
+          "type": "string"
+        },
+        "is_active": {
+          "default": true,
+          "description": "Falso si la fuente fue sustituida o venció; bloquea claims críticos.",
+          "title": "Is Active",
+          "type": "boolean"
+        },
+        "source_id": {
+          "maxLength": 67,
+          "minLength": 5,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_version": {
+          "maxLength": 40,
+          "title": "Source Version",
+          "type": "string"
+        },
+        "valid_from": {
+          "format": "date",
+          "title": "Valid From",
+          "type": "string"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "source_id",
+        "fragment_id",
+        "corpus_version",
+        "source_version",
+        "valid_from"
+      ],
+      "title": "SourceCitation",
+      "type": "object"
+    },
+    "UpdateComponents": {
+      "additionalProperties": false,
+      "properties": {
+        "components": {
+          "items": {
+            "$ref": "#/$defs/A2UIComponent"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Components",
+          "type": "array"
+        },
+        "surfaceId": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Surfaceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "surfaceId",
+        "components"
+      ],
+      "title": "UpdateComponents",
+      "type": "object"
+    },
+    "UpdateDataModel": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "maxLength": 300,
+          "pattern": "^/[A-Za-z0-9_/-]*$",
+          "title": "Path",
+          "type": "string"
+        },
+        "surfaceId": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Surfaceid",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue"
+        }
+      },
+      "required": [
+        "surfaceId",
+        "path",
+        "value"
+      ],
+      "title": "UpdateDataModel",
+      "type": "object"
+    },
+    "VerificationStatus": {
+      "description": "Resultado de verificar un hecho candidato (`DIE-F1-052`).",
+      "enum": [
+        "accepted",
+        "rejected",
+        "uncertain"
+      ],
+      "title": "VerificationStatus",
+      "type": "string"
+    },
+    "VerifiedFact": {
+      "additionalProperties": false,
+      "description": "Hecho tras pasar por el verificador (§5.2).\n\nInvariante central: si es crítico y fue aceptado, tiene al menos una\ncitación activa y es apto para escritura solo si además está aceptado.",
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/FactCategory"
+        },
+        "citations": {
+          "items": {
+            "$ref": "#/$defs/SourceCitation"
+          },
+          "maxItems": 20,
+          "title": "Citations",
+          "type": "array"
+        },
+        "claim": {
+          "maxLength": 1000,
+          "title": "Claim",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 68,
+            "minLength": 6,
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Depends On",
+          "type": "array"
+        },
+        "domain": {
+          "$ref": "#/$defs/Domain"
+        },
+        "fact_id": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Fact Id",
+          "type": "string"
+        },
+        "reason": {
+          "description": "Motivo estable de la decisión. Ejemplo: 'source_expired'.",
+          "maxLength": 300,
+          "title": "Reason",
+          "type": "string"
+        },
+        "supporting_tool_call_id": {
+          "anyOf": [
+            {
+              "maxLength": 66,
+              "minLength": 4,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Invocación de tool que respalda el hecho cuando su evidencia no es documental. Es la otra forma admisible de fundamentar un claim crítico.",
+          "title": "Supporting Tool Call Id"
+        },
+        "value": {
+          "$ref": "#/$defs/FactValue"
+        },
+        "verification": {
+          "$ref": "#/$defs/VerificationStatus"
+        },
+        "write_eligible": {
+          "default": false,
+          "title": "Write Eligible",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "fact_id",
+        "claim",
+        "value",
+        "category",
+        "domain",
+        "verification",
+        "reason",
+        "confidence"
+      ],
+      "title": "VerifiedFact",
+      "type": "object"
+    },
+    "VerifiedFacts": {
+      "additionalProperties": false,
+      "description": "Snapshot inmutable que reciben estimación final, A2UI y redactor (§5.2).\n\nEl redactor solo ve esto: no tiene puertos de RAG ni de MCP, así que este\nsnapshot es literalmente el universo de hechos del que puede hablar\n(`DIE-F1-094`).",
+      "properties": {
+        "contradictions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Contradiction"
+          },
+          "maxItems": 100,
+          "title": "Contradictions",
+          "type": "array"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "facts": {
+          "items": {
+            "$ref": "#/$defs/VerifiedFact"
+          },
+          "maxItems": 500,
+          "title": "Facts",
+          "type": "array"
+        },
+        "snapshot_id": {
+          "maxLength": 120,
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "created_at",
+        "facts"
+      ],
+      "title": "VerifiedFacts",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/run_result.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "RunResult"
+  "additionalProperties": false,
+  "description": "Salida del núcleo (§5.1).\n\nSe construye desde `RunState` omitiendo todo lo interno: hechos candidatos\nsin verificar, nodos completados, reintentos e invocaciones de modelo no\nsalen de la orquestación.",
+  "properties": {
+    "answer": {
+      "anyOf": [
+        {
+          "maxLength": 20000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Answer"
+    },
+    "available_actions": {
+      "items": {
+        "$ref": "#/$defs/A2UIAction"
+      },
+      "maxItems": 20,
+      "title": "Available Actions",
+      "type": "array"
+    },
+    "catalog_version": {
+      "default": "unset",
+      "maxLength": 80,
+      "title": "Catalog Version",
+      "type": "string"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NormalizedError"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "estimate": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Estimate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "fallback": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ChannelFallback"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "metrics": {
+      "$ref": "#/$defs/RunMetrics"
+    },
+    "questions": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 5,
+      "title": "Questions",
+      "type": "array"
+    },
+    "run_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "skill_id": {
+      "anyOf": [
+        {
+          "maxLength": 80,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Skill Id"
+    },
+    "skill_version": {
+      "anyOf": [
+        {
+          "maxLength": 40,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Skill Version"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/SourceCitation"
+      },
+      "maxItems": 200,
+      "title": "Sources",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/RunStatus"
+    },
+    "surface": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/A2UISurface"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "trace_id": {
+      "maxLength": 69,
+      "minLength": 7,
+      "title": "Trace Id",
+      "type": "string"
+    },
+    "verified_facts": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/VerifiedFacts"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "run_id",
+    "trace_id",
+    "status"
+  ],
+  "title": "RunResult",
+  "type": "object"
 }

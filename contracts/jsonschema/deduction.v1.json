@@ -1,5 +1,166 @@
 {
+  "$defs": {
+    "FactOrigin": {
+      "description": "De dónde salió un hecho candidato. Sirve para detectar contradicciones tool ↔ documento.",
+      "enum": [
+        "rag",
+        "tool",
+        "user",
+        "profile",
+        "deduction",
+        "catalog"
+      ],
+      "title": "FactOrigin",
+      "type": "string"
+    },
+    "FactValue": {
+      "additionalProperties": false,
+      "description": "Valor tipado de un hecho.\n\nSe modela como una unión explícita en lugar de `Any` para que el estimador\nnunca tenga que adivinar el tipo antes de sumar o comparar.",
+      "properties": {
+        "boolean": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Boolean"
+        },
+        "date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Date"
+        },
+        "items": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 100,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Items"
+        },
+        "money": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "number": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Number"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        }
+      },
+      "title": "FactValue",
+      "type": "object"
+    },
+    "Money": {
+      "additionalProperties": false,
+      "description": "Monto en unidades menores más moneda (§2.3).\n\nNunca se representa un monto en flotante ni se suma en un prompt: el\nestimador opera sobre `amount_minor` con código determinista.",
+      "properties": {
+        "amount_minor": {
+          "description": "Monto en la unidad menor de la moneda; 125000 son 1,250.00 MXN.",
+          "title": "Amount Minor",
+          "type": "integer"
+        },
+        "currency": {
+          "description": "Código ISO 4217, por ejemplo 'MXN'.",
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount_minor",
+        "currency"
+      ],
+      "title": "Money",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/deduction.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Deduction"
+  "additionalProperties": false,
+  "description": "Dato inferido, no afirmado por el usuario ni leído de una fuente (§5.2).\n\nUna deducción no confirmada nunca alimenta una escritura (`DIE-F2-053`);\n`write_eligible` es la puerta que lo impide.",
+  "properties": {
+    "confidence": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "confirmed_by_user": {
+      "default": false,
+      "title": "Confirmed By User",
+      "type": "boolean"
+    },
+    "rationale": {
+      "maxLength": 500,
+      "title": "Rationale",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/FactOrigin"
+    },
+    "value": {
+      "$ref": "#/$defs/FactValue"
+    },
+    "write_eligible": {
+      "default": false,
+      "title": "Write Eligible",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "value",
+    "source",
+    "confidence",
+    "rationale"
+  ],
+  "title": "Deduction",
+  "type": "object"
 }

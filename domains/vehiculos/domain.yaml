@@ -1,0 +1,94 @@
+# Manifiesto del dominio `vehiculos` (`DIE-F1-038`).
+#
+# Declara qué sabe hacer este dominio y con qué. El navegador no puede salirse
+# de esta allowlist: ni una fuente, ni una tool, ni una intención de más.
+#
+# Schema: nexo_agents.domain_manifest.DomainManifest
+
+version: domain-vehiculos-2026-07-30
+domain: vehiculos
+title: Vehículos
+owner: diego
+
+agents:
+  - domain_navigator
+
+# Las dos intenciones del caso oficial CAP-VEH-01 se declaran por separado y
+# **nunca** se fusionan (`DIE-F1-032`): tienen tools, evidencia y respuesta
+# distintas, y colapsarlas pierde la mitad de la solicitud.
+intents:
+  - slug: renovar_licencia
+    title: Renovar licencia de conducir
+    description: >-
+      Renovación de una licencia tipo A ya existente. Incluye requisitos,
+      costo, módulo y cita. No cubre primeras emisiones.
+    keywords:
+      - renovar
+      - renovacion
+      - renovación
+      - licencia
+      - licencia de conducir
+      - vencio mi licencia
+      - venció mi licencia
+      - actualizar licencia
+      - sacar de nuevo la licencia
+    write_tool: vehiculos.reservar_cita
+    skill_id: skill_veh_renovacion
+
+  - slug: consultar_adeudo
+    title: Consultar adeudo vehicular
+    description: >-
+      Consulta de saldos e infracciones pendientes asociadas al titular. Es un
+      trámite independiente de la renovación, aunque la bloquee.
+    keywords:
+      - adeudo
+      - adeudos
+      - debo
+      - debo algo
+      - saldo
+      - multas
+      - infracciones
+      - tengo algo pendiente
+      - deuda
+    skill_id: skill_veh_adeudo
+
+  - slug: localizar_modulo
+    title: Localizar módulo de atención
+    description: Ubicación y horarios de los módulos que atienden trámites vehiculares.
+    keywords:
+      - modulo
+      - módulo
+      - donde
+      - dónde
+      - oficina
+      - horario
+      - horarios
+      - direccion del modulo
+
+allowed_sources:
+  - src_veh_licencias
+  - src_veh_tarifas
+  - src_veh_modulos
+  - src_veh_avisos
+
+allowed_tools:
+  - vehiculos.consultar_adeudo
+  - vehiculos.localizar_modulo
+  - vehiculos.buscar_citas
+  - vehiculos.reservar_cita
+
+prompt_ref: nexo_agents/prompts/navigator_vehiculos.v1.md
+
+policies:
+  max_questions: 1
+  retrieval_top_k: 5
+  navigator_deadline_ms: 8000
+
+# Componentes de contenido e interacción usados por el recorrido ciudadano.
+a2ui_components:
+  - Checklist
+  - StatusBanner
+  - CostSummary
+  - SourceList
+  - SlotPicker
+  - ConfirmButton

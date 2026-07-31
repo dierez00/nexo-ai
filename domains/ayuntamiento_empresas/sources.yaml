@@ -1,0 +1,177 @@
+# Corpus documental del dominio `ayuntamiento_empresas` (`DIE-F1-009`, `DIE-F1-010`).
+#
+# Todo el contenido es SINTÉTICO (`is_synthetic: true`). No reproduce ningún
+# reglamento municipal real (`DIE-F1-011`).
+#
+# Los `checksum` los genera y verifica `python -m nexo_rag.corpus.cli`.
+#
+# Schema: nexo_rag.corpus.manifest.SourceManifest
+
+version: sources-ayuntamiento-2026-07-30
+domain: ayuntamiento_empresas
+corpus_version: ayuntamiento_empresas-2026-07-30
+
+sources:
+  # --- Ruta completa de apertura: evidencia del DAG de permisos de CAP-EMP-01 ---
+  - source_id: src_ayto_apertura
+    title: Apertura de un establecimiento comercial — ruta de trámites
+    institution_id: inst_demo
+    publisher: Ayuntamiento de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-18T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_ayto_apertura
+        title: Ruta de trámites para abrir un establecimiento comercial
+        version: v2
+        media_type: text/markdown
+        path: data/documents/ayuntamiento_empresas/src_ayto_apertura/v2/apertura_negocio.md
+        checksum: sha256:054df2cb67ea9470abbf3be43f2f1a8ff4a116a6e124c2bc5971aa01818823f6
+
+  # --- Uso de suelo: primer trámite del DAG, sin dependencias ---
+  - source_id: src_ayto_uso_suelo
+    title: Constancia de uso de suelo — requisitos y criterios
+    institution_id: inst_demo
+    publisher: Dirección de Desarrollo Urbano de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-18T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_ayto_uso_suelo
+        title: Constancia de uso de suelo
+        version: v1
+        media_type: text/markdown
+        path: data/documents/ayuntamiento_empresas/src_ayto_uso_suelo/v1/uso_de_suelo.md
+        checksum: sha256:47965bb92a4109bad5b83d4c42dfcc980df09de20e03c57007ebc673da93cc36
+
+  # --- Tarifario municipal: sostiene todos los claims de costo del estimador ---
+  - source_id: src_ayto_tarifas
+    title: Derechos municipales por trámites de apertura — ejercicio 2026
+    institution_id: inst_demo
+    publisher: Tesorería Municipal de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-18T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+      valid_to: 2026-12-31
+    documents:
+      - document_id: doc_ayto_tarifas_2026
+        title: Derechos municipales 2026
+        version: v2
+        media_type: text/markdown
+        path: data/documents/ayuntamiento_empresas/src_ayto_tarifas/v2/tarifas_municipales.md
+        checksum: sha256:23e00ff4e79040455819b00a7eb2eb041b1935745d5fa08d9974d2cca162de72
+
+  # --- Protección civil: depende de uso de suelo ---
+  - source_id: src_ayto_proteccion_civil
+    title: Visto bueno de protección civil — requisitos
+    institution_id: inst_demo
+    publisher: Dirección Municipal de Protección Civil de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-18T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_ayto_proteccion_civil
+        title: Visto bueno de protección civil
+        version: v1
+        media_type: text/markdown
+        path: data/documents/ayuntamiento_empresas/src_ayto_proteccion_civil/v1/visto_bueno.md
+        checksum: sha256:707cca461b14e022b26f619dcbe55bc9a20bc0b49966c863359f0511ee1a2f21
+
+  # --- Aviso sanitario: obligatorio para giros de alimentos (la taquería) ---
+  - source_id: src_ayto_sanidad
+    title: Aviso de funcionamiento sanitario — giros de alimentos
+    institution_id: inst_demo
+    publisher: Jurisdicción Sanitaria de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-18T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_ayto_sanidad
+        title: Aviso de funcionamiento sanitario
+        version: v1
+        media_type: text/markdown
+        path: data/documents/ayuntamiento_empresas/src_ayto_sanidad/v1/aviso_funcionamiento.md
+        checksum: sha256:921bd010269f7f47cda7d63e8b25a84dbf8ed03d2668e2f2b52bea23142adb15
+
+  # --- Tarifario sustituido: similitud alta, estado no activo ---
+  - source_id: src_ayto_tarifas_2024
+    title: Derechos municipales por apertura — ejercicio 2024 (sustituido)
+    institution_id: inst_demo
+    publisher: Tesorería Municipal de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: superseded
+    superseded_by: src_ayto_tarifas
+    is_synthetic: true
+    verified_at: 2024-01-10T00:00:00Z
+    validity:
+      valid_from: 2024-01-01
+      valid_to: 2024-12-31
+    documents:
+      - document_id: doc_ayto_tarifas_2024
+        title: Derechos municipales 2024
+        version: v1
+        media_type: text/markdown
+        path: data/documents/ayuntamiento_empresas/src_ayto_tarifas/v1/tarifas_municipales.md
+        checksum: sha256:c95746f11a421f28c76d1d95f89f83f411dd137b175fd611ad6fe54d374a29f2
+
+  # --- Directorio vencido ---
+  - source_id: src_ayto_directorio_2024
+    title: Directorio municipal 2024 (vencido)
+    institution_id: inst_demo
+    publisher: Ayuntamiento de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: expired
+    is_synthetic: true
+    verified_at: 2024-01-10T00:00:00Z
+    validity:
+      valid_from: 2024-01-01
+      valid_to: 2024-12-31
+    documents:
+      - document_id: doc_ayto_directorio_2024
+        title: Directorio municipal vencido
+        version: v1
+        media_type: text/markdown
+        path: data/documents/ayuntamiento_empresas/src_ayto_directorio_2024/v1/directorio.md
+        checksum: sha256:f3e37099746d7037e7fe44e28f684cb9f0576b0d3eb8d95c6dadf6f3029321a6
+
+  # --- Documento activo manipulado para el caso adversarial ---
+  - source_id: src_ayto_avisos
+    title: Aviso municipal manipulado
+    institution_id: inst_demo
+    publisher: Ayuntamiento de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-20T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_ayto_aviso_manipulado
+        title: Aviso con instrucción adversarial incrustada
+        version: v1
+        media_type: text/markdown
+        path: data/documents/ayuntamiento_empresas/src_ayto_avisos/v1/aviso_manipulado.md
+        checksum: sha256:b937beaef1ad99e3525e6cb78a22e66770d8abff94a84e834765c457d5729d66

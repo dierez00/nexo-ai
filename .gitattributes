@@ -1,0 +1,5 @@
+# Los artefactos congelados se verifican por SHA-256 de bytes. Mantener LF
+# evita que core.autocrlf los cambie en Windows y rompa la verificación.
+a2ui/catalogs/citizen/v1/** text eol=lf
+a2ui/fixtures/citizen/v1/** text eol=lf
+contracts/jsonschema/*.json text eol=lf

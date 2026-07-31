@@ -52,3 +52,43 @@ async def authenticate(email: str, password: str) -> LoginResponse:
         refresh_token=session.refresh_token,
     )
     return LoginResponse(tokens=tokens, profile=profile)
+
+
+async def refresh_session(refresh_token: str) -> LoginResponse:
+    settings = get_settings()
+    client = await create_supabase_client(settings.supabase_url, settings.supabase_publishable_key)
+
+    try:
+        result = await client.auth.refresh_session(refresh_token)
+    except Exception as exc:  # noqa: BLE001 - normalizamos cualquier fallo de auth
+        raise ProblemException(
+            status=401,
+            code="AUTHENTICATION_REQUIRED",
+            title="Sesión expirada",
+            detail="Vuelve a iniciar sesión.",
+        ) from exc
+
+    session = result.session
+    user = result.user
+    if session is None or user is None:
+        raise ProblemException(
+            status=401,
+            code="AUTHENTICATION_REQUIRED",
+            title="Sesión expirada",
+            detail="Vuelve a iniciar sesión.",
+        )
+
+    profile = await load_profile_by_auth_id(user.id)
+    if profile is None:
+        raise ProblemException(
+            status=403,
+            code="PERMISSION_DENIED",
+            title="Usuario sin perfil aprovisionado",
+            detail="El usuario existe en Supabase Auth pero no tiene registro en public.users.",
+        )
+
+    tokens = TokenPair(
+        access_token=session.access_token,
+        refresh_token=session.refresh_token,
+    )
+    return LoginResponse(tokens=tokens, profile=profile)

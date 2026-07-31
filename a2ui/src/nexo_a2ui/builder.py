@@ -91,14 +91,23 @@ class CitizenSurfaceBuilder:
         accepted = list(facts.accepted())
         requirements = [f for f in accepted if f.category is FactCategory.REQUIREMENT]
         costs = [f for f in accepted if f.category is FactCategory.COST]
+        schedules = [f for f in accepted if f.category is FactCategory.SCHEDULE]
         others = [
-            f for f in accepted if f.category not in {FactCategory.REQUIREMENT, FactCategory.COST}
+            f
+            for f in accepted
+            if f.category
+            not in {
+                FactCategory.REQUIREMENT,
+                FactCategory.COST,
+                FactCategory.SCHEDULE,
+            }
         ]
 
         data = self._data_model(
             headline=headline,
             requirements=requirements,
             costs=costs,
+            schedules=schedules,
             others=others,
             estimate=estimate,
             facts=facts,
@@ -107,6 +116,7 @@ class CitizenSurfaceBuilder:
         components = self._components(
             has_requirements=bool(requirements),
             has_costs=bool(costs or estimate),
+            has_schedules=bool(schedules),
             has_others=bool(others),
             has_sources=bool(data["fuentes"]),
             has_warnings=bool(warnings),
@@ -152,6 +162,7 @@ class CitizenSurfaceBuilder:
         headline: str,
         requirements: list[VerifiedFact],
         costs: list[VerifiedFact],
+        schedules: list[VerifiedFact],
         others: list[VerifiedFact],
         estimate: Estimate | None,
         facts: VerifiedFacts,
@@ -180,6 +191,9 @@ class CitizenSurfaceBuilder:
                 ),
             },
             "detalles": [_fact_text(fact) for fact in others],
+            "citas": [
+                item for fact in schedules for item in (fact.value.items or [_fact_text(fact)])
+            ],
             # Las fuentes se presentan por identificador opaco y versión de
             # corpus: es lo que hace auditable una respuesta sin exponer rutas
             # internas ni el texto completo del documento.
@@ -197,6 +211,7 @@ class CitizenSurfaceBuilder:
         *,
         has_requirements: bool,
         has_costs: bool,
+        has_schedules: bool,
         has_others: bool,
         has_sources: bool,
         has_warnings: bool,
@@ -249,6 +264,19 @@ class CitizenSurfaceBuilder:
                         "title": "Costos",
                         "lines": {"path": "/costos/lineas"},
                         "total": {"path": "/costos/total"},
+                    },
+                )
+            )
+
+        if has_schedules:
+            children.append("citas")
+            components.append(
+                A2UIComponent(
+                    id="citas",
+                    component="SlotPicker",
+                    properties={
+                        "title": "Horarios disponibles",
+                        "slots": {"path": "/citas"},
                     },
                 )
             )

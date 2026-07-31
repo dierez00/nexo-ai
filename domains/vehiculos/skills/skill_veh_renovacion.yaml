@@ -1,0 +1,120 @@
+# Skill operativa: renovación de licencia con consulta de adeudo (`DIE-F1-110`).
+#
+# Es el plan del recorrido oficial CAP-VEH-01. Declara qué pasos son
+# secuenciales y cuáles paralelizables (`DIE-F1-111`); en MVP el grafo los
+# ejecuta en secuencia, y el fan-out real llega en F4.1 sin cambiar esta skill.
+#
+# Schema: nexo_contracts.skills.SkillManifest
+
+skill_id: skill_veh_renovacion
+version: 1.0.0
+title: Renovación de licencia de conducir con verificación de adeudo
+domain: vehiculos
+owner: diego
+objective: >-
+  Entregar requisitos vigentes, costo, adeudo pendiente, módulo y una cita
+  confirmable para renovar una licencia tipo A, con cada claim crítico citado.
+
+steps:
+  - step_id: clasificar
+    agent: classifier
+    objective: Separar renovación y consulta de adeudo como intenciones distintas.
+    deadline_ms: 3000
+    max_attempts: 2
+
+  - step_id: recuperar_requisitos
+    agent: domain_navigator
+    objective: Recuperar requisitos, costo, vigencia y modalidad de atención con citaciones.
+    depends_on: [clasificar]
+    parallel_group: lectura
+    deadline_ms: 8000
+    max_attempts: 2
+
+  - step_id: consultar_adeudo
+    agent: domain_navigator
+    objective: Consultar el adeudo vehicular mediante tool de lectura.
+    depends_on: [clasificar]
+    # Mismo grupo que la recuperación documental: no dependen entre sí y en
+    # Fase 4 se ejecutarán a la vez. El adeudo no cambia los requisitos.
+    parallel_group: lectura
+    deadline_ms: 5000
+
+  - step_id: verificar
+    agent: verifier
+    objective: Aceptar, rechazar o marcar incierto cada hecho candidato con motivo estable.
+    depends_on: [recuperar_requisitos, consultar_adeudo]
+    deadline_ms: 6000
+
+  - step_id: estimar
+    agent: estimator
+    objective: Calcular costo total y documentos faltantes con código, no con el modelo.
+    depends_on: [verificar]
+    deadline_ms: 4000
+
+  - step_id: reservar
+    agent: transactional
+    objective: Reservar la cita solo tras confirmación explícita e idempotency key.
+    depends_on: [estimar]
+    deadline_ms: 5000
+    max_attempts: 1
+
+  - step_id: redactar
+    agent: writer
+    objective: Redactar la respuesta ciudadana solo desde VerifiedFacts.
+    depends_on: [estimar]
+    deadline_ms: 6000
+
+allowed_sources:
+  - src_veh_licencias
+  - src_veh_tarifas
+  - src_veh_modulos
+
+allowed_tools:
+  - vehiculos.consultar_adeudo
+  - vehiculos.localizar_modulo
+  - vehiculos.buscar_citas
+  - vehiculos.reservar_cita
+
+confirmation_required_for:
+  - vehiculos.reservar_cita
+
+reusable_inputs:
+  - tipo_licencia
+  - ubicacion
+
+question_conditions:
+  - Falta el tipo de licencia y el corpus distingue requisitos por tipo.
+  - La persona no dice si quiere la modalidad de tres o de cinco años.
+
+budgets:
+  deadline_ms: 20000
+  max_cost_usd: 0.20
+  max_questions: 1
+  max_concurrency: 2
+
+success_criteria:
+  - Las dos intenciones se conservan separadas en la respuesta.
+  - Requisitos, costo y vigencia citan fuente activa.
+  - Si hay adeudo, se informa que bloquea la renovación.
+  - La cita solo se reserva tras confirmación y devuelve folio verificable.
+  - Repetir la confirmación no crea una segunda cita.
+
+escalation_policy: >-
+  Sin evidencia vigente se responde parcialmente con advertencia y no se
+  afirman requisitos ni costos. Si la escritura devuelve outcome desconocido,
+  el run termina en `partial` y jamás se reintenta.
+
+prompt_refs:
+  - nexo_agents/prompts/classifier.v1.md
+  - nexo_agents/prompts/navigator_vehiculos.v1.md
+
+schema_refs:
+  - contracts://classification.v1
+  - contracts://verified_facts.v1
+  - contracts://action_request.v1
+
+a2ui_components:
+  - Checklist
+  - StatusBanner
+  - SourceList
+  - ConfirmButton

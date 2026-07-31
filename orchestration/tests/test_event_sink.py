@@ -38,6 +38,7 @@ def _event(sequence: int, run_id: str = "run_000001") -> RunEvent:
         timestamp=NOW,
         actor=EventActor(type=ActorType.SUPERVISOR, name="supervisor"),
         status=EventStatus.SUCCEEDED,
+        correlation_id="trace_000001",
     )
 
 
@@ -97,4 +98,5 @@ def test_failed_event_requires_an_error() -> None:
             timestamp=NOW,
             actor=EventActor(type=ActorType.SUPERVISOR, name="supervisor"),
             status=EventStatus.FAILED,
+            correlation_id="trace_000001",
         )

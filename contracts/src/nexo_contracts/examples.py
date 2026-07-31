@@ -28,6 +28,7 @@ from .a2ui import (
     UpdateDataModel,
 )
 from .base import NexoModel
+from .classification import Classification, DetectedIntent
 from .enums import (
     A2UIValidationOutcome,
     ActionStatus,
@@ -49,6 +50,7 @@ from .enums import (
     ModelDecisionReason,
     ModelHealth,
     ModelTaskKind,
+    OperationalUrgency,
     Outcome,
     RetrievalMode,
     RiskLevel,
@@ -101,6 +103,7 @@ from .model_gateway import (
     ModelPolicy,
     ModelTask,
 )
+from .observability import CatalogEntityTelemetry
 from .primitives import Money, ValidityWindow
 from .rag import (
     Chunk,
@@ -354,6 +357,7 @@ RUN_EVENT = RunEvent(
     timestamp=FIXED_NOW,
     actor=EventActor(type=ActorType.TOOL, name="vehiculos.consultar_adeudo"),
     status=EventStatus.SUCCEEDED,
+    correlation_id="trace_01JNE8ZP",
     duration_ms=320,
     data={"tool_call_id": "tc_01", "is_mock": True},
     policy_version="policies-2026-07-30",
@@ -396,6 +400,13 @@ def _valid_examples() -> dict[str, NexoModel]:
         "run_state": RUN_STATE,
         "run_result": RunResult.from_state(RUN_STATE, action_label="Confirmar cita"),
         "run_snapshot": RunSnapshot(state=RUN_STATE, events=[RUN_EVENT]),
+        "catalog_entity_telemetry": CatalogEntityTelemetry(
+            entity_id="tool:vehiculos.consultar_adeudo",
+            state="healthy",
+            window_started_at=FIXED_NOW,
+            window_ended_at=FIXED_NOW,
+            last_checked_at=FIXED_NOW,
+        ),
         "agent_task": AgentTask(
             task_id="task_verify_01",
             run_id="run_01JNE8ZP",
@@ -413,6 +424,32 @@ def _valid_examples() -> dict[str, NexoModel]:
             citations=[LICENSE_CITATION],
             self_check=SelfCheckResult(schema_valid=True),
             confidence=0.96,
+        ),
+        # El ejemplo canónico es el caso oficial `CAP-VEH-01`: dos intenciones
+        # que deben conservarse separadas (`DIE-F1-032`).
+        "classification": Classification(
+            intents=[
+                DetectedIntent(
+                    intent="renovar_licencia",
+                    domain=Domain.VEHICULOS,
+                    confidence=0.94,
+                    rationale="La persona dice explícitamente que quiere renovar.",
+                ),
+                DetectedIntent(
+                    intent="consultar_adeudo",
+                    domain=Domain.VEHICULOS,
+                    confidence=0.88,
+                    rationale=(
+                        "«saber si debo algo» es una consulta de adeudo, no parte de la renovación."
+                    ),
+                ),
+            ],
+            location="Durango",
+            audience=Audience.CITIZEN,
+            urgency=OperationalUrgency.ROUTINE,
+            entities={"tipo_licencia": "A"},
+            missing_information=["numero_de_licencia"],
+            confidence=0.91,
         ),
         "action_request": RESERVE_ACTION,
         "action_result": ActionResult(
@@ -571,7 +608,9 @@ def _valid_examples() -> dict[str, NexoModel]:
             title="Citas de demostración",
             domain=Domain.VEHICULOS,
             proposed_tools=[RESERVE_TOOL],
-            auth_secret_ref="secret://demo/citas/token",
+            # No es un secreto sino una referencia a uno: el valor se resuelve
+            # fuera del repositorio (`DIE-F0-033`). El linter no distingue.
+            auth_secret_ref="secret://demo/citas/token",  # noqa: S106
             egress_allowlist=["example.invalid"],
             created_at=FIXED_NOW,
         ),
@@ -794,6 +833,7 @@ def _valid_examples() -> dict[str, NexoModel]:
                     timestamp=FIXED_NOW,
                     actor=EventActor(type=ActorType.SYSTEM, name="supervisor"),
                     status=EventStatus.SUCCEEDED,
+                    correlation_id="trace_01JNE8ZP",
                 ),
                 RunEvent(
                     event_id="evt_02",
@@ -804,6 +844,8 @@ def _valid_examples() -> dict[str, NexoModel]:
                     timestamp=FIXED_NOW,
                     actor=EventActor(type=ActorType.SYSTEM, name="supervisor"),
                     status=EventStatus.SUCCEEDED,
+                    correlation_id="trace_01JNE8ZP",
+                    parent_event_id="evt_01",
                 ),
             ],
         ),
@@ -911,6 +953,48 @@ def _invalid_examples() -> list[InvalidExample]:
     skill_widens_permissions["confirmation_required_for"] = ["ganaderia.registrar_vacuna"]
 
     wrong_tool_prefix = _mutate("tool_metadata", name="autos.reservar_cita")
+
+    non_semantic_approval_version = _mutate("approval", version="1.0")
+
+    active_source_without_verification = _mutate("source", verified_at=None)
+
+    inverted_citation_span = _mutate("source_citation", char_start=180, char_end=0)
+
+    failed_tool_result_without_error = _mutate("tool_result", status="failed")
+
+    run_result_unknown_property = _mutate("run_result", unexpected_field="valor")
+
+    judge_result_unsupported_but_passed = _mutate(
+        "judge_result", unsupported_claims=["dato sin evidencia en las citas"]
+    )
+
+    deterministic_result_unknown_property = _mutate(
+        "deterministic_evaluation_result", unexpected_field="valor"
+    )
+
+    controlled_test_with_real_data = _mutate("controlled_test_result", used_synthetic_data=False)
+
+    unchanged_ingestion_creates_chunks = _mutate("ingestion_result", outcomes={"unchanged": 3})
+
+    catalog_descriptor_unknown_property = _mutate("catalog_descriptor", unexpected_field="valor")
+
+    component_descriptor_lowercase_name = _mutate("component_descriptor", name="checklist")
+
+    a2ui_component_lowercase_name = _mutate("a2ui_component", component="button")
+
+    a2ui_action_zero_expected_version = _mutate("a2ui_action", expected_version=0)
+
+    valid_outcome_with_errors = _mutate(
+        "a2ui_validation_result",
+        errors=[
+            {
+                "rule": "unknown_component",
+                "detail": "El componente no existe en el catálogo negociado.",
+            }
+        ],
+    )
+
+    channel_fallback_empty_text = _mutate("channel_fallback", text="")
 
     return [
         InvalidExample(
@@ -1068,6 +1152,96 @@ def _invalid_examples() -> list[InvalidExample]:
             "skill_manifest",
             "una skill no amplía permisos",
             skill_widens_permissions,
+        ),
+        InvalidExample(
+            "approval__non_semantic_version",
+            "approval",
+            "la versión aprobada debe seguir semver estricto",
+            non_semantic_approval_version,
+        ),
+        InvalidExample(
+            "source__active_without_verified_at",
+            "source",
+            "una fuente activa exige verified_at",
+            active_source_without_verification,
+        ),
+        InvalidExample(
+            "source_citation__char_end_before_char_start",
+            "source_citation",
+            "el tramo de citación exige char_end mayor que char_start",
+            inverted_citation_span,
+        ),
+        InvalidExample(
+            "tool_result__status_mismatch",
+            "tool_result",
+            "un resultado no exitoso debe incluir un error normalizado",
+            failed_tool_result_without_error,
+        ),
+        InvalidExample(
+            "run_result__unknown_property",
+            "run_result",
+            "los contratos rechazan propiedades desconocidas",
+            run_result_unknown_property,
+        ),
+        InvalidExample(
+            "judge_result__unsupported_claims_but_passed",
+            "judge_result",
+            "el judge no puede aprobar con claims sin fundamento",
+            judge_result_unsupported_but_passed,
+        ),
+        InvalidExample(
+            "deterministic_evaluation_result__unknown_property",
+            "deterministic_evaluation_result",
+            "los contratos rechazan propiedades desconocidas",
+            deterministic_result_unknown_property,
+        ),
+        InvalidExample(
+            "controlled_test_result__real_data_used",
+            "controlled_test_result",
+            "una prueba controlada exige datos sintéticos",
+            controlled_test_with_real_data,
+        ),
+        InvalidExample(
+            "ingestion_result__unchanged_run_creates_chunks",
+            "ingestion_result",
+            "una ingesta sin altas ni sustituciones no puede crear chunks",
+            unchanged_ingestion_creates_chunks,
+        ),
+        InvalidExample(
+            "catalog_descriptor__unknown_property",
+            "catalog_descriptor",
+            "los contratos rechazan propiedades desconocidas",
+            catalog_descriptor_unknown_property,
+        ),
+        InvalidExample(
+            "component_descriptor__lowercase_name",
+            "component_descriptor",
+            "el nombre del componente debe iniciar con mayúscula",
+            component_descriptor_lowercase_name,
+        ),
+        InvalidExample(
+            "a2ui_component__lowercase_name",
+            "a2ui_component",
+            "el nombre del componente debe iniciar con mayúscula",
+            a2ui_component_lowercase_name,
+        ),
+        InvalidExample(
+            "a2ui_action__expected_version_below_one",
+            "a2ui_action",
+            "expected_version debe ser al menos 1",
+            a2ui_action_zero_expected_version,
+        ),
+        InvalidExample(
+            "a2ui_validation_result__valid_outcome_with_errors",
+            "a2ui_validation_result",
+            "una validación válida no puede reportar errores",
+            valid_outcome_with_errors,
+        ),
+        InvalidExample(
+            "channel_fallback__empty_text",
+            "channel_fallback",
+            "el fallback nunca queda con texto vacío",
+            channel_fallback_empty_text,
         ),
     ]
 

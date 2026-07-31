@@ -54,8 +54,7 @@ class A2UIModel(NexoModel):
         extra="forbid",
         populate_by_name=True,
         alias_generator=lambda name: "".join(
-            part if index == 0 else part.capitalize()
-            for index, part in enumerate(name.split("_"))
+            part if index == 0 else part.capitalize() for index, part in enumerate(name.split("_"))
         ),
     )
 
@@ -149,14 +148,16 @@ class A2UIComponent(A2UIModel):
         extra = {key: value for key, value in data.items() if key not in _COMPONENT_DECLARED_KEYS}
         if not extra:
             return data
-        absorbed = {
-            key: value for key, value in data.items() if key in _COMPONENT_DECLARED_KEYS
-        }
+        absorbed = {key: value for key, value in data.items() if key in _COMPONENT_DECLARED_KEYS}
         merged: dict[str, Any] = dict(absorbed.get("properties") or {})
         merged.update(extra)
         absorbed["properties"] = merged
         return absorbed
 
+    # El JSON Schema exportado (contracts/jsonschema/a2ui_component.v1.json) describe
+    # la forma agrupada bajo `properties`, no la forma aplanada que produce este
+    # serializer: `model_json_schema` genera en modo `validation`, que nunca consulta
+    # serializers. No "arreglar" el schema a mano para reflejar el aplanado.
     @model_serializer(mode="wrap")
     def _flatten_protocol_properties(
         self,

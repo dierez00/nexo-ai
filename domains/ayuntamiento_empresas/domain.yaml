@@ -1,0 +1,95 @@
+# Manifiesto del dominio `ayuntamiento_empresas` (`DIE-F1-038`).
+#
+# El prefijo de tool es `ayuntamiento`, no el slug del dominio. Es la única
+# excepción del sistema y está ratificada en Fase 0 (H-06).
+#
+# Schema: nexo_agents.domain_manifest.DomainManifest
+
+version: domain-ayuntamiento-2026-07-30
+domain: ayuntamiento_empresas
+title: Ayuntamiento y apertura de empresas
+owner: diego
+
+agents:
+  - domain_navigator
+
+intents:
+  - slug: abrir_negocio
+    title: Abrir un establecimiento comercial
+    description: >-
+      Ruta completa de uso de suelo, protección civil, aviso de funcionamiento
+      sanitario y licencia de funcionamiento municipal para abrir un negocio
+      de bajo impacto. Incluye requisitos, dependencias, costos y tiempos para
+      giros de alimentos. Es la intención del caso oficial CAP-EMP-01.
+    keywords:
+      - abrir
+      - abrir un negocio
+      - poner un negocio
+      - taqueria
+      - taquería
+      - restaurante
+      - fonda
+      - local
+      - negocio
+      - establecimiento
+      - emprender
+      - licencia de funcionamiento
+    write_tool: ayuntamiento.registrar_solicitud
+    skill_id: skill_emp_apertura
+
+  - slug: consultar_uso_suelo
+    title: Consultar uso de suelo
+    description: >-
+      Si el giro está permitido en un domicilio concreto. Es el primer trámite
+      de la ruta y no depende de ningún otro.
+    keywords:
+      - uso de suelo
+      - zonificacion
+      - zonificación
+      - puedo poner
+      - esta permitido
+      - está permitido
+      - zona habitacional
+
+  - slug: consultar_costos_tramites
+    title: Consultar costos de los trámites municipales
+    description: Derechos municipales aplicables a la apertura de un establecimiento.
+    keywords:
+      - costo
+      - costos
+      - cuanto cuesta
+      - cuánto cuesta
+      - precio
+      - derechos
+      - tarifa
+      - cuanto sale
+
+allowed_sources:
+  - src_ayto_apertura
+  - src_ayto_uso_suelo
+  - src_ayto_tarifas
+  - src_ayto_proteccion_civil
+  - src_ayto_sanidad
+  - src_ayto_avisos
+
+allowed_tools:
+  - ayuntamiento.consultar_uso_suelo
+  - ayuntamiento.calcular_costos
+  - ayuntamiento.consultar_requisitos_negocio
+  - ayuntamiento.consultar_citas
+  - ayuntamiento.registrar_solicitud
+
+prompt_ref: nexo_agents/prompts/navigator_ayuntamiento.v1.md
+
+policies:
+  max_questions: 1
+  retrieval_top_k: 6
+  navigator_deadline_ms: 8000
+
+a2ui_components:
+  - Checklist
+  - StatusBanner
+  - CostSummary
+  - SourceList
+  - SlotPicker
+  - ConfirmButton

@@ -23,6 +23,7 @@ from .a2ui import (
     ComponentDescriptor,
 )
 from .base import NexoModel
+from .classification import Classification
 from .errors import NormalizedError
 from .estimation import Estimate
 from .evaluation import (
@@ -59,6 +60,7 @@ from .model_gateway import (
     ModelPolicy,
     ModelTask,
 )
+from .observability import CatalogEntityTelemetry
 from .rag import (
     Chunk,
     CorpusVersion,
@@ -91,6 +93,7 @@ EXECUTION_CONTRACTS: dict[str, type[NexoModel]] = {
     "run_snapshot": RunSnapshot,
     "agent_task": AgentTask,
     "agent_result": AgentResult,
+    "classification": Classification,
     "action_request": ActionRequest,
     "action_result": ActionResult,
 }
@@ -170,6 +173,10 @@ EVENT_CONTRACTS: dict[str, type[NexoModel]] = {
     "event_sequence": EventSequence,
 }
 
+OBSERVABILITY_CONTRACTS: dict[str, type[NexoModel]] = {
+    "catalog_entity_telemetry": CatalogEntityTelemetry,
+}
+
 SHARED_CONTRACTS: dict[str, type[NexoModel]] = {
     "normalized_error": NormalizedError,
 }
@@ -183,6 +190,7 @@ CONTRACT_REGISTRY: dict[str, type[NexoModel]] = {
     **MODEL_CONTRACTS,
     **SKILL_CONTRACTS,
     **EVENT_CONTRACTS,
+    **OBSERVABILITY_CONTRACTS,
     **SHARED_CONTRACTS,
 }
 """Todos los contratos publicados de §5, por nombre estable."""

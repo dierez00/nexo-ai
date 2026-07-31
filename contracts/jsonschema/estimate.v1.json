@@ -1,5 +1,158 @@
 {
+  "$defs": {
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "EstimateStep": {
+      "additionalProperties": false,
+      "description": "Un trámite dentro de la ruta calculada, con dependencias estables.",
+      "properties": {
+        "cost": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "depends_on": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]{1,62}$",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Depends On",
+          "type": "array"
+        },
+        "derived_from": {
+          "items": {
+            "maxLength": 68,
+            "minLength": 6,
+            "type": "string"
+          },
+          "maxItems": 50,
+          "minItems": 1,
+          "title": "Derived From",
+          "type": "array"
+        },
+        "duration_days": {
+          "anyOf": [
+            {
+              "maximum": 3650,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Days"
+        },
+        "missing_documents": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Missing Documents",
+          "type": "array"
+        },
+        "step_id": {
+          "pattern": "^[a-z][a-z0-9_]{1,62}$",
+          "title": "Step Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "step_id",
+        "title",
+        "derived_from"
+      ],
+      "title": "EstimateStep",
+      "type": "object"
+    },
+    "Money": {
+      "additionalProperties": false,
+      "description": "Monto en unidades menores más moneda (§2.3).\n\nNunca se representa un monto en flotante ni se suma en un prompt: el\nestimador opera sobre `amount_minor` con código determinista.",
+      "properties": {
+        "amount_minor": {
+          "description": "Monto en la unidad menor de la moneda; 125000 son 1,250.00 MXN.",
+          "title": "Amount Minor",
+          "type": "integer"
+        },
+        "currency": {
+          "description": "Código ISO 4217, por ejemplo 'MXN'.",
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount_minor",
+        "currency"
+      ],
+      "title": "Money",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/estimate.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Estimate"
+  "additionalProperties": false,
+  "description": "Resultado del estimador: pasos ordenados, costo total y trazabilidad.",
+  "properties": {
+    "derived_from": {
+      "items": {
+        "maxLength": 68,
+        "minLength": 6,
+        "type": "string"
+      },
+      "maxItems": 200,
+      "title": "Derived From",
+      "type": "array"
+    },
+    "domain": {
+      "$ref": "#/$defs/Domain"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/EstimateStep"
+      },
+      "maxItems": 100,
+      "title": "Steps",
+      "type": "array"
+    },
+    "total_cost": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Money"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "domain"
+  ],
+  "title": "Estimate",
+  "type": "object"
 }

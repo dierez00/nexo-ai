@@ -1,5 +1,43 @@
 {
   "$id": "https://nexo.local/contracts/v1/self_check_result.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "SelfCheckResult"
+  "additionalProperties": false,
+  "description": "Autoverificación tipada que cada agente ejecuta sobre su propia salida (§5.6).",
+  "properties": {
+    "forbidden_tool_requests": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Forbidden Tool Requests",
+      "type": "integer"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Notes",
+      "type": "array"
+    },
+    "out_of_scope_sources": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Out Of Scope Sources",
+      "type": "integer"
+    },
+    "schema_valid": {
+      "title": "Schema Valid",
+      "type": "boolean"
+    },
+    "unsupported_claims": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Unsupported Claims",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_valid"
+  ],
+  "title": "SelfCheckResult",
+  "type": "object"
 }

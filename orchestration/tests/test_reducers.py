@@ -95,9 +95,7 @@ def test_state_merge_does_not_mutate_its_inputs() -> None:
 
 
 def test_state_merge_consolidates_accumulators() -> None:
-    current = _state(
-        candidate_facts=[_fact("fact_a")], warnings=["w1"], completed_nodes=["start"]
-    )
+    current = _state(candidate_facts=[_fact("fact_a")], warnings=["w1"], completed_nodes=["start"])
     update = _state(
         candidate_facts=[_fact("fact_b")],
         warnings=["w2"],

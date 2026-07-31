@@ -1,5 +1,129 @@
 {
+  "$defs": {
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "RiskLevel": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "RiskLevel",
+      "type": "string"
+    },
+    "ToolMode": {
+      "description": "Modo de una tool. Solo `WRITE` puede producir efectos externos.",
+      "enum": [
+        "read",
+        "write",
+        "compute"
+      ],
+      "title": "ToolMode",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/tool_metadata.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "ToolMetadata"
+  "additionalProperties": false,
+  "description": "Descriptor versionado de una tool (§5.4).\n\nLos valores por defecto niegan: modo lectura, riesgo bajo, sin roles\npermitidos. Una tool mal declarada no es invocable por nadie (`DIE-F0-032`).",
+  "properties": {
+    "allowed_roles": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Allowed Roles",
+      "type": "array"
+    },
+    "description": {
+      "default": "",
+      "maxLength": 500,
+      "title": "Description",
+      "type": "string"
+    },
+    "domain": {
+      "$ref": "#/$defs/Domain"
+    },
+    "input_schema_ref": {
+      "description": "Referencia inmutable a un JSON Schema publicado en `contracts`.",
+      "maxLength": 300,
+      "pattern": "^contracts://[a-z0-9_\\-./]+\\.v\\d+$",
+      "title": "Input Schema Ref",
+      "type": "string"
+    },
+    "is_mock": {
+      "default": true,
+      "title": "Is Mock",
+      "type": "boolean"
+    },
+    "max_attempts": {
+      "default": 1,
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Max Attempts",
+      "type": "integer"
+    },
+    "mode": {
+      "$ref": "#/$defs/ToolMode",
+      "default": "read"
+    },
+    "name": {
+      "description": "Nombre `dominio.verbo_objeto`, por ejemplo 'vehiculos.reservar_cita'.",
+      "maxLength": 95,
+      "title": "Name",
+      "type": "string"
+    },
+    "output_schema_ref": {
+      "description": "Referencia inmutable a un JSON Schema publicado en `contracts`.",
+      "maxLength": 300,
+      "pattern": "^contracts://[a-z0-9_\\-./]+\\.v\\d+$",
+      "title": "Output Schema Ref",
+      "type": "string"
+    },
+    "requires_confirmation": {
+      "default": false,
+      "title": "Requires Confirmation",
+      "type": "boolean"
+    },
+    "requires_idempotency_key": {
+      "default": false,
+      "title": "Requires Idempotency Key",
+      "type": "boolean"
+    },
+    "risk": {
+      "$ref": "#/$defs/RiskLevel",
+      "default": "low"
+    },
+    "timeout_ms": {
+      "default": 5000,
+      "maximum": 3600000,
+      "minimum": 0,
+      "title": "Timeout Ms",
+      "type": "integer"
+    },
+    "version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "version",
+    "domain",
+    "input_schema_ref",
+    "output_schema_ref"
+  ],
+  "title": "ToolMetadata",
+  "type": "object"
 }
