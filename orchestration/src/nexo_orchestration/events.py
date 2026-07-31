@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from pydantic import JsonValue
+
 from nexo_contracts import (
     ActorType,
     EventActor,
@@ -40,7 +42,7 @@ class EventEmitter:
         actor_type: ActorType,
         actor_name: str,
         status: EventStatus,
-        data: dict[str, object] | None = None,
+        data: dict[str, JsonValue] | None = None,
         duration_ms: int | None = None,
         error: NormalizedError | None = None,
     ) -> RunState:
