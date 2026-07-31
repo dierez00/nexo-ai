@@ -65,3 +65,25 @@ jobs:
 
       - name: Contracts suite
         run: uv run --package nexo-contracts pytest contracts/tests
+
+  frontend-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: apps/web
+
+      - name: Regenerate contract types
+        run: npm run generate:contracts
+        working-directory: apps/web
+
+      - name: Fail if generated contract types are stale
+        run: git diff --exit-code -- apps/web/src/generated/contracts
