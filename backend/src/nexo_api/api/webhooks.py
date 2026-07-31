@@ -7,7 +7,7 @@ from nexo_integrations.twilio import normalize_whatsapp, verify_signature
 
 from nexo_api.api.deps import get_orchestrator
 from nexo_api.core.config import get_settings
-from nexo_api.core.errors import ProblemException
+from nexo_api.core.errors import ProblemException, problem_responses
 from nexo_api.services.channels import service as channels_service
 from nexo_api.services.orchestration import Orchestrator
 
@@ -32,7 +32,7 @@ async def _read_and_validate(request: Request) -> dict[str, str]:
     return params
 
 
-@router.post("/whatsapp")
+@router.post("/whatsapp", summary="Webhook WhatsApp entrante", responses=problem_responses(403))
 async def whatsapp(
     request: Request,
     orchestrator: Orchestrator = Depends(get_orchestrator),
@@ -44,7 +44,7 @@ async def whatsapp(
     return Response(content=twiml, media_type="application/xml")
 
 
-@router.post("/status")
+@router.post("/status", summary="Callback de estado de entrega", responses=problem_responses(403))
 async def status(request: Request) -> Response:
     await _read_and_validate(request)
     # Actualiza estado de entrega; NO re-ejecuta agentes.

@@ -80,7 +80,7 @@ Config → health → contratos → auth → conversaciones/runs → SSE → cit
 - [x] Firmas y deduplicación Twilio. *(RequestValidator; pii_ref del remitente; dedupe idempotente)*
 - [ ] Timeouts/retries/circuit breaker. *(Pro)*
 - [x] Health/shutdown.
-- [~] Compose/CI/runbooks. *(Compose + CI ✅; runbooks de deploy/rollback pendientes)*
+- [x] Compose/CI/runbooks. *(runbook en docs/runbooks/arranque.md: local, Docker, Twilio, deploy/rollback, troubleshooting)*
 - [x] README y tests. *(33 tests verdes; OpenAPI autogenerado en /docs; READMEs por módulo)*
 
 ## 16. Paralelismo y bloqueos

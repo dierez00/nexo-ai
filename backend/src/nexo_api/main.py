@@ -43,6 +43,23 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="nexo-ai API",
         version="0.1.0",
+        summary="Gateway HTTP/SSE/webhooks del asistente institucional nexo-ai.",
+        description=(
+            "API del backend (Dani). Convenciones: JSON snake_case, UTC, IDs opacos "
+            "(`conv_`, `run_`, `act_`, `apt_`), dinero en unidades menores. Los errores "
+            "usan **Problem Details** (`type/code/status/retryable`); el frontend nunca "
+            "parsea texto. Toda respuesta propaga `X-Trace-Id`. Auth = Supabase Auth "
+            "(JWT bearer validado por JWKS)."
+        ),
+        openapi_tags=[
+            {"name": "auth", "description": "Login y perfil."},
+            {"name": "conversations", "description": "Conversaciones, mensajes y disparo de runs."},
+            {"name": "runs", "description": "Snapshot de runs y stream SSE de eventos."},
+            {"name": "actions", "description": "Confirmación de acciones con idempotencia."},
+            {"name": "appointments", "description": "Disponibilidad y holds de citas."},
+            {"name": "webhooks", "description": "Webhooks firmados de Twilio (WhatsApp)."},
+            {"name": "health", "description": "Liveness y readiness."},
+        ],
         lifespan=lifespan,
     )
 

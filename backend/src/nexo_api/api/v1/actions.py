@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Header
 
 from nexo_api.api.deps import get_action_executor, get_current_user
+from nexo_api.core.errors import problem_responses
 from nexo_api.schemas.action import ActionResult, ConfirmActionRequest
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.services.actions import ActionExecutor
@@ -13,7 +14,12 @@ from nexo_api.services.actions import service as actions_service
 router = APIRouter(prefix="/api/v1", tags=["actions"])
 
 
-@router.post("/actions/{action_id}/confirm", response_model=ActionResult)
+@router.post(
+    "/actions/{action_id}/confirm",
+    response_model=ActionResult,
+    summary="Confirmar acción (idempotente)",
+    responses=problem_responses(400, 401, 403, 409, 422),
+)
 async def confirm_action(
     action_id: str,
     body: ConfirmActionRequest,

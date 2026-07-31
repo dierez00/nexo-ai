@@ -7,6 +7,7 @@ from datetime import date as DateType
 from fastapi import APIRouter, Depends, status
 
 from nexo_api.api.deps import get_current_user
+from nexo_api.core.errors import problem_responses
 from nexo_api.schemas.appointment import AppointmentHold, AppointmentSlot, HoldCreate
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.services.appointments import service as appointments_service
@@ -14,7 +15,12 @@ from nexo_api.services.appointments import service as appointments_service
 router = APIRouter(prefix="/api/v1", tags=["appointments"])
 
 
-@router.get("/appointments/availability", response_model=list[AppointmentSlot])
+@router.get(
+    "/appointments/availability",
+    response_model=list[AppointmentSlot],
+    summary="Disponibilidad de citas",
+    responses=problem_responses(401, 403),
+)
 async def availability(
     branch_id: int,
     module_code: str,
@@ -28,6 +34,8 @@ async def availability(
     "/appointments/holds",
     response_model=AppointmentHold,
     status_code=status.HTTP_201_CREATED,
+    summary="Crear hold de cita (409 si solapa)",
+    responses=problem_responses(401, 403, 404, 409),
 )
 async def create_hold(
     body: HoldCreate,

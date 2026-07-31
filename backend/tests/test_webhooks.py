@@ -12,8 +12,11 @@ from nexo_api.core.config import get_settings
 from nexo_api.main import create_app
 from twilio.request_validator import RequestValidator
 
-WEBHOOK_URL = "http://localhost:8000/webhooks/twilio/whatsapp"
-STATUS_URL = "http://localhost:8000/webhooks/twilio/status"
+# La URL debe coincidir con la que el server usa para validar la firma
+# (PUBLIC_BASE_URL + path), sin importar qué valor tenga hoy el .env.
+_BASE = get_settings().public_base_url.rstrip("/")
+WEBHOOK_URL = f"{_BASE}/webhooks/twilio/whatsapp"
+STATUS_URL = f"{_BASE}/webhooks/twilio/status"
 
 
 @pytest.fixture
