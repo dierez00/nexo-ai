@@ -1,5 +1,86 @@
 {
+  "$defs": {
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/judge_request.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "JudgeRequest"
+  "additionalProperties": false,
+  "description": "Entrada minimizada del judge (§5.6).\n\nRecibe la solicitud, la respuesta, los hechos y las citas; no recibe puertos,\nni credenciales, ni la capacidad de invocar nada.",
+  "properties": {
+    "answer": {
+      "maxLength": 20000,
+      "title": "Answer",
+      "type": "string"
+    },
+    "domain": {
+      "$ref": "#/$defs/Domain"
+    },
+    "evaluation_id": {
+      "maxLength": 68,
+      "minLength": 6,
+      "title": "Evaluation Id",
+      "type": "string"
+    },
+    "fact_ids": {
+      "items": {
+        "maxLength": 68,
+        "minLength": 6,
+        "type": "string"
+      },
+      "maxItems": 200,
+      "title": "Fact Ids",
+      "type": "array"
+    },
+    "generator_model": {
+      "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+      "pattern": "^[a-z][a-z0-9_]{2,40}$",
+      "title": "Generator Model",
+      "type": "string"
+    },
+    "judge_model": {
+      "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+      "pattern": "^[a-z][a-z0-9_]{2,40}$",
+      "title": "Judge Model",
+      "type": "string"
+    },
+    "rubric_version": {
+      "maxLength": 60,
+      "title": "Rubric Version",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "user_request": {
+      "maxLength": 4000,
+      "title": "User Request",
+      "type": "string"
+    }
+  },
+  "required": [
+    "evaluation_id",
+    "run_id",
+    "rubric_version",
+    "user_request",
+    "answer",
+    "domain",
+    "generator_model",
+    "judge_model"
+  ],
+  "title": "JudgeRequest",
+  "type": "object"
 }

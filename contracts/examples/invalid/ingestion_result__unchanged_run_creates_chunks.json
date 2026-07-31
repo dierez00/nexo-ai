@@ -1,0 +1,12 @@
+{
+  "checksums": {
+    "doc_licencias_01": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "chunks_created": 1,
+  "corpus_version": "vehiculos-demo-2026-07-20",
+  "domain": "vehiculos",
+  "outcomes": {
+    "unchanged": 3
+  },
+  "rejected_reasons": []
+}

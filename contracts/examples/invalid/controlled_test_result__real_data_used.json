@@ -1,0 +1,14 @@
+{
+  "error": null,
+  "integration_id": "intg_citas_demo",
+  "passed": true,
+  "request_summary": {
+    "slot_id": "slot_101"
+  },
+  "response_summary": {
+    "folio": "NEXO-MOCK-2026-000101"
+  },
+  "tested_at": "2026-07-30T15:00:00Z",
+  "tool_name": "vehiculos.reservar_cita",
+  "used_synthetic_data": false
+}

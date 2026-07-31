@@ -1,5 +1,797 @@
 {
+  "$defs": {
+    "AgentName": {
+      "description": "Agentes de la matriz §13. El catálogo cerrado impide delegar a un agente inexistente.",
+      "enum": [
+        "classifier",
+        "supervisor",
+        "domain_navigator",
+        "verifier",
+        "estimator",
+        "transactional",
+        "writer",
+        "signal_analyst",
+        "judge",
+        "prompt_assistant"
+      ],
+      "title": "AgentName",
+      "type": "string"
+    },
+    "CandidateFact": {
+      "additionalProperties": false,
+      "description": "Hecho propuesto por un agente, todavía sin verificar (§5.2).",
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/FactCategory"
+        },
+        "citations": {
+          "items": {
+            "$ref": "#/$defs/SourceCitation"
+          },
+          "maxItems": 20,
+          "title": "Citations",
+          "type": "array"
+        },
+        "claim": {
+          "description": "Afirmación en lenguaje natural.",
+          "maxLength": 1000,
+          "title": "Claim",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "deduction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Deduction"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "depends_on": {
+          "description": "Hechos de los que depende; si uno se rechaza, este se invalida.",
+          "items": {
+            "maxLength": 68,
+            "minLength": 6,
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Depends On",
+          "type": "array"
+        },
+        "domain": {
+          "$ref": "#/$defs/Domain"
+        },
+        "fact_id": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Fact Id",
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/FactOrigin"
+        },
+        "tool_call_id": {
+          "anyOf": [
+            {
+              "maxLength": 66,
+              "minLength": 4,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Presente cuando el hecho proviene de una tool.",
+          "title": "Tool Call Id"
+        },
+        "value": {
+          "$ref": "#/$defs/FactValue"
+        }
+      },
+      "required": [
+        "fact_id",
+        "claim",
+        "value",
+        "category",
+        "domain",
+        "origin",
+        "confidence"
+      ],
+      "title": "CandidateFact",
+      "type": "object"
+    },
+    "Contradiction": {
+      "additionalProperties": false,
+      "description": "Conflicto detectado entre hechos, fuentes o resultados de tools (§5.2).",
+      "properties": {
+        "conflicting_sources": {
+          "items": {
+            "maxLength": 67,
+            "minLength": 5,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Conflicting Sources",
+          "type": "array"
+        },
+        "conflicting_tool_calls": {
+          "items": {
+            "maxLength": 66,
+            "minLength": 4,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Conflicting Tool Calls",
+          "type": "array"
+        },
+        "contradiction_id": {
+          "maxLength": 70,
+          "minLength": 8,
+          "title": "Contradiction Id",
+          "type": "string"
+        },
+        "explanation": {
+          "maxLength": 1000,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "fact_ids": {
+          "items": {
+            "maxLength": 68,
+            "minLength": 6,
+            "type": "string"
+          },
+          "maxItems": 10,
+          "minItems": 2,
+          "title": "Fact Ids",
+          "type": "array"
+        },
+        "resolved_fact_id": {
+          "anyOf": [
+            {
+              "maxLength": 68,
+              "minLength": 6,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resolved Fact Id"
+        },
+        "rule": {
+          "description": "Regla de precedencia aplicada. Ejemplo: 'newer_source_wins'.",
+          "maxLength": 200,
+          "title": "Rule",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/ContradictionSeverity"
+        },
+        "status": {
+          "$ref": "#/$defs/ContradictionStatus",
+          "default": "detected"
+        }
+      },
+      "required": [
+        "contradiction_id",
+        "fact_ids",
+        "severity",
+        "rule",
+        "explanation"
+      ],
+      "title": "Contradiction",
+      "type": "object"
+    },
+    "ContradictionSeverity": {
+      "description": "Una contradicción crítica bloquea toda escritura dependiente (`DIE-F4-020`).",
+      "enum": [
+        "informational",
+        "material",
+        "critical"
+      ],
+      "title": "ContradictionSeverity",
+      "type": "string"
+    },
+    "ContradictionStatus": {
+      "enum": [
+        "detected",
+        "resolved",
+        "unresolved"
+      ],
+      "title": "ContradictionStatus",
+      "type": "string"
+    },
+    "Deduction": {
+      "additionalProperties": false,
+      "description": "Dato inferido, no afirmado por el usuario ni leído de una fuente (§5.2).\n\nUna deducción no confirmada nunca alimenta una escritura (`DIE-F2-053`);\n`write_eligible` es la puerta que lo impide.",
+      "properties": {
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "confirmed_by_user": {
+          "default": false,
+          "title": "Confirmed By User",
+          "type": "boolean"
+        },
+        "rationale": {
+          "maxLength": 500,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/FactOrigin"
+        },
+        "value": {
+          "$ref": "#/$defs/FactValue"
+        },
+        "write_eligible": {
+          "default": false,
+          "title": "Write Eligible",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "value",
+        "source",
+        "confidence",
+        "rationale"
+      ],
+      "title": "Deduction",
+      "type": "object"
+    },
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "ErrorCode": {
+      "description": "Códigos de error estables (arquitectura §9.11).\n\nEl consumidor decide por `code`, nunca por el texto del mensaje.",
+      "enum": [
+        "VALIDATION_ERROR",
+        "AUTHENTICATION_REQUIRED",
+        "PERMISSION_DENIED",
+        "RESOURCE_NOT_FOUND",
+        "APPOINTMENT_CONFLICT",
+        "VERSION_CONFLICT",
+        "ACTION_CONFIRMATION_REQUIRED",
+        "RATE_LIMITED",
+        "BUDGET_EXCEEDED",
+        "PROVIDER_ERROR",
+        "MODEL_UNAVAILABLE",
+        "MODEL_OUTPUT_INVALID",
+        "TOOL_TIMEOUT",
+        "TOOL_NOT_FOUND",
+        "RUN_TIMEOUT",
+        "RUN_CANCELLED",
+        "UNKNOWN_OUTCOME",
+        "CONFIGURATION_INVALID",
+        "CONTRACT_INVALID"
+      ],
+      "title": "ErrorCode",
+      "type": "string"
+    },
+    "ErrorDetail": {
+      "additionalProperties": false,
+      "description": "Detalle accionable de un error, sin contenido sensible.",
+      "properties": {
+        "field": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ruta del campo que falló, en notación de puntos.",
+          "title": "Field"
+        },
+        "reason": {
+          "description": "Motivo estable y corto, en snake_case. Ejemplo: 'conflict'.",
+          "maxLength": 200,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "title": "ErrorDetail",
+      "type": "object"
+    },
+    "FactCategory": {
+      "description": "Naturaleza de un hecho. Determina si su citación es obligatoria.",
+      "enum": [
+        "requirement",
+        "cost",
+        "location",
+        "validity",
+        "schedule",
+        "dependency",
+        "procedure",
+        "action_result",
+        "context"
+      ],
+      "title": "FactCategory",
+      "type": "string"
+    },
+    "FactOrigin": {
+      "description": "De dónde salió un hecho candidato. Sirve para detectar contradicciones tool ↔ documento.",
+      "enum": [
+        "rag",
+        "tool",
+        "user",
+        "profile",
+        "deduction",
+        "catalog"
+      ],
+      "title": "FactOrigin",
+      "type": "string"
+    },
+    "FactValue": {
+      "additionalProperties": false,
+      "description": "Valor tipado de un hecho.\n\nSe modela como una unión explícita en lugar de `Any` para que el estimador\nnunca tenga que adivinar el tipo antes de sumar o comparar.",
+      "properties": {
+        "boolean": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Boolean"
+        },
+        "date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Date"
+        },
+        "items": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 100,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Items"
+        },
+        "money": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "number": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Number"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        }
+      },
+      "title": "FactValue",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "Money": {
+      "additionalProperties": false,
+      "description": "Monto en unidades menores más moneda (§2.3).\n\nNunca se representa un monto en flotante ni se suma en un prompt: el\nestimador opera sobre `amount_minor` con código determinista.",
+      "properties": {
+        "amount_minor": {
+          "description": "Monto en la unidad menor de la moneda; 125000 son 1,250.00 MXN.",
+          "title": "Amount Minor",
+          "type": "integer"
+        },
+        "currency": {
+          "description": "Código ISO 4217, por ejemplo 'MXN'.",
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount_minor",
+        "currency"
+      ],
+      "title": "Money",
+      "type": "object"
+    },
+    "NormalizedError": {
+      "additionalProperties": false,
+      "description": "Error normalizado que cruza cualquier frontera de Nexo IA.\n\n`outcome` es el campo que impide reintentos peligrosos: un `UNKNOWN`\nsignifica que no sabemos si la operación tuvo efecto, y por tanto nunca se\nreintenta de forma automática (`DIE-F0-035`).",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "details": {
+          "items": {
+            "$ref": "#/$defs/ErrorDetail"
+          },
+          "maxItems": 50,
+          "title": "Details",
+          "type": "array"
+        },
+        "message": {
+          "description": "Mensaje para operadores. Nunca incluye prompts, secretos ni PII.",
+          "maxLength": 500,
+          "title": "Message",
+          "type": "string"
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome",
+          "default": "known_failure",
+          "description": "Certeza sobre el efecto producido antes del fallo."
+        },
+        "retry_after_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After Ms"
+        },
+        "retryable": {
+          "description": "Si la operación puede reintentarse tal cual, sin intervención.",
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "title": "NormalizedError",
+      "type": "object"
+    },
+    "Outcome": {
+      "description": "Certeza sobre el efecto de una operación.\n\n`UNKNOWN` es el caso peligroso: un write con outcome desconocido nunca se\nreintenta automáticamente y produce `partial` (`DIE-F1-077`, `DIE-F1-081`).",
+      "enum": [
+        "known_success",
+        "known_failure",
+        "unknown"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "ProposedToolCall": {
+      "additionalProperties": false,
+      "description": "Tool que un agente propone, sin ejecutarla.",
+      "properties": {
+        "mode": {
+          "$ref": "#/$defs/ToolMode",
+          "default": "read"
+        },
+        "name": {
+          "description": "Nombre `dominio.verbo_objeto`, por ejemplo 'vehiculos.reservar_cita'.",
+          "maxLength": 95,
+          "title": "Name",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "rationale": {
+          "maxLength": 300,
+          "title": "Rationale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "rationale"
+      ],
+      "title": "ProposedToolCall",
+      "type": "object"
+    },
+    "SelfCheckResult": {
+      "additionalProperties": false,
+      "description": "Autoverificación tipada que cada agente ejecuta sobre su propia salida (§5.6).",
+      "properties": {
+        "forbidden_tool_requests": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Forbidden Tool Requests",
+          "type": "integer"
+        },
+        "notes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Notes",
+          "type": "array"
+        },
+        "out_of_scope_sources": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Out Of Scope Sources",
+          "type": "integer"
+        },
+        "schema_valid": {
+          "title": "Schema Valid",
+          "type": "boolean"
+        },
+        "unsupported_claims": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Unsupported Claims",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_valid"
+      ],
+      "title": "SelfCheckResult",
+      "type": "object"
+    },
+    "SourceCitation": {
+      "additionalProperties": false,
+      "description": "Referencia puntual a un fragmento de una fuente (§5.2).\n\nEs inmutable a propósito: una citación es evidencia, y la evidencia no se\nedita después de recogerse.",
+      "properties": {
+        "char_end": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char End"
+        },
+        "char_start": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inicio del tramo relevante dentro del fragmento.",
+          "title": "Char Start"
+        },
+        "corpus_version": {
+          "description": "Versión de corpus vigente cuando se recuperó el fragmento.",
+          "maxLength": 120,
+          "title": "Corpus Version",
+          "type": "string"
+        },
+        "fragment_id": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Fragment Id",
+          "type": "string"
+        },
+        "is_active": {
+          "default": true,
+          "description": "Falso si la fuente fue sustituida o venció; bloquea claims críticos.",
+          "title": "Is Active",
+          "type": "boolean"
+        },
+        "source_id": {
+          "maxLength": 67,
+          "minLength": 5,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_version": {
+          "maxLength": 40,
+          "title": "Source Version",
+          "type": "string"
+        },
+        "valid_from": {
+          "format": "date",
+          "title": "Valid From",
+          "type": "string"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "source_id",
+        "fragment_id",
+        "corpus_version",
+        "source_version",
+        "valid_from"
+      ],
+      "title": "SourceCitation",
+      "type": "object"
+    },
+    "TaskStatus": {
+      "enum": [
+        "succeeded",
+        "partial",
+        "failed"
+      ],
+      "title": "TaskStatus",
+      "type": "string"
+    },
+    "ToolMode": {
+      "description": "Modo de una tool. Solo `WRITE` puede producir efectos externos.",
+      "enum": [
+        "read",
+        "write",
+        "compute"
+      ],
+      "title": "ToolMode",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/agent_result.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "AgentResult"
+  "additionalProperties": false,
+  "description": "Salida de un agente (§5.1).",
+  "properties": {
+    "agent": {
+      "$ref": "#/$defs/AgentName"
+    },
+    "citations": {
+      "items": {
+        "$ref": "#/$defs/SourceCitation"
+      },
+      "maxItems": 200,
+      "title": "Citations",
+      "type": "array"
+    },
+    "confidence": {
+      "default": 1.0,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "contradictions": {
+      "items": {
+        "$ref": "#/$defs/Contradiction"
+      },
+      "maxItems": 50,
+      "title": "Contradictions",
+      "type": "array"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NormalizedError"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "facts": {
+      "items": {
+        "$ref": "#/$defs/CandidateFact"
+      },
+      "maxItems": 300,
+      "title": "Facts",
+      "type": "array"
+    },
+    "proposed_tools": {
+      "items": {
+        "$ref": "#/$defs/ProposedToolCall"
+      },
+      "maxItems": 20,
+      "title": "Proposed Tools",
+      "type": "array"
+    },
+    "self_check": {
+      "$ref": "#/$defs/SelfCheckResult"
+    },
+    "status": {
+      "$ref": "#/$defs/TaskStatus"
+    },
+    "task_id": {
+      "maxLength": 68,
+      "minLength": 6,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 50,
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "task_id",
+    "agent",
+    "status",
+    "self_check"
+  ],
+  "title": "AgentResult",
+  "type": "object"
 }

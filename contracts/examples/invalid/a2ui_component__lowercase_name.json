@@ -1,0 +1,7 @@
+{
+  "actionId": "act_reserve_01",
+  "children": [],
+  "component": "button",
+  "id": "confirm",
+  "label": "Confirmar cita"
+}

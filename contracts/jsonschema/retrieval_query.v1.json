@@ -1,5 +1,145 @@
 {
+  "$defs": {
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "RetrievalFilters": {
+      "additionalProperties": false,
+      "description": "Filtros obligatorios antes de devolver texto a un agente (`DIE-F1-022`).",
+      "properties": {
+        "allowed_source_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 67,
+                "minLength": 5,
+                "type": "string"
+              },
+              "maxItems": 200,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Si viene, restringe el retrieval a esta allowlist exacta.",
+          "title": "Allowed Source Ids"
+        },
+        "institution_id": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Institution Id",
+          "type": "string"
+        },
+        "status": {
+          "items": {
+            "$ref": "#/$defs/SourceStatus"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Status",
+          "type": "array"
+        },
+        "valid_at": {
+          "format": "date",
+          "title": "Valid At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "institution_id",
+        "valid_at"
+      ],
+      "title": "RetrievalFilters",
+      "type": "object"
+    },
+    "RetrievalMode": {
+      "enum": [
+        "lexical",
+        "vector",
+        "hybrid"
+      ],
+      "title": "RetrievalMode",
+      "type": "string"
+    },
+    "SourceStatus": {
+      "description": "Estado de una fuente documental. Solo `ACTIVE` alimenta el retrieval.",
+      "enum": [
+        "draft",
+        "active",
+        "superseded",
+        "expired"
+      ],
+      "title": "SourceStatus",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/retrieval_query.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "RetrievalQuery"
+  "additionalProperties": false,
+  "description": "Consulta al retriever (§5.3).",
+  "properties": {
+    "domain": {
+      "$ref": "#/$defs/Domain"
+    },
+    "filters": {
+      "$ref": "#/$defs/RetrievalFilters"
+    },
+    "max_total_chars": {
+      "default": 12000,
+      "description": "Presupuesto de contexto; el retriever trunca por resultado completo.",
+      "maximum": 200000,
+      "minimum": 100,
+      "title": "Max Total Chars",
+      "type": "integer"
+    },
+    "mini_rag": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z][a-z0-9_]{1,62}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Subíndice especializado; nulo usa el namespace general.",
+      "title": "Mini Rag"
+    },
+    "query": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Query",
+      "type": "string"
+    },
+    "retrieval_mode": {
+      "$ref": "#/$defs/RetrievalMode",
+      "default": "hybrid"
+    },
+    "top_k": {
+      "default": 5,
+      "maximum": 50,
+      "minimum": 1,
+      "title": "Top K",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "query",
+    "domain",
+    "filters"
+  ],
+  "title": "RetrievalQuery",
+  "type": "object"
 }

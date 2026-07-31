@@ -1,0 +1,11 @@
+{
+  "catalog_id": "urn:nexo-ia:a2ui:catalog:citizen:v1",
+  "errors": [
+    {
+      "detail": "El componente no existe en el catálogo negociado.",
+      "rule": "unknown_component"
+    }
+  ],
+  "outcome": "valid",
+  "surface_id": "surf_licencia"
+}

@@ -1,5 +1,48 @@
 {
   "$id": "https://nexo.local/contracts/v1/a2ui_action.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "A2UIAction"
+  "additionalProperties": false,
+  "description": "Acción opaca ligada a un schema, una versión y un run concreto (§5.5).",
+  "properties": {
+    "action_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Action Id",
+      "type": "string"
+    },
+    "expected_version": {
+      "minimum": 1,
+      "title": "Expected Version",
+      "type": "integer"
+    },
+    "input_schema_ref": {
+      "maxLength": 300,
+      "title": "Input Schema Ref",
+      "type": "string"
+    },
+    "label": {
+      "maxLength": 120,
+      "title": "Label",
+      "type": "string"
+    },
+    "requires_confirmation": {
+      "default": true,
+      "title": "Requires Confirmation",
+      "type": "boolean"
+    },
+    "tool_name": {
+      "maxLength": 95,
+      "title": "Tool Name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "action_id",
+    "tool_name",
+    "input_schema_ref",
+    "expected_version",
+    "label"
+  ],
+  "title": "A2UIAction",
+  "type": "object"
 }

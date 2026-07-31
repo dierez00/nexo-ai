@@ -1,5 +1,157 @@
 {
+  "$defs": {
+    "JsonValue": {},
+    "ToolMode": {
+      "description": "Modo de una tool. Solo `WRITE` puede producir efectos externos.",
+      "enum": [
+        "read",
+        "write",
+        "compute"
+      ],
+      "title": "ToolMode",
+      "type": "string"
+    },
+    "ToolPermissionContext": {
+      "additionalProperties": false,
+      "description": "Identidad y permiso efectivo con el que se evalúa una invocación.",
+      "properties": {
+        "institution_id": {
+          "maxLength": 70,
+          "title": "Institution Id",
+          "type": "string"
+        },
+        "permissions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Permissions",
+          "type": "array"
+        },
+        "roles": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Roles",
+          "type": "array"
+        },
+        "user_id": {
+          "maxLength": 67,
+          "minLength": 5,
+          "title": "User Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "user_id",
+        "institution_id",
+        "roles"
+      ],
+      "title": "ToolPermissionContext",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/tool_call.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "ToolCall"
+  "additionalProperties": false,
+  "description": "Invocación tipada de una tool (§5.4).",
+  "properties": {
+    "action_id": {
+      "anyOf": [
+        {
+          "maxLength": 67,
+          "minLength": 5,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Presente solo cuando la invocación ejecuta una acción.",
+      "title": "Action Id"
+    },
+    "confirmed": {
+      "default": false,
+      "description": "Consentimiento explícito de la persona usuaria para esta acción.",
+      "title": "Confirmed",
+      "type": "boolean"
+    },
+    "context": {
+      "$ref": "#/$defs/ToolPermissionContext"
+    },
+    "deadline_ms": {
+      "default": 5000,
+      "maximum": 3600000,
+      "minimum": 0,
+      "title": "Deadline Ms",
+      "type": "integer"
+    },
+    "idempotency_key": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 8,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_\\-]{7,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Idempotency Key"
+    },
+    "mode": {
+      "$ref": "#/$defs/ToolMode",
+      "default": "read"
+    },
+    "name": {
+      "description": "Nombre `dominio.verbo_objeto`, por ejemplo 'vehiculos.reservar_cita'.",
+      "maxLength": 95,
+      "title": "Name",
+      "type": "string"
+    },
+    "parameters": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Parameters",
+      "type": "object"
+    },
+    "run_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "tool_call_id": {
+      "maxLength": 66,
+      "minLength": 4,
+      "title": "Tool Call Id",
+      "type": "string"
+    },
+    "trace_id": {
+      "maxLength": 69,
+      "minLength": 7,
+      "title": "Trace Id",
+      "type": "string"
+    },
+    "version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tool_call_id",
+    "name",
+    "version",
+    "run_id",
+    "trace_id",
+    "context"
+  ],
+  "title": "ToolCall",
+  "type": "object"
 }

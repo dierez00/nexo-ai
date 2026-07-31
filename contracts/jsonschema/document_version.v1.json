@@ -1,5 +1,55 @@
 {
   "$id": "https://nexo.local/contracts/v1/document_version.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "DocumentVersion"
+  "additionalProperties": false,
+  "description": "Versión inmutable de un documento.\n\nUn cambio de contenido crea una versión nueva; jamás se sobrescribe\nevidencia histórica (`DIE-F1-015`).",
+  "properties": {
+    "checksum": {
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "title": "Checksum",
+      "type": "string"
+    },
+    "document_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Document Id",
+      "type": "string"
+    },
+    "ingested_at": {
+      "format": "date-time",
+      "title": "Ingested At",
+      "type": "string"
+    },
+    "is_active": {
+      "default": true,
+      "title": "Is Active",
+      "type": "boolean"
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "maxLength": 40,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Supersedes"
+    },
+    "version": {
+      "maxLength": 40,
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "document_id",
+    "version",
+    "checksum",
+    "ingested_at"
+  ],
+  "title": "DocumentVersion",
+  "type": "object"
 }

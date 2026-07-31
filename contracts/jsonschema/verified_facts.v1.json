@@ -1,5 +1,473 @@
 {
+  "$defs": {
+    "Contradiction": {
+      "additionalProperties": false,
+      "description": "Conflicto detectado entre hechos, fuentes o resultados de tools (§5.2).",
+      "properties": {
+        "conflicting_sources": {
+          "items": {
+            "maxLength": 67,
+            "minLength": 5,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Conflicting Sources",
+          "type": "array"
+        },
+        "conflicting_tool_calls": {
+          "items": {
+            "maxLength": 66,
+            "minLength": 4,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Conflicting Tool Calls",
+          "type": "array"
+        },
+        "contradiction_id": {
+          "maxLength": 70,
+          "minLength": 8,
+          "title": "Contradiction Id",
+          "type": "string"
+        },
+        "explanation": {
+          "maxLength": 1000,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "fact_ids": {
+          "items": {
+            "maxLength": 68,
+            "minLength": 6,
+            "type": "string"
+          },
+          "maxItems": 10,
+          "minItems": 2,
+          "title": "Fact Ids",
+          "type": "array"
+        },
+        "resolved_fact_id": {
+          "anyOf": [
+            {
+              "maxLength": 68,
+              "minLength": 6,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resolved Fact Id"
+        },
+        "rule": {
+          "description": "Regla de precedencia aplicada. Ejemplo: 'newer_source_wins'.",
+          "maxLength": 200,
+          "title": "Rule",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/ContradictionSeverity"
+        },
+        "status": {
+          "$ref": "#/$defs/ContradictionStatus",
+          "default": "detected"
+        }
+      },
+      "required": [
+        "contradiction_id",
+        "fact_ids",
+        "severity",
+        "rule",
+        "explanation"
+      ],
+      "title": "Contradiction",
+      "type": "object"
+    },
+    "ContradictionSeverity": {
+      "description": "Una contradicción crítica bloquea toda escritura dependiente (`DIE-F4-020`).",
+      "enum": [
+        "informational",
+        "material",
+        "critical"
+      ],
+      "title": "ContradictionSeverity",
+      "type": "string"
+    },
+    "ContradictionStatus": {
+      "enum": [
+        "detected",
+        "resolved",
+        "unresolved"
+      ],
+      "title": "ContradictionStatus",
+      "type": "string"
+    },
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "FactCategory": {
+      "description": "Naturaleza de un hecho. Determina si su citación es obligatoria.",
+      "enum": [
+        "requirement",
+        "cost",
+        "location",
+        "validity",
+        "schedule",
+        "dependency",
+        "procedure",
+        "action_result",
+        "context"
+      ],
+      "title": "FactCategory",
+      "type": "string"
+    },
+    "FactValue": {
+      "additionalProperties": false,
+      "description": "Valor tipado de un hecho.\n\nSe modela como una unión explícita en lugar de `Any` para que el estimador\nnunca tenga que adivinar el tipo antes de sumar o comparar.",
+      "properties": {
+        "boolean": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Boolean"
+        },
+        "date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Date"
+        },
+        "items": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 100,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Items"
+        },
+        "money": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "number": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Number"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        }
+      },
+      "title": "FactValue",
+      "type": "object"
+    },
+    "Money": {
+      "additionalProperties": false,
+      "description": "Monto en unidades menores más moneda (§2.3).\n\nNunca se representa un monto en flotante ni se suma en un prompt: el\nestimador opera sobre `amount_minor` con código determinista.",
+      "properties": {
+        "amount_minor": {
+          "description": "Monto en la unidad menor de la moneda; 125000 son 1,250.00 MXN.",
+          "title": "Amount Minor",
+          "type": "integer"
+        },
+        "currency": {
+          "description": "Código ISO 4217, por ejemplo 'MXN'.",
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount_minor",
+        "currency"
+      ],
+      "title": "Money",
+      "type": "object"
+    },
+    "SourceCitation": {
+      "additionalProperties": false,
+      "description": "Referencia puntual a un fragmento de una fuente (§5.2).\n\nEs inmutable a propósito: una citación es evidencia, y la evidencia no se\nedita después de recogerse.",
+      "properties": {
+        "char_end": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char End"
+        },
+        "char_start": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inicio del tramo relevante dentro del fragmento.",
+          "title": "Char Start"
+        },
+        "corpus_version": {
+          "description": "Versión de corpus vigente cuando se recuperó el fragmento.",
+          "maxLength": 120,
+          "title": "Corpus Version",
+          "type": "string"
+        },
+        "fragment_id": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Fragment Id",
+          "type": "string"
+        },
+        "is_active": {
+          "default": true,
+          "description": "Falso si la fuente fue sustituida o venció; bloquea claims críticos.",
+          "title": "Is Active",
+          "type": "boolean"
+        },
+        "source_id": {
+          "maxLength": 67,
+          "minLength": 5,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_version": {
+          "maxLength": 40,
+          "title": "Source Version",
+          "type": "string"
+        },
+        "valid_from": {
+          "format": "date",
+          "title": "Valid From",
+          "type": "string"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "source_id",
+        "fragment_id",
+        "corpus_version",
+        "source_version",
+        "valid_from"
+      ],
+      "title": "SourceCitation",
+      "type": "object"
+    },
+    "VerificationStatus": {
+      "description": "Resultado de verificar un hecho candidato (`DIE-F1-052`).",
+      "enum": [
+        "accepted",
+        "rejected",
+        "uncertain"
+      ],
+      "title": "VerificationStatus",
+      "type": "string"
+    },
+    "VerifiedFact": {
+      "additionalProperties": false,
+      "description": "Hecho tras pasar por el verificador (§5.2).\n\nInvariante central: si es crítico y fue aceptado, tiene al menos una\ncitación activa y es apto para escritura solo si además está aceptado.",
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/FactCategory"
+        },
+        "citations": {
+          "items": {
+            "$ref": "#/$defs/SourceCitation"
+          },
+          "maxItems": 20,
+          "title": "Citations",
+          "type": "array"
+        },
+        "claim": {
+          "maxLength": 1000,
+          "title": "Claim",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "depends_on": {
+          "items": {
+            "maxLength": 68,
+            "minLength": 6,
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Depends On",
+          "type": "array"
+        },
+        "domain": {
+          "$ref": "#/$defs/Domain"
+        },
+        "fact_id": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Fact Id",
+          "type": "string"
+        },
+        "reason": {
+          "description": "Motivo estable de la decisión. Ejemplo: 'source_expired'.",
+          "maxLength": 300,
+          "title": "Reason",
+          "type": "string"
+        },
+        "supporting_tool_call_id": {
+          "anyOf": [
+            {
+              "maxLength": 66,
+              "minLength": 4,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Invocación de tool que respalda el hecho cuando su evidencia no es documental. Es la otra forma admisible de fundamentar un claim crítico.",
+          "title": "Supporting Tool Call Id"
+        },
+        "value": {
+          "$ref": "#/$defs/FactValue"
+        },
+        "verification": {
+          "$ref": "#/$defs/VerificationStatus"
+        },
+        "write_eligible": {
+          "default": false,
+          "title": "Write Eligible",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "fact_id",
+        "claim",
+        "value",
+        "category",
+        "domain",
+        "verification",
+        "reason",
+        "confidence"
+      ],
+      "title": "VerifiedFact",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/verified_facts.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "VerifiedFacts"
+  "additionalProperties": false,
+  "description": "Snapshot inmutable que reciben estimación final, A2UI y redactor (§5.2).\n\nEl redactor solo ve esto: no tiene puertos de RAG ni de MCP, así que este\nsnapshot es literalmente el universo de hechos del que puede hablar\n(`DIE-F1-094`).",
+  "properties": {
+    "contradictions": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Contradiction"
+      },
+      "maxItems": 100,
+      "title": "Contradictions",
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "facts": {
+      "items": {
+        "$ref": "#/$defs/VerifiedFact"
+      },
+      "maxItems": 500,
+      "title": "Facts",
+      "type": "array"
+    },
+    "snapshot_id": {
+      "maxLength": 120,
+      "title": "Snapshot Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "snapshot_id",
+    "created_at",
+    "facts"
+  ],
+  "title": "VerifiedFacts",
+  "type": "object"
 }

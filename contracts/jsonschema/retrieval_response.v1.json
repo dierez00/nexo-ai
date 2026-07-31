@@ -1,5 +1,208 @@
 {
+  "$defs": {
+    "RetrievalResult": {
+      "additionalProperties": false,
+      "description": "Un fragmento recuperado, con puntajes desglosados y su citación lista.",
+      "properties": {
+        "citation": {
+          "$ref": "#/$defs/SourceCitation"
+        },
+        "fragment_id": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Fragment Id",
+          "type": "string"
+        },
+        "fused_score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Fused Score",
+          "type": "number"
+        },
+        "injection_signals": {
+          "description": "Patrones de prompt injection detectados en el texto. Se registran como señal; el contenido nunca se obedece (`DIE-F1-026`).",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Injection Signals",
+          "type": "array"
+        },
+        "lexical_score": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lexical Score"
+        },
+        "source_id": {
+          "maxLength": 67,
+          "minLength": 5,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 8000,
+          "title": "Text",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 300,
+          "title": "Title",
+          "type": "string"
+        },
+        "vector_score": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vector Score"
+        }
+      },
+      "required": [
+        "fragment_id",
+        "source_id",
+        "title",
+        "text",
+        "fused_score",
+        "citation"
+      ],
+      "title": "RetrievalResult",
+      "type": "object"
+    },
+    "SourceCitation": {
+      "additionalProperties": false,
+      "description": "Referencia puntual a un fragmento de una fuente (§5.2).\n\nEs inmutable a propósito: una citación es evidencia, y la evidencia no se\nedita después de recogerse.",
+      "properties": {
+        "char_end": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char End"
+        },
+        "char_start": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inicio del tramo relevante dentro del fragmento.",
+          "title": "Char Start"
+        },
+        "corpus_version": {
+          "description": "Versión de corpus vigente cuando se recuperó el fragmento.",
+          "maxLength": 120,
+          "title": "Corpus Version",
+          "type": "string"
+        },
+        "fragment_id": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Fragment Id",
+          "type": "string"
+        },
+        "is_active": {
+          "default": true,
+          "description": "Falso si la fuente fue sustituida o venció; bloquea claims críticos.",
+          "title": "Is Active",
+          "type": "boolean"
+        },
+        "source_id": {
+          "maxLength": 67,
+          "minLength": 5,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_version": {
+          "maxLength": 40,
+          "title": "Source Version",
+          "type": "string"
+        },
+        "valid_from": {
+          "format": "date",
+          "title": "Valid From",
+          "type": "string"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "source_id",
+        "fragment_id",
+        "corpus_version",
+        "source_version",
+        "valid_from"
+      ],
+      "title": "SourceCitation",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/retrieval_response.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "RetrievalResponse"
+  "additionalProperties": false,
+  "description": "Respuesta completa del retriever, siempre con `corpus_version` (`DIE-F1-024`).",
+  "properties": {
+    "corpus_version": {
+      "maxLength": 120,
+      "title": "Corpus Version",
+      "type": "string"
+    },
+    "filtered_count": {
+      "default": 0,
+      "description": "Resultados descartados por institución, vigencia, estado o permiso.",
+      "minimum": 0,
+      "title": "Filtered Count",
+      "type": "integer"
+    },
+    "results": {
+      "items": {
+        "$ref": "#/$defs/RetrievalResult"
+      },
+      "maxItems": 50,
+      "title": "Results",
+      "type": "array"
+    }
+  },
+  "required": [
+    "corpus_version"
+  ],
+  "title": "RetrievalResponse",
+  "type": "object"
 }

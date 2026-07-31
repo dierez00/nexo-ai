@@ -1,5 +1,376 @@
 {
+  "$defs": {
+    "Audience": {
+      "description": "Perfiles de destinatario. La personalización nunca altera hechos (`DIE-F4-079`).",
+      "enum": [
+        "citizen",
+        "senior",
+        "producer",
+        "business",
+        "public_servant",
+        "technical",
+        "low_digital_literacy"
+      ],
+      "title": "Audience",
+      "type": "string"
+    },
+    "Budgets": {
+      "additionalProperties": false,
+      "description": "Presupuestos del run (`DIE-F0-034`).\n\nSe aplican en el supervisor y en cada nodo: antes de invocar un modelo o una\ntool se comprueba lo que queda, no después.",
+      "properties": {
+        "deadline_ms": {
+          "default": 20000,
+          "maximum": 3600000,
+          "minimum": 0,
+          "title": "Deadline Ms",
+          "type": "integer"
+        },
+        "max_attempts_per_agent": {
+          "default": 2,
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Max Attempts Per Agent",
+          "type": "integer"
+        },
+        "max_concurrency": {
+          "default": 2,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Max Concurrency",
+          "type": "integer"
+        },
+        "max_cost_usd": {
+          "default": 0.2,
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Max Cost Usd",
+          "type": "number"
+        },
+        "max_tokens": {
+          "default": 200000,
+          "minimum": 0,
+          "title": "Max Tokens",
+          "type": "integer"
+        }
+      },
+      "title": "Budgets",
+      "type": "object"
+    },
+    "Channel": {
+      "enum": [
+        "web",
+        "whatsapp",
+        "voice"
+      ],
+      "title": "Channel",
+      "type": "string"
+    },
+    "DeducedContextItem": {
+      "additionalProperties": false,
+      "description": "Dato de contexto inferido antes o durante el run.",
+      "properties": {
+        "deduction": {
+          "$ref": "#/$defs/Deduction"
+        },
+        "key": {
+          "pattern": "^[a-z][a-z0-9_]{1,62}$",
+          "title": "Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "deduction"
+      ],
+      "title": "DeducedContextItem",
+      "type": "object"
+    },
+    "Deduction": {
+      "additionalProperties": false,
+      "description": "Dato inferido, no afirmado por el usuario ni leído de una fuente (§5.2).\n\nUna deducción no confirmada nunca alimenta una escritura (`DIE-F2-053`);\n`write_eligible` es la puerta que lo impide.",
+      "properties": {
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "confirmed_by_user": {
+          "default": false,
+          "title": "Confirmed By User",
+          "type": "boolean"
+        },
+        "rationale": {
+          "maxLength": 500,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/FactOrigin"
+        },
+        "value": {
+          "$ref": "#/$defs/FactValue"
+        },
+        "write_eligible": {
+          "default": false,
+          "title": "Write Eligible",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "value",
+        "source",
+        "confidence",
+        "rationale"
+      ],
+      "title": "Deduction",
+      "type": "object"
+    },
+    "FactOrigin": {
+      "description": "De dónde salió un hecho candidato. Sirve para detectar contradicciones tool ↔ documento.",
+      "enum": [
+        "rag",
+        "tool",
+        "user",
+        "profile",
+        "deduction",
+        "catalog"
+      ],
+      "title": "FactOrigin",
+      "type": "string"
+    },
+    "FactValue": {
+      "additionalProperties": false,
+      "description": "Valor tipado de un hecho.\n\nSe modela como una unión explícita en lugar de `Any` para que el estimador\nnunca tenga que adivinar el tipo antes de sumar o comparar.",
+      "properties": {
+        "boolean": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Boolean"
+        },
+        "date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Date"
+        },
+        "items": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 100,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Items"
+        },
+        "money": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "number": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Number"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        }
+      },
+      "title": "FactValue",
+      "type": "object"
+    },
+    "Identity": {
+      "additionalProperties": false,
+      "description": "Identidad y permisos efectivos con los que corre la ejecución.",
+      "properties": {
+        "institution_id": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Institution Id",
+          "type": "string"
+        },
+        "permissions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Permissions",
+          "type": "array"
+        },
+        "roles": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Roles",
+          "type": "array"
+        },
+        "user_id": {
+          "maxLength": 67,
+          "minLength": 5,
+          "title": "User Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "user_id",
+        "institution_id",
+        "roles"
+      ],
+      "title": "Identity",
+      "type": "object"
+    },
+    "Money": {
+      "additionalProperties": false,
+      "description": "Monto en unidades menores más moneda (§2.3).\n\nNunca se representa un monto en flotante ni se suma en un prompt: el\nestimador opera sobre `amount_minor` con código determinista.",
+      "properties": {
+        "amount_minor": {
+          "description": "Monto en la unidad menor de la moneda; 125000 son 1,250.00 MXN.",
+          "title": "Amount Minor",
+          "type": "integer"
+        },
+        "currency": {
+          "description": "Código ISO 4217, por ejemplo 'MXN'.",
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount_minor",
+        "currency"
+      ],
+      "title": "Money",
+      "type": "object"
+    },
+    "Profile": {
+      "additionalProperties": false,
+      "properties": {
+        "audience": {
+          "$ref": "#/$defs/Audience",
+          "default": "citizen"
+        },
+        "locale": {
+          "default": "es-MX",
+          "pattern": "^[a-z]{2}-[A-Z]{2}$",
+          "title": "Locale",
+          "type": "string"
+        }
+      },
+      "title": "Profile",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/run_request.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "RunRequest"
+  "additionalProperties": false,
+  "description": "Entrada del núcleo (§5.1). Es lo único que el backend entrega al supervisor.",
+  "properties": {
+    "budgets": {
+      "$ref": "#/$defs/Budgets"
+    },
+    "channel": {
+      "$ref": "#/$defs/Channel"
+    },
+    "conversation_id": {
+      "maxLength": 68,
+      "minLength": 6,
+      "title": "Conversation Id",
+      "type": "string"
+    },
+    "deduced_context": {
+      "items": {
+        "$ref": "#/$defs/DeducedContextItem"
+      },
+      "maxItems": 50,
+      "title": "Deduced Context",
+      "type": "array"
+    },
+    "identity": {
+      "$ref": "#/$defs/Identity"
+    },
+    "profile": {
+      "$ref": "#/$defs/Profile"
+    },
+    "received_at": {
+      "format": "date-time",
+      "title": "Received At",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "trace_id": {
+      "maxLength": 69,
+      "minLength": 7,
+      "title": "Trace Id",
+      "type": "string"
+    },
+    "user_message": {
+      "maxLength": 8000,
+      "minLength": 1,
+      "title": "User Message",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "trace_id",
+    "conversation_id",
+    "user_message",
+    "channel",
+    "identity",
+    "received_at"
+  ],
+  "title": "RunRequest",
+  "type": "object"
 }

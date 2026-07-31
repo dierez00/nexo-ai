@@ -1,5 +1,332 @@
 {
+  "$defs": {
+    "DeterministicEvaluationResult": {
+      "additionalProperties": false,
+      "description": "Métricas calculadas con código, no con un modelo (§5.6).\n\nEstas son las que constituyen un gate. El judge nunca las reemplaza.",
+      "properties": {
+        "a2ui_schema_valid": {
+          "title": "A2Ui Schema Valid",
+          "type": "boolean"
+        },
+        "case_id": {
+          "maxLength": 120,
+          "title": "Case Id",
+          "type": "string"
+        },
+        "citation_precision": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Citation Precision",
+          "type": "number"
+        },
+        "dataset_version": {
+          "maxLength": 60,
+          "title": "Dataset Version",
+          "type": "string"
+        },
+        "domain_match": {
+          "title": "Domain Match",
+          "type": "boolean"
+        },
+        "max_questions_allowed": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Max Questions Allowed",
+          "type": "integer"
+        },
+        "permission_compliance": {
+          "title": "Permission Compliance",
+          "type": "boolean"
+        },
+        "procedure_match": {
+          "title": "Procedure Match",
+          "type": "boolean"
+        },
+        "questions_asked": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Questions Asked",
+          "type": "integer"
+        },
+        "source_coverage": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Source Coverage",
+          "type": "number"
+        },
+        "tool_selection_correct": {
+          "title": "Tool Selection Correct",
+          "type": "boolean"
+        },
+        "unsupported_critical_claims": {
+          "minimum": 0,
+          "title": "Unsupported Critical Claims",
+          "type": "integer"
+        },
+        "write_verifiable": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Nulo si el caso no incluye escritura.",
+          "title": "Write Verifiable"
+        }
+      },
+      "required": [
+        "case_id",
+        "dataset_version",
+        "domain_match",
+        "procedure_match",
+        "source_coverage",
+        "citation_precision",
+        "unsupported_critical_claims",
+        "tool_selection_correct",
+        "permission_compliance",
+        "a2ui_schema_valid"
+      ],
+      "title": "DeterministicEvaluationResult",
+      "type": "object"
+    },
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "JudgeResult": {
+      "additionalProperties": false,
+      "description": "Salida tipada del judge (§5.6). Es un dato analítico, nunca una autorización.",
+      "properties": {
+        "evaluated_at": {
+          "format": "date-time",
+          "title": "Evaluated At",
+          "type": "string"
+        },
+        "evaluation_id": {
+          "maxLength": 68,
+          "minLength": 6,
+          "title": "Evaluation Id",
+          "type": "string"
+        },
+        "evidence": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Evidence",
+          "type": "string"
+        },
+        "generator_model": {
+          "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+          "pattern": "^[a-z][a-z0-9_]{2,40}$",
+          "title": "Generator Model",
+          "type": "string"
+        },
+        "judge_model": {
+          "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+          "pattern": "^[a-z][a-z0-9_]{2,40}$",
+          "title": "Judge Model",
+          "type": "string"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "rubric_version": {
+          "maxLength": 60,
+          "title": "Rubric Version",
+          "type": "string"
+        },
+        "run_id": {
+          "maxLength": 67,
+          "minLength": 5,
+          "title": "Run Id",
+          "type": "string"
+        },
+        "scores": {
+          "$ref": "#/$defs/JudgeScores"
+        },
+        "unsupported_claims": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Unsupported Claims",
+          "type": "array"
+        }
+      },
+      "required": [
+        "evaluation_id",
+        "run_id",
+        "rubric_version",
+        "generator_model",
+        "judge_model",
+        "scores",
+        "passed",
+        "evaluated_at"
+      ],
+      "title": "JudgeResult",
+      "type": "object"
+    },
+    "JudgeScores": {
+      "additionalProperties": false,
+      "description": "Rúbrica versionada, toda en [0, 1].",
+      "properties": {
+        "a2ui_quality": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "A2Ui Quality",
+          "type": "number"
+        },
+        "clarity": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Clarity",
+          "type": "number"
+        },
+        "completeness": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Completeness",
+          "type": "number"
+        },
+        "domain_accuracy": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Domain Accuracy",
+          "type": "number"
+        },
+        "faithfulness": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Faithfulness",
+          "type": "number"
+        },
+        "permission_compliance": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Permission Compliance",
+          "type": "number"
+        },
+        "tool_selection": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Tool Selection",
+          "type": "number"
+        }
+      },
+      "required": [
+        "domain_accuracy",
+        "tool_selection",
+        "faithfulness",
+        "completeness",
+        "clarity",
+        "a2ui_quality",
+        "permission_compliance"
+      ],
+      "title": "JudgeScores",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/evaluation_report.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "EvaluationReport"
+  "additionalProperties": false,
+  "description": "Reporte comparable entre commits (§5.6).\n\nCongela todo lo que hace reproducible una medición: dataset, rúbrica,\naliases, corpus, configuración y semilla.",
+  "properties": {
+    "catalog_version": {
+      "default": "unset",
+      "maxLength": 80,
+      "title": "Catalog Version",
+      "type": "string"
+    },
+    "config_version": {
+      "maxLength": 60,
+      "title": "Config Version",
+      "type": "string"
+    },
+    "corpus_versions": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/Domain"
+      },
+      "title": "Corpus Versions",
+      "type": "object"
+    },
+    "dataset_version": {
+      "maxLength": 60,
+      "title": "Dataset Version",
+      "type": "string"
+    },
+    "deterministic_results": {
+      "items": {
+        "$ref": "#/$defs/DeterministicEvaluationResult"
+      },
+      "maxItems": 500,
+      "title": "Deterministic Results",
+      "type": "array"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "judge_results": {
+      "items": {
+        "$ref": "#/$defs/JudgeResult"
+      },
+      "maxItems": 500,
+      "title": "Judge Results",
+      "type": "array"
+    },
+    "report_id": {
+      "maxLength": 68,
+      "minLength": 6,
+      "title": "Report Id",
+      "type": "string"
+    },
+    "rubric_version": {
+      "maxLength": 60,
+      "title": "Rubric Version",
+      "type": "string"
+    },
+    "seed": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Seed"
+    },
+    "skill_versions": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Skill Versions",
+      "type": "object"
+    }
+  },
+  "required": [
+    "report_id",
+    "dataset_version",
+    "rubric_version",
+    "config_version",
+    "generated_at"
+  ],
+  "title": "EvaluationReport",
+  "type": "object"
 }

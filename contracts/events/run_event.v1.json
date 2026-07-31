@@ -1,5 +1,415 @@
 {
+  "$defs": {
+    "ActorType": {
+      "description": "Quién origina un evento.",
+      "enum": [
+        "supervisor",
+        "agent",
+        "tool",
+        "model",
+        "retriever",
+        "system",
+        "user"
+      ],
+      "title": "ActorType",
+      "type": "string"
+    },
+    "ErrorCode": {
+      "description": "Códigos de error estables (arquitectura §9.11).\n\nEl consumidor decide por `code`, nunca por el texto del mensaje.",
+      "enum": [
+        "VALIDATION_ERROR",
+        "AUTHENTICATION_REQUIRED",
+        "PERMISSION_DENIED",
+        "RESOURCE_NOT_FOUND",
+        "APPOINTMENT_CONFLICT",
+        "VERSION_CONFLICT",
+        "ACTION_CONFIRMATION_REQUIRED",
+        "RATE_LIMITED",
+        "BUDGET_EXCEEDED",
+        "PROVIDER_ERROR",
+        "MODEL_UNAVAILABLE",
+        "MODEL_OUTPUT_INVALID",
+        "TOOL_TIMEOUT",
+        "TOOL_NOT_FOUND",
+        "RUN_TIMEOUT",
+        "RUN_CANCELLED",
+        "UNKNOWN_OUTCOME",
+        "CONFIGURATION_INVALID",
+        "CONTRACT_INVALID"
+      ],
+      "title": "ErrorCode",
+      "type": "string"
+    },
+    "ErrorDetail": {
+      "additionalProperties": false,
+      "description": "Detalle accionable de un error, sin contenido sensible.",
+      "properties": {
+        "field": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ruta del campo que falló, en notación de puntos.",
+          "title": "Field"
+        },
+        "reason": {
+          "description": "Motivo estable y corto, en snake_case. Ejemplo: 'conflict'.",
+          "maxLength": 200,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "title": "ErrorDetail",
+      "type": "object"
+    },
+    "EventActor": {
+      "additionalProperties": false,
+      "description": "Quién produjo el evento.",
+      "properties": {
+        "name": {
+          "maxLength": 120,
+          "title": "Name",
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/ActorType"
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "title": "EventActor",
+      "type": "object"
+    },
+    "EventStatus": {
+      "enum": [
+        "started",
+        "succeeded",
+        "failed",
+        "denied",
+        "skipped"
+      ],
+      "title": "EventStatus",
+      "type": "string"
+    },
+    "EventType": {
+      "description": "Familias mínimas de eventos (§5.8).\n\nEl nombre es `dominio.acción` y es estable: el workflow viewer, el replay y\nlas evaluaciones dependen de él.",
+      "enum": [
+        "run.queued",
+        "run.planning",
+        "run.started",
+        "run.waiting_confirmation",
+        "run.resumed",
+        "run.partial",
+        "run.completed",
+        "run.failed",
+        "run.cancelled",
+        "classification.started",
+        "classification.completed",
+        "classification.failed",
+        "plan.created",
+        "plan.updated",
+        "agent.started",
+        "agent.completed",
+        "agent.retried",
+        "agent.failed",
+        "rag.started",
+        "rag.completed",
+        "rag.filtered",
+        "rag.failed",
+        "tool.requested",
+        "tool.authorized",
+        "tool.denied",
+        "tool.started",
+        "tool.completed",
+        "tool.replayed",
+        "tool.failed",
+        "model.selected",
+        "model.fallback",
+        "model.completed",
+        "model.failed",
+        "verification.completed",
+        "contradiction.detected",
+        "contradiction.resolved",
+        "contradiction.unresolved",
+        "checkpoint.saved",
+        "checkpoint.restored",
+        "a2ui.generated",
+        "a2ui.validated",
+        "a2ui.validation_failed",
+        "a2ui.fallback",
+        "evaluation.started",
+        "evaluation.completed",
+        "evaluation.failed",
+        "prompt.drafted",
+        "prompt.validated",
+        "prompt.approved",
+        "prompt.rejected",
+        "prompt.published",
+        "corpus.drafted",
+        "corpus.validated",
+        "corpus.activated",
+        "corpus.rolled_back"
+      ],
+      "title": "EventType",
+      "type": "string"
+    },
+    "EventVisibility": {
+      "description": "Quién puede consumir el payload detallado de un evento.",
+      "enum": [
+        "public",
+        "restricted"
+      ],
+      "title": "EventVisibility",
+      "type": "string"
+    },
+    "JsonValue": {},
+    "NormalizedError": {
+      "additionalProperties": false,
+      "description": "Error normalizado que cruza cualquier frontera de Nexo IA.\n\n`outcome` es el campo que impide reintentos peligrosos: un `UNKNOWN`\nsignifica que no sabemos si la operación tuvo efecto, y por tanto nunca se\nreintenta de forma automática (`DIE-F0-035`).",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "details": {
+          "items": {
+            "$ref": "#/$defs/ErrorDetail"
+          },
+          "maxItems": 50,
+          "title": "Details",
+          "type": "array"
+        },
+        "message": {
+          "description": "Mensaje para operadores. Nunca incluye prompts, secretos ni PII.",
+          "maxLength": 500,
+          "title": "Message",
+          "type": "string"
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome",
+          "default": "known_failure",
+          "description": "Certeza sobre el efecto producido antes del fallo."
+        },
+        "retry_after_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After Ms"
+        },
+        "retryable": {
+          "description": "Si la operación puede reintentarse tal cual, sin intervención.",
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "title": "NormalizedError",
+      "type": "object"
+    },
+    "Outcome": {
+      "description": "Certeza sobre el efecto de una operación.\n\n`UNKNOWN` es el caso peligroso: un write con outcome desconocido nunca se\nreintenta automáticamente y produce `partial` (`DIE-F1-077`, `DIE-F1-081`).",
+      "enum": [
+        "known_success",
+        "known_failure",
+        "unknown"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/run_event.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "RunEvent"
+  "additionalProperties": false,
+  "description": "Evento inmutable de la traza de un run (§5.8).\n\n`data` es un payload minimizado y seguro: nunca transporta prompts\ncompletos, secretos ni PII directa (lo hace cumplir `SafePayload`).",
+  "properties": {
+    "actor": {
+      "$ref": "#/$defs/EventActor"
+    },
+    "catalog_version": {
+      "anyOf": [
+        {
+          "maxLength": 80,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Snapshot del catálogo central usado para decidir este run (`DIE-F2-008`).",
+      "title": "Catalog Version"
+    },
+    "correlation_id": {
+      "maxLength": 120,
+      "title": "Correlation Id",
+      "type": "string"
+    },
+    "data": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Data",
+      "type": "object"
+    },
+    "duration_ms": {
+      "anyOf": [
+        {
+          "maximum": 3600000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Duration Ms"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NormalizedError"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "event_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Event Id",
+      "type": "string"
+    },
+    "parent_event_id": {
+      "anyOf": [
+        {
+          "maxLength": 67,
+          "minLength": 5,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Event Id"
+    },
+    "policy_version": {
+      "anyOf": [
+        {
+          "maxLength": 40,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Versión de políticas vigente, propagada a evaluaciones (`DIE-F0-037`).",
+      "title": "Policy Version"
+    },
+    "public_data": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "description": "Proyección minimizada para workflow público; `data` queda para auditoría.",
+      "title": "Public Data",
+      "type": "object"
+    },
+    "run_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "sequence": {
+      "description": "Posición 1-indexada dentro del run.",
+      "minimum": 1,
+      "title": "Sequence",
+      "type": "integer"
+    },
+    "skill_id": {
+      "anyOf": [
+        {
+          "maxLength": 80,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Skill Id"
+    },
+    "skill_version": {
+      "anyOf": [
+        {
+          "maxLength": 40,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Skill Version"
+    },
+    "status": {
+      "$ref": "#/$defs/EventStatus"
+    },
+    "timestamp": {
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "trace_id": {
+      "maxLength": 69,
+      "minLength": 7,
+      "title": "Trace Id",
+      "type": "string"
+    },
+    "type": {
+      "$ref": "#/$defs/EventType"
+    },
+    "visibility": {
+      "$ref": "#/$defs/EventVisibility",
+      "default": "public"
+    }
+  },
+  "required": [
+    "event_id",
+    "trace_id",
+    "run_id",
+    "sequence",
+    "type",
+    "timestamp",
+    "actor",
+    "status",
+    "correlation_id"
+  ],
+  "title": "RunEvent",
+  "type": "object"
 }

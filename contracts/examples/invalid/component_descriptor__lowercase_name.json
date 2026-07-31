@@ -1,0 +1,6 @@
+{
+  "allows_children": true,
+  "is_interactive": false,
+  "name": "checklist",
+  "schema_ref": "a2ui://nexo/Checklist"
+}

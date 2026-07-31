@@ -954,6 +954,48 @@ def _invalid_examples() -> list[InvalidExample]:
 
     wrong_tool_prefix = _mutate("tool_metadata", name="autos.reservar_cita")
 
+    non_semantic_approval_version = _mutate("approval", version="1.0")
+
+    active_source_without_verification = _mutate("source", verified_at=None)
+
+    inverted_citation_span = _mutate("source_citation", char_start=180, char_end=0)
+
+    failed_tool_result_without_error = _mutate("tool_result", status="failed")
+
+    run_result_unknown_property = _mutate("run_result", unexpected_field="valor")
+
+    judge_result_unsupported_but_passed = _mutate(
+        "judge_result", unsupported_claims=["dato sin evidencia en las citas"]
+    )
+
+    deterministic_result_unknown_property = _mutate(
+        "deterministic_evaluation_result", unexpected_field="valor"
+    )
+
+    controlled_test_with_real_data = _mutate("controlled_test_result", used_synthetic_data=False)
+
+    unchanged_ingestion_creates_chunks = _mutate("ingestion_result", outcomes={"unchanged": 3})
+
+    catalog_descriptor_unknown_property = _mutate("catalog_descriptor", unexpected_field="valor")
+
+    component_descriptor_lowercase_name = _mutate("component_descriptor", name="checklist")
+
+    a2ui_component_lowercase_name = _mutate("a2ui_component", component="button")
+
+    a2ui_action_zero_expected_version = _mutate("a2ui_action", expected_version=0)
+
+    valid_outcome_with_errors = _mutate(
+        "a2ui_validation_result",
+        errors=[
+            {
+                "rule": "unknown_component",
+                "detail": "El componente no existe en el catálogo negociado.",
+            }
+        ],
+    )
+
+    channel_fallback_empty_text = _mutate("channel_fallback", text="")
+
     return [
         InvalidExample(
             "action_request__confirmed_without_consent",
@@ -1110,6 +1152,96 @@ def _invalid_examples() -> list[InvalidExample]:
             "skill_manifest",
             "una skill no amplía permisos",
             skill_widens_permissions,
+        ),
+        InvalidExample(
+            "approval__non_semantic_version",
+            "approval",
+            "la versión aprobada debe seguir semver estricto",
+            non_semantic_approval_version,
+        ),
+        InvalidExample(
+            "source__active_without_verified_at",
+            "source",
+            "una fuente activa exige verified_at",
+            active_source_without_verification,
+        ),
+        InvalidExample(
+            "source_citation__char_end_before_char_start",
+            "source_citation",
+            "el tramo de citación exige char_end mayor que char_start",
+            inverted_citation_span,
+        ),
+        InvalidExample(
+            "tool_result__status_mismatch",
+            "tool_result",
+            "un resultado no exitoso debe incluir un error normalizado",
+            failed_tool_result_without_error,
+        ),
+        InvalidExample(
+            "run_result__unknown_property",
+            "run_result",
+            "los contratos rechazan propiedades desconocidas",
+            run_result_unknown_property,
+        ),
+        InvalidExample(
+            "judge_result__unsupported_claims_but_passed",
+            "judge_result",
+            "el judge no puede aprobar con claims sin fundamento",
+            judge_result_unsupported_but_passed,
+        ),
+        InvalidExample(
+            "deterministic_evaluation_result__unknown_property",
+            "deterministic_evaluation_result",
+            "los contratos rechazan propiedades desconocidas",
+            deterministic_result_unknown_property,
+        ),
+        InvalidExample(
+            "controlled_test_result__real_data_used",
+            "controlled_test_result",
+            "una prueba controlada exige datos sintéticos",
+            controlled_test_with_real_data,
+        ),
+        InvalidExample(
+            "ingestion_result__unchanged_run_creates_chunks",
+            "ingestion_result",
+            "una ingesta sin altas ni sustituciones no puede crear chunks",
+            unchanged_ingestion_creates_chunks,
+        ),
+        InvalidExample(
+            "catalog_descriptor__unknown_property",
+            "catalog_descriptor",
+            "los contratos rechazan propiedades desconocidas",
+            catalog_descriptor_unknown_property,
+        ),
+        InvalidExample(
+            "component_descriptor__lowercase_name",
+            "component_descriptor",
+            "el nombre del componente debe iniciar con mayúscula",
+            component_descriptor_lowercase_name,
+        ),
+        InvalidExample(
+            "a2ui_component__lowercase_name",
+            "a2ui_component",
+            "el nombre del componente debe iniciar con mayúscula",
+            a2ui_component_lowercase_name,
+        ),
+        InvalidExample(
+            "a2ui_action__expected_version_below_one",
+            "a2ui_action",
+            "expected_version debe ser al menos 1",
+            a2ui_action_zero_expected_version,
+        ),
+        InvalidExample(
+            "a2ui_validation_result__valid_outcome_with_errors",
+            "a2ui_validation_result",
+            "una validación válida no puede reportar errores",
+            valid_outcome_with_errors,
+        ),
+        InvalidExample(
+            "channel_fallback__empty_text",
+            "channel_fallback",
+            "el fallback nunca queda con texto vacío",
+            channel_fallback_empty_text,
         ),
     ]
 
