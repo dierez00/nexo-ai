@@ -1,0 +1,2 @@
+{"version": "v0.9.1", "createSurface": {"surfaceId": "surf_hostil", "catalogId": "urn:nexo-ia:a2ui:catalog:citizen:v1", "sendDataModel": true}}
+{"version": "v0.9.1", "updateComponents": {"surfaceId": "surf_hostil", "components": [{"id": "root", "component": "Column", "children": ["x"], "gap": "md"}, {"id": "x", "component": "Text", "children": [], "text": {"path": "../../etc/passwd"}}]}}

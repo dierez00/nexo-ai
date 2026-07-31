@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-07-31T03:45:43.453912+00:00",
+  "note": "Tramo servidor de la línea de tiempo: builder determinista + validator. No incluye el modelo (produce VerifiedFacts aguas arriba) ni el transporte.",
+  "by_size": {
+    "valid__small": {
+      "runs": 200,
+      "build_p50_ms": 0.0526,
+      "build_p95_ms": 0.058,
+      "validate_p50_ms": 0.0134,
+      "validate_p95_ms": 0.0146,
+      "total_p50_ms": 0.0659
+    },
+    "valid__medium": {
+      "runs": 200,
+      "build_p50_ms": 0.0632,
+      "build_p95_ms": 0.0654,
+      "validate_p50_ms": 0.0137,
+      "validate_p95_ms": 0.0141,
+      "total_p50_ms": 0.0768
+    },
+    "valid__large": {
+      "runs": 200,
+      "build_p50_ms": 0.0972,
+      "build_p95_ms": 0.1067,
+      "validate_p50_ms": 0.0137,
+      "validate_p95_ms": 0.0158,
+      "total_p50_ms": 0.1109
+    }
+  }
+}

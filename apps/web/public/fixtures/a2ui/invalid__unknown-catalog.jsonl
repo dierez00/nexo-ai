@@ -1,0 +1,2 @@
+{"version": "v0.9.1", "createSurface": {"surfaceId": "surf_hostil", "catalogId": "urn:nexo-ia:a2ui:catalog:admin:v1", "sendDataModel": true}}
+{"version": "v0.9.1", "updateComponents": {"surfaceId": "surf_hostil", "components": [{"id": "root", "component": "Column", "children": [], "gap": "md"}]}}

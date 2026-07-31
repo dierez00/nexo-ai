@@ -17,6 +17,7 @@ import {
 import { ChatTimeline, ProgressSteps } from "@/features/chat/timeline";
 import { AlertCard, ConfirmCard, InlineDatePicker, QuickActions } from "@/features/chat/actions";
 import { ChatComposer } from "@/features/chat/composer";
+import { SurfaceFromFixture } from "@/features/a2ui/SurfaceFromFixture";
 import {
   costosLicencia,
   documentosSubidos,
@@ -287,6 +288,21 @@ export function ChatPage() {
                     { texto: "Empezar de nuevo", onClick: () => ir("bienvenida") },
                   ]}
                 />
+              </AssistantMessage>
+            </div>
+          ) : null}
+
+          {estado === "surface-a2ui" ? (
+            <div className="space-y-5">
+              <UserBubble>Quiero renovar mi licencia de conducir, ¿qué necesito?</UserBubble>
+              <AssistantMessage>
+                {/* Misma conversación, pero la respuesta la declara el servidor
+                    como superficie A2UI en vez de armarla el frontend. */}
+                <SurfaceFromFixture name="valid__catalog" traceId="trc_demo_a2ui" />
+                <p className="text-xs text-muted-foreground">
+                  Superficie declarativa del catálogo <span className="mono">citizen:v1</span>,
+                  validada contra la allowlist antes de dibujarse.
+                </p>
               </AssistantMessage>
             </div>
           ) : null}

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ListTree, Workflow, Boxes, Plug, Menu, X } from "lucide-react";
+import { LayoutDashboard, ListTree, Workflow, Boxes, Plug, Layers, Menu, X } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,7 @@ const nav = [
   { to: "/admin/workflow", label: "Workflow", icon: Workflow, exact: false },
   { to: "/admin/catalogo", label: "Catálogo", icon: Boxes, exact: false },
   { to: "/admin/integraciones", label: "Integraciones", icon: Plug, exact: false },
+  { to: "/admin/a2ui-lab", label: "Banco A2UI", icon: Layers, exact: false },
 ] as const;
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {

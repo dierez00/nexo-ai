@@ -9,7 +9,8 @@ export type ChatStateId =
   | "agendar"
   | "cita-confirmada"
   | "tramite-completado"
-  | "seguimiento";
+  | "seguimiento"
+  | "surface-a2ui";
 
 export const estadosChat: { id: ChatStateId; label: string }[] = [
   { id: "bienvenida", label: "Bienvenida" },
@@ -23,6 +24,7 @@ export const estadosChat: { id: ChatStateId; label: string }[] = [
   { id: "cita-confirmada", label: "Cita agendada" },
   { id: "tramite-completado", label: "Trámite completado" },
   { id: "seguimiento", label: "Seguimiento en progreso" },
+  { id: "surface-a2ui", label: "Superficie A2UI (real)" },
 ];
 
 export const sugerenciasIniciales = [

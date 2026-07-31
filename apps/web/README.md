@@ -15,13 +15,42 @@ La única capacidad conectada a un servicio real es el agente de voz.
 | `/portal`, `/portal/chat`, `/portal/tramite`, `/portal/citas`, `/portal/seguimiento`  | mock                                                                          |
 | `/admin`, `/admin/runs`, `/admin/workflow`, `/admin/catalogo`, `/admin/integraciones` | mock                                                                          |
 | `/agente-voz`                                                                         | **implementada** — llamada real vía ElevenLabs (`@elevenlabs/client`, WebRTC) |
+| `/admin/a2ui-lab`                                                                     | **implementada** — renderer A2UI sobre superficies reales de `nexo-a2ui`      |
 
-`/portal/chat` es la vista de referencia: expone los 11 estados del chat (vacío, cargando,
+`/portal/chat` es la vista de referencia: expone los 12 estados del chat (vacío, cargando,
 error, sin resultados, requisitos, agendar, confirmada, completado, seguimiento…) desde un
 selector, para diseñar contra loading/empty/error/partial antes de tener backend.
 
 Fixtures en `src/features/chat/chat-mock.ts` y `src/lib/mock.ts`. Al conectar la API real,
 esos dos archivos son los únicos puntos a reemplazar.
+
+## Renderer A2UI
+
+`src/features/a2ui/` dibuja las superficies del catálogo ciudadano
+`urn:nexo-ia:a2ui:catalog:citizen:v1`. Las superficies **no** las genera un modelo: el
+builder de `a2ui/` es determinista y las arma desde plantillas y hechos verificados
+(ADR 0006). El frontend solo renderiza y vuelve a validar.
+
+| Pieza                          | Qué hace                                                                                                                                                                      |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `guard.ts`                     | Rechaza antes de dibujar: catálogo, allowlist de componentes y propiedades, claves `on*`, HTML, URLs no https, ids duplicados, `root`, hijos, ciclos y acciones no declaradas |
+| `processor.ts`                 | Lifecycle: `createSurface` primero, ids inmutables, descarta la instancia ante error                                                                                          |
+| `pointer.ts`                   | JSON Pointer (RFC 6901) para los bindings `{path}`                                                                                                                            |
+| `registry.tsx`                 | Los 10 componentes del catálogo, renderizados con las cards del chat                                                                                                          |
+| `Surface.tsx` / `Fallback.tsx` | Render desde `root` y fallback seguro sin revelar el payload                                                                                                                  |
+
+Los fixtures salen del builder real:
+
+```bash
+# desde la raíz del repo
+uv run --python 3.12 --with-editable ./contracts --with-editable ./a2ui \
+  python a2ui/scripts/export_fixtures.py
+npm run check:catalog   # la copia del catálogo no se desincronizó de a2ui/
+```
+
+Genera 4 superficies válidas y 15 hostiles en `public/fixtures/a2ui/` — una por cada regla
+que el guard debe hacer cumplir. `/admin/a2ui-lab` las recorre y mide la línea de tiempo
+hasta la primera superficie pintada.
 
 ### Ejecutar
 
