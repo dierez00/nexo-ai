@@ -18,6 +18,7 @@ from nexo_api.repositories._base import load_json
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.schemas.conversation import MessageCreate
 from nexo_api.schemas.run import RunAccepted
+from nexo_api.schemas.voice import VoicePendingAction, VoiceTurnRequest, VoiceTurnResponse
 from nexo_api.services.actions.pending_sink import PostgresPendingActionSink
 from nexo_api.services.orchestration.port import Orchestrator
 from nexo_api.services.runs.event_sink import PostgresEventSink
@@ -196,6 +197,89 @@ async def post_message(
         status=RunStatus.QUEUED,
         events_url=f"/api/v1/runs/{run_id_wire}/events",
         created_at=run_row["created_at"],
+    )
+
+
+async def voice_turn(
+    user: UserProfile,
+    body: VoiceTurnRequest,
+    trace_id: str,
+    orchestrator: Orchestrator,
+    timeout_seconds: int,
+) -> VoiceTurnResponse:
+    """Ejecuta un turno de voz de forma **síncrona**.
+
+    El agente de ElevenLabs invoca una server-tool y espera la respuesta en la
+    misma llamada HTTP, así que aquí no hay background task: se corre el run y se
+    espera hasta estado terminal (o `waiting_confirmation`, que también cierra la
+    pasada del run) con un timeout que acota la latencia telefónica.
+    """
+    tenant_id = int(user.tenant_id)
+
+    if body.conversation_id is not None:
+        conv_id = _decode(ids.CONVERSATION, body.conversation_id, "conversación")
+        conversation = await conv_repo.get(tenant_id, conv_id)
+        if conversation is None:
+            raise ProblemException(code="RESOURCE_NOT_FOUND", title="Conversación no encontrada")
+    else:
+        conversation = await conv_repo.create(
+            tenant_id=tenant_id,
+            user_id=None if user.is_public else int(user.user_id),
+            channel=Channel.VOICE.value,
+            title=None,
+            metadata={"audience": body.audience, "locale": body.locale},
+        )
+        conv_id = int(conversation["id"])
+    conv_id_wire = ids.encode(ids.CONVERSATION, conv_id)
+
+    await msg_repo.create(conv_id, "user", body.user_message)
+    run_row = await runs_repo.create(tenant_id, conv_id, trace_id, status=RunStatus.QUEUED.value)
+    run_id = int(run_row["id"])
+    run_id_wire = ids.encode(ids.RUN, run_id)
+
+    try:
+        result = await asyncio.wait_for(
+            execute_run(
+                tenant_id,
+                conv_id,
+                body.user_message,
+                Channel.VOICE.value,
+                _identity(user),
+                trace_id,
+                orchestrator,
+                run_row,
+            ),
+            timeout=timeout_seconds,
+        )
+    except TimeoutError as exc:
+        await runs_repo.set_status(tenant_id, run_id, RunStatus.FAILED.value)
+        raise ProblemException(
+            code=ErrorCode.RUN_TIMEOUT,
+            title="El trámite tardó demasiado",
+            detail="No se pudo completar el turno de voz a tiempo. Reintenta.",
+        ) from exc
+
+    if result.answer:
+        await msg_repo.create(conv_id, "assistant", result.answer)
+
+    pending: VoicePendingAction | None = None
+    if result.available_actions:
+        action = result.available_actions[0]
+        pending = VoicePendingAction(
+            action_id=action.action_id,
+            tool_name=action.tool_name,
+            expected_version=action.expected_version,
+            label=action.label,
+        )
+
+    return VoiceTurnResponse(
+        conversation_id=conv_id_wire,
+        run_id=run_id_wire,
+        status=result.status,
+        answer=result.answer,
+        questions=list(result.questions),
+        pending_action=pending,
+        warnings=list(result.warnings),
     )
 
 

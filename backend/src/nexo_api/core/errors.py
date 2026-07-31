@@ -82,6 +82,7 @@ _PROBLEM_DESCRIPTIONS: dict[int, str] = {
     409: "Conflicto (APPOINTMENT_CONFLICT / VERSION_CONFLICT)",
     422: "Confirmación requerida (ACTION_CONFIRMATION_REQUIRED)",
     429: "Límite excedido (RATE_LIMITED / BUDGET_EXCEEDED)",
+    504: "Tiempo de ejecución agotado (RUN_TIMEOUT / TOOL_TIMEOUT)",
 }
 
 
