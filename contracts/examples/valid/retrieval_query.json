@@ -1,0 +1,16 @@
+{
+  "domain": "vehiculos",
+  "filters": {
+    "allowed_source_ids": null,
+    "institution_id": "inst_demo",
+    "status": [
+      "active"
+    ],
+    "valid_at": "2026-07-30"
+  },
+  "max_total_chars": 12000,
+  "mini_rag": null,
+  "query": "requisitos vigentes para renovar licencia",
+  "retrieval_mode": "hybrid",
+  "top_k": 5
+}

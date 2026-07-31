@@ -1,0 +1,19 @@
+# Catálogos A2UI negociables — configuración no secreta.
+#
+# Un `catalog_id` es inmutable por versión: cambiar los componentes permitidos
+# exige publicar un catálogo nuevo, no editar el existente.
+#
+# Schema: nexo_contracts.config.CatalogsConfig
+
+version: catalogs-2026-07-30
+
+catalogs:
+  - catalog_id: urn:nexo-ia:a2ui:catalog:citizen:v1
+    version: 1.0.0
+    audience: citizen
+    path: a2ui/catalogs/citizen/v1/catalog.json
+
+  - catalog_id: urn:nexo-ia:a2ui:catalog:admin:v1
+    version: 1.0.0
+    audience: admin
+    path: a2ui/catalogs/admin/v1/catalog.json

@@ -1,0 +1,22 @@
+{
+  "char_end": 180,
+  "char_start": 0,
+  "checksum": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "chunk_id": "chunk_0001",
+  "document_id": "doc_licencias_01",
+  "document_version": "3",
+  "domain": "vehiculos",
+  "embedding_dimension": 64,
+  "embedding_model": "fake-embeddings",
+  "fragment_id": "frag_12",
+  "heading": "Requisitos",
+  "institution_id": "inst_demo",
+  "ordinal": 0,
+  "source_id": "src_licencias_v3",
+  "status": "active",
+  "text": "Presentar identificación oficial vigente y comprobante de pago.",
+  "validity": {
+    "valid_from": "2026-01-01",
+    "valid_to": null
+  }
+}

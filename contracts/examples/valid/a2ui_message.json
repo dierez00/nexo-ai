@@ -1,0 +1,10 @@
+{
+  "createSurface": {
+    "catalogId": "urn:nexo-ia:a2ui:catalog:citizen:v1",
+    "sendDataModel": false,
+    "surfaceId": "surf_licencia"
+  },
+  "updateComponents": null,
+  "updateDataModel": null,
+  "version": "v0.9.1"
+}

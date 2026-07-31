@@ -1,0 +1,96 @@
+# Políticas de ejecución — configuración no secreta.
+#
+# Presupuestos, timeouts, reintentos y desenlaces. `version` se propaga a cada
+# evento y a cada reporte de evaluación, de modo que una medición siempre puede
+# atribuirse a la política vigente cuando se tomó.
+#
+# Schema: nexo_contracts.config.PoliciesConfig
+
+version: policies-2026-07-30
+
+# Presupuesto del run completo. El objetivo de rendimiento es p95 ≤ 20 s.
+run_budgets:
+  deadline_ms: 20000
+  max_cost_usd: 0.20
+  max_tokens: 200000
+  max_attempts_per_agent: 2
+  max_concurrency: 2
+
+# Ningún agente puede exceder el presupuesto del run; la validación lo impide.
+agent_budgets:
+  classifier:
+    deadline_ms: 3000
+    max_cost_usd: 0.01
+    max_attempts_per_agent: 2
+  domain_navigator:
+    deadline_ms: 8000
+    max_cost_usd: 0.06
+    max_attempts_per_agent: 2
+  verifier:
+    deadline_ms: 6000
+    max_cost_usd: 0.08
+    max_attempts_per_agent: 2
+  estimator:
+    deadline_ms: 4000
+    max_cost_usd: 0.02
+    max_attempts_per_agent: 1
+  transactional:
+    deadline_ms: 5000
+    max_cost_usd: 0.01
+    max_attempts_per_agent: 1
+  writer:
+    deadline_ms: 6000
+    max_cost_usd: 0.03
+    max_attempts_per_agent: 2
+
+operations:
+  - operation: retrieval
+    mode: read
+    timeout_ms: 3000
+    retry:
+      max_attempts: 2
+      retry_on: [PROVIDER_ERROR]
+
+  - operation: tool_read
+    mode: read
+    timeout_ms: 5000
+    retry:
+      max_attempts: 2
+      retry_on: [TOOL_TIMEOUT, PROVIDER_ERROR]
+
+  # Una escritura nunca se reintenta de forma automática. `max_attempts` mayor
+  # que 1 en modo write detiene el arranque.
+  - operation: tool_write
+    mode: write
+    timeout_ms: 5000
+    retry:
+      max_attempts: 1
+      retry_on: []
+
+  - operation: model_call
+    mode: read
+    timeout_ms: 8000
+    retry:
+      max_attempts: 2
+      retry_on: [RATE_LIMITED, MODEL_UNAVAILABLE, MODEL_OUTPUT_INVALID]
+
+# Qué detiene el run, qué lo degrada a parcial y qué admite fallback
+# (`DIE-F0-010`). Las tres listas son disjuntas: la reacción a un error nunca
+# es ambigua.
+outcomes:
+  halt_on:
+    - CONFIGURATION_INVALID
+    - AUTHENTICATION_REQUIRED
+    - PERMISSION_DENIED
+    - CONTRACT_INVALID
+    - RUN_CANCELLED
+  partial_on:
+    - UNKNOWN_OUTCOME
+    - RUN_TIMEOUT
+    - BUDGET_EXCEEDED
+    - TOOL_TIMEOUT
+  fallback_on:
+    - MODEL_UNAVAILABLE
+    - MODEL_OUTPUT_INVALID
+    - RATE_LIMITED
+    - PROVIDER_ERROR

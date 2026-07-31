@@ -1,0 +1,14 @@
+{
+  "answer": "Puedes renovar tu licencia presentando identificación oficial vigente.",
+  "domain": "vehiculos",
+  "evaluation_id": "eval_01",
+  "fact_ids": [
+    "fact_req_01",
+    "fact_cost_01"
+  ],
+  "generator_model": "general",
+  "judge_model": "general",
+  "rubric_version": "capstone-v1",
+  "run_id": "run_01JNE8ZP",
+  "user_request": "Quiero renovar mi licencia y saber si debo algo"
+}

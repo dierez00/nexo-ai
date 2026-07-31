@@ -1,0 +1,39 @@
+{
+  "events": [
+    {
+      "actor": {
+        "name": "supervisor",
+        "type": "system"
+      },
+      "data": {},
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_01",
+      "policy_version": null,
+      "run_id": "run_01JNE8ZP",
+      "sequence": 1,
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_01JNE8ZP",
+      "type": "run.queued"
+    },
+    {
+      "actor": {
+        "name": "supervisor",
+        "type": "system"
+      },
+      "data": {},
+      "duration_ms": null,
+      "error": null,
+      "event_id": "evt_02",
+      "policy_version": null,
+      "run_id": "run_01JNE8ZP",
+      "sequence": 2,
+      "status": "succeeded",
+      "timestamp": "2026-07-30T15:00:00Z",
+      "trace_id": "trace_01JNE8ZP",
+      "type": "run.started"
+    }
+  ],
+  "run_id": "run_01JNE8ZP"
+}

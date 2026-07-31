@@ -1,0 +1,69 @@
+# Registro de tools — configuración no secreta.
+#
+# Toda entrada declara versión explícita. Una tool ausente de este archivo, o
+# presente sin versión, no existe para el sistema.
+#
+# `enabled: false` es el default seguro: registrar una tool no la habilita.
+# Las tools de escritura permanecen deshabilitadas hasta que exista su adapter,
+# su prueba de contrato y su regla de permiso (trabajo de Fase 1).
+#
+# Schema: nexo_contracts.config.ToolRegistryConfig
+
+version: tools-2026-07-30
+
+tools:
+  # --- Vehículos (recorrido CAP-VEH-01) ---
+  - name: vehiculos.consultar_adeudo
+    version: 1.0.0
+    domain: vehiculos
+    mode: read
+    enabled: false
+
+  - name: vehiculos.localizar_modulo
+    version: 1.0.0
+    domain: vehiculos
+    mode: read
+    enabled: false
+
+  - name: vehiculos.buscar_citas
+    version: 1.0.0
+    domain: vehiculos
+    mode: read
+    enabled: false
+
+  - name: vehiculos.reservar_cita
+    version: 1.0.0
+    domain: vehiculos
+    mode: write
+    enabled: false
+
+  # --- Ayuntamiento y empresas (recorrido CAP-EMP-01) ---
+  - name: ayuntamiento.consultar_uso_suelo
+    version: 1.0.0
+    domain: ayuntamiento_empresas
+    mode: read
+    enabled: false
+
+  - name: ayuntamiento.calcular_costos
+    version: 1.0.0
+    domain: ayuntamiento_empresas
+    mode: compute
+    enabled: false
+
+  - name: ayuntamiento.consultar_requisitos_negocio
+    version: 1.0.0
+    domain: ayuntamiento_empresas
+    mode: read
+    enabled: false
+
+  - name: ayuntamiento.consultar_citas
+    version: 1.0.0
+    domain: ayuntamiento_empresas
+    mode: read
+    enabled: false
+
+  - name: ayuntamiento.registrar_solicitud
+    version: 1.0.0
+    domain: ayuntamiento_empresas
+    mode: write
+    enabled: false

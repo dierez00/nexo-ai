@@ -1,0 +1,56 @@
+# Matriz de permisos — configuración no secreta.
+#
+# Deniega por defecto: sin una regla explícita que conceda, no hay permiso.
+# `default_allow` debe permanecer en `false`; ponerlo en `true` detiene el
+# arranque.
+#
+# Una regla que concede escritura debe nombrar la tool exacta. No existe forma
+# de conceder `write` sobre todas las tools de un dominio.
+#
+# Schema: nexo_contracts.config.PermissionsConfig
+
+version: permissions-2026-07-30
+
+default_allow: false
+
+rules:
+  # --- Ciudadanía: lectura en los dos dominios del MVP ---
+  - institution_id: inst_demo
+    role: citizen
+    domain: vehiculos
+    operations: [read]
+    allow: true
+
+  - institution_id: inst_demo
+    role: citizen
+    domain: ayuntamiento_empresas
+    operations: [read, compute]
+    allow: true
+
+  # --- Escrituras: una por una, con tool nombrada ---
+  - institution_id: inst_demo
+    role: citizen
+    domain: vehiculos
+    tool: vehiculos.reservar_cita
+    operations: [write]
+    allow: true
+
+  - institution_id: inst_demo
+    role: citizen
+    domain: ayuntamiento_empresas
+    tool: ayuntamiento.registrar_solicitud
+    operations: [write]
+    allow: true
+
+  # --- Personal operativo: lectura ampliada, sin escritura adicional ---
+  - institution_id: inst_demo
+    role: operator
+    domain: vehiculos
+    operations: [read, compute]
+    allow: true
+
+  - institution_id: inst_demo
+    role: operator
+    domain: ayuntamiento_empresas
+    operations: [read, compute]
+    allow: true

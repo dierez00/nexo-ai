@@ -1,0 +1,13 @@
+{
+  "config_version": "policies-2026-07-30",
+  "corpus_versions": {
+    "vehiculos": "vehiculos-demo-2026-07-20"
+  },
+  "dataset_version": "capstone_v1",
+  "deterministic_results": [],
+  "generated_at": "2026-07-30T15:00:00Z",
+  "judge_results": [],
+  "report_id": "eval_report_01",
+  "rubric_version": "capstone-v1",
+  "seed": 1234
+}

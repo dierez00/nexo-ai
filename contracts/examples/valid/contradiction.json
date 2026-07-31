@@ -1,0 +1,17 @@
+{
+  "conflicting_sources": [
+    "src_licencias_v3",
+    "src_licencias_v2"
+  ],
+  "conflicting_tool_calls": [],
+  "contradiction_id": "contra_01",
+  "explanation": "Dos fuentes declaran costos distintos; prevalece la vigente.",
+  "fact_ids": [
+    "fact_cost_01",
+    "fact_cost_02"
+  ],
+  "resolved_fact_id": "fact_cost_01",
+  "rule": "newer_active_source_wins",
+  "severity": "critical",
+  "status": "resolved"
+}

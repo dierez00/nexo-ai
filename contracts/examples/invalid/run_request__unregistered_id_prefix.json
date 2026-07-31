@@ -1,0 +1,31 @@
+{
+  "budgets": {
+    "deadline_ms": 20000,
+    "max_attempts_per_agent": 2,
+    "max_concurrency": 2,
+    "max_cost_usd": 0.2,
+    "max_tokens": 200000
+  },
+  "channel": "web",
+  "conversation_id": "conv_01",
+  "deduced_context": [],
+  "identity": {
+    "institution_id": "inst_demo",
+    "permissions": [
+      "domain:vehiculos:read",
+      "appointment:create"
+    ],
+    "roles": [
+      "citizen"
+    ],
+    "user_id": "usr_demo"
+  },
+  "profile": {
+    "audience": "citizen",
+    "locale": "es-MX"
+  },
+  "received_at": "2026-07-30T15:00:00Z",
+  "run_id": "job_01JNE8ZP",
+  "trace_id": "trace_01JNE8ZP",
+  "user_message": "Quiero renovar mi licencia y saber si debo algo"
+}

@@ -1,0 +1,5 @@
+{
+  "$id": "https://nexo.local/contracts/v1/evaluation_report.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EvaluationReport"
+}

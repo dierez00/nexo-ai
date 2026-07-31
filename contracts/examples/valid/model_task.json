@@ -1,0 +1,11 @@
+{
+  "contains_sensitive_data": false,
+  "estimated_input_tokens": 7800,
+  "latency_budget_ms": 8000,
+  "max_cost_usd": 0.08,
+  "output_schema_ref": "contracts://agent_result.v1",
+  "requested_alias": "high_accuracy",
+  "requires_vision": false,
+  "risk": "high",
+  "task_kind": "verification"
+}
