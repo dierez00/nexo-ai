@@ -161,12 +161,21 @@ class RegistrarSolicitudInput(NexoModel):
     giro: str = Field(max_length=80)
     predio_ref: str = Field(max_length=64)
     tramite: str = Field(max_length=80)
+    slot_id: str | None = Field(
+        default=None,
+        max_length=64,
+        description="Slot de atención en la dependencia, si la persona eligió uno.",
+    )
 
 
 class RegistrarSolicitudOutput(NexoModel):
     solicitud_id: str = Field(max_length=64)
     tramite: str = Field(max_length=80)
     estado: str = Field(max_length=40)
+    slot_id: str | None = Field(default=None, max_length=64)
+    cita_inicio: datetime | None = Field(
+        default=None, description="Inicio de la cita agendada en la dependencia."
+    )
 
 
 class ClasificarCorreccionInput(NexoModel):
@@ -362,12 +371,31 @@ def _localizar_modulo(payload: LocalizarModuloInput) -> LocalizarModuloOutput:
     )
 
 
+# Calendario mock de citas vehiculares: día y hora se derivan del ordinal del
+# slot. Es una función y no una constante para que reservar y buscar no puedan
+# discrepar: quien reserva `slot_..._02` obtiene la hora que se le mostró.
+_CITAS_BASE_DAY = 3  # agosto de 2026
+_CITAS_BASE_HOUR = 9
+
+
+def _slot_ordinal(slot_id: str) -> int:
+    """Ordinal codificado al final del `slot_id`; 0 si no lo trae."""
+    tail = slot_id.rsplit("_", 1)[-1]
+    return int(tail) if tail.isdigit() else 0
+
+
+def _slot_start(ordinal: int) -> datetime:
+    return datetime(
+        2026, 8, _CITAS_BASE_DAY + ordinal, _CITAS_BASE_HOUR + ordinal, 0, tzinfo=UTC
+    )
+
+
 def _buscar_citas(payload: BuscarCitasInput) -> BuscarCitasOutput:
     return BuscarCitasOutput(
         slots=[
             Slot(
                 slot_id=f"slot_{payload.modulo_id}_{index:02d}",
-                inicio=datetime(2026, 8, 3 + index, 9 + index, 0, tzinfo=UTC),
+                inicio=_slot_start(index),
                 disponible=True,
             )
             for index in range(3)
@@ -377,10 +405,13 @@ def _buscar_citas(payload: BuscarCitasInput) -> BuscarCitasOutput:
 
 
 def _reservar_cita(payload: ReservarCitaInput) -> ReservarCitaOutput:
+    # La hora sale del slot pedido, no de una constante: devolver siempre el
+    # mismo `inicio` hacía que reservar dos slots distintos produjera dos citas
+    # a la misma hora, y que un conflicto de horario fuera indemostrable.
     return ReservarCitaOutput(
         cita_id=f"apt_{payload.slot_id}",
         slot_id=payload.slot_id,
-        inicio=datetime(2026, 8, 3, 9, 0, tzinfo=UTC),
+        inicio=_slot_start(_slot_ordinal(payload.slot_id)),
     )
 
 
@@ -440,13 +471,21 @@ def _consultar_requisitos(payload: ConsultarRequisitosInput) -> ConsultarRequisi
     )
 
 
+# Calendario mock de la ventanilla municipal, con la misma regla que el
+# vehicular: el ordinal del slot fija el día, para que reservar y consultar no
+# puedan discrepar.
+_AYTO_BASE_DAY = 5  # agosto de 2026
+_AYTO_HOUR = 10
+
+
+def _ayto_slot_start(ordinal: int) -> datetime:
+    return datetime(2026, 8, _AYTO_BASE_DAY + ordinal, _AYTO_HOUR, 0, tzinfo=UTC)
+
+
 def _consultar_citas(payload: ConsultarCitasInput) -> ConsultarCitasOutput:
     return ConsultarCitasOutput(
         slots=[
-            Slot(
-                slot_id=f"slot_ayto_{index:02d}",
-                inicio=datetime(2026, 8, 5 + index, 10, 0, tzinfo=UTC),
-            )
+            Slot(slot_id=f"slot_ayto_{index:02d}", inicio=_ayto_slot_start(index))
             for index in range(2)
         ]
     )
@@ -457,6 +496,12 @@ def _registrar_solicitud(payload: RegistrarSolicitudInput) -> RegistrarSolicitud
         solicitud_id=f"sol_{payload.tramite}",
         tramite=payload.tramite,
         estado="recibida",
+        slot_id=payload.slot_id,
+        cita_inicio=(
+            _ayto_slot_start(_slot_ordinal(payload.slot_id))
+            if payload.slot_id is not None
+            else None
+        ),
     )
 
 

@@ -1009,7 +1009,12 @@ class MVPGraph:
             parameters=_default_parameters(tool_name, run),
             requires_confirmation=True,
             consent=False,
-            required_permission=f"{run.domain.value}:write",
+            # Permiso con la granularidad del catálogo de la aplicación
+            # (`{módulo}.{read|write}`), que es el que se concede a un perfil y
+            # el que la API compara al confirmar. La granularidad fina —qué tool
+            # concreta puede escribir este rol en esta institución— la aplica la
+            # matriz del MCP en el momento de ejecutar, no este gate.
+            required_permission=f"{run.domain.value}.write",
             supporting_fact_ids=[fact.fact_id for fact in eligible[:5]],
         )
 
@@ -1280,28 +1285,12 @@ def _default_parameters(tool_name: str, run: RunState) -> dict[str, JsonValue]:
     """
     if tool_name == "vehiculos.reservar_cita":
         vehicle_ref: JsonValue = "veh_demo"
-        slot_id: JsonValue = "slot_mod_centro_00"
         for proposal in run.proposed_tools:
             if proposal.name == "vehiculos.consultar_adeudo":
                 proposed_ref = proposal.parameters.get("vehiculo_ref")
                 if isinstance(proposed_ref, str):
                     vehicle_ref = proposed_ref
-        for result in run.tool_results:
-            if result.name != "vehiculos.buscar_citas":
-                continue
-            slots = result.data.get("slots")
-            if not isinstance(slots, list):
-                continue
-            available = next(
-                (
-                    item
-                    for item in slots
-                    if isinstance(item, dict) and bool(item.get("disponible", True))
-                ),
-                None,
-            )
-            if available is not None and isinstance(available.get("slot_id"), str):
-                slot_id = available["slot_id"]
+        slot_id = _first_available_slot(run, "vehiculos.buscar_citas") or "slot_mod_centro_00"
         return {"slot_id": slot_id, "vehiculo_ref": vehicle_ref}
 
     if tool_name == "registro_civil.registrar_solicitud":
@@ -1328,7 +1317,34 @@ def _default_parameters(tool_name: str, run: RunState) -> dict[str, JsonValue]:
             value = proposal.parameters.get(field_name)
             if isinstance(value, str):
                 parameters[field_name] = value
+    # La cita en la ventanilla municipal se arrastra igual que la vehicular: si
+    # se consultaron horarios, la escritura reserva el que se mostró primero.
+    slot = _first_available_slot(run, "ayuntamiento.consultar_citas")
+    if slot is not None:
+        parameters["slot_id"] = slot
     return parameters
+
+
+def _first_available_slot(run: RunState, tool_name: str) -> str | None:
+    """`slot_id` del primer horario libre que devolvió esa tool de lectura.
+
+    Se lee del resultado ya obtenido y no se inventa: si la escritura reservara
+    un slot que nunca se le mostró a la persona, la confirmación dejaría de
+    corresponder con lo que autorizó.
+    """
+    for result in run.tool_results:
+        if result.name != tool_name:
+            continue
+        slots = result.data.get("slots")
+        if not isinstance(slots, list):
+            continue
+        for item in slots:
+            if not isinstance(item, dict) or not bool(item.get("disponible", True)):
+                continue
+            candidate = item.get("slot_id")
+            if isinstance(candidate, str):
+                return candidate
+    return None
 
 
 def channel_short_answer(run: RunState) -> str:

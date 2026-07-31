@@ -5,7 +5,7 @@ from __future__ import annotations
 from sqlalchemy import RowMapping, text
 
 from nexo_api.repositories._base import dump_json, load_json, read_session, uow
-from nexo_contracts import ActionRequest, ActionResult
+from nexo_contracts import ActionRequest, ActionResult, ActionStatus
 
 
 async def create(tenant_id: int, action: ActionRequest) -> None:
@@ -78,4 +78,14 @@ async def complete(tenant_id: int, action_id: str, result: ActionResult) -> None
 
 
 def request_from(row: RowMapping) -> ActionRequest:
-    return ActionRequest.model_validate(load_json(row["request"]))
+    """Reconstruye la petición con el estado **vigente**, no el que se guardó.
+
+    `request` es el JSON congelado en el momento de proponer la acción, donde
+    `status` vale siempre `pending_confirmation`. Quien avanza es la columna
+    `status`, que actualiza `complete()`. Leer el estado del JSON hacía que el
+    control de «esta acción ya se confirmó» no distinguiera nunca una acción
+    fresca de una ya ejecutada, y bastaba una `Idempotency-Key` nueva para
+    volver a ejecutar una escritura ya realizada.
+    """
+    request = ActionRequest.model_validate(load_json(row["request"]))
+    return request.model_copy(update={"status": ActionStatus(str(row["status"]))})
