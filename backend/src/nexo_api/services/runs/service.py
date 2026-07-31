@@ -20,6 +20,7 @@ from nexo_api.repositories._base import load_json
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.schemas.conversation import MessageCreate
 from nexo_api.schemas.run import RunAccepted, RunSummary
+from nexo_api.schemas.voice import VoicePendingAction, VoiceTurnRequest, VoiceTurnResponse
 from nexo_api.services.actions.pending_sink import PostgresPendingActionSink
 from nexo_api.services.orchestration.port import Orchestrator
 from nexo_api.services.runs.event_sink import PostgresEventSink
@@ -257,6 +258,7 @@ async def voice_turn(
     run_row = await runs_repo.create(tenant_id, conv_id, trace_id, status=RunStatus.QUEUED.value)
     run_id = int(run_row["id"])
     run_id_wire = ids.encode(ids.RUN, run_id)
+    identity = await _identity(user)
 
     try:
         result = await asyncio.wait_for(
@@ -265,7 +267,7 @@ async def voice_turn(
                 conv_id,
                 body.user_message,
                 Channel.VOICE.value,
-                _identity(user),
+                identity,
                 trace_id,
                 orchestrator,
                 run_row,
