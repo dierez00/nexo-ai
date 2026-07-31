@@ -86,8 +86,17 @@ class CitizenSurfaceBuilder:
         action_label: str = "Confirmar",
         headline: str = "Esto es lo que encontré",
         warnings: tuple[str, ...] = (),
+        previous: A2UISurface | None = None,
     ) -> A2UISurface:
-        """Construye la superficie completa a partir del snapshot verificado."""
+        """Construye o actualiza la superficie a partir del snapshot verificado.
+
+        Sin `previous`, abre la superficie (`createSurface` + datos + árbol). Con
+        `previous`, la reutiliza: agrega un nuevo par `updateDataModel` +
+        `updateComponents` a su `messages` en vez de reemitir `createSurface`
+        (§5.8, `a2ui.generated` por etapa). El `data model` siempre declara las
+        mismas claves aunque estén vacías, así un binding de una etapa anterior
+        sigue resolviendo contra el data model más reciente.
+        """
         accepted = list(facts.accepted())
         requirements = [f for f in accepted if f.category is FactCategory.REQUIREMENT]
         costs = [f for f in accepted if f.category is FactCategory.COST]
@@ -123,15 +132,23 @@ class CitizenSurfaceBuilder:
             action=pending_action,
         )
 
-        actions: list[A2UIAction] = []
+        new_actions: list[A2UIAction] = []
         if pending_action is not None:
-            actions.append(pending_action.to_a2ui_action(label=action_label))
+            new_actions.append(pending_action.to_a2ui_action(label=action_label))
 
-        return A2UISurface(
-            surface_id=surface_id,
-            catalog_id=self.catalog.catalog_id,
-            channel=channel,
-            messages=[
+        refresh = [
+            A2UIMessage(
+                version=A2UI_PROTOCOL_VERSION,
+                update_data_model=UpdateDataModel(surface_id=surface_id, path="/", value=data),
+            ),
+            A2UIMessage(
+                version=A2UI_PROTOCOL_VERSION,
+                update_components=UpdateComponents(surface_id=surface_id, components=components),
+            ),
+        ]
+
+        if previous is None:
+            messages = [
                 A2UIMessage(
                     version=A2UI_PROTOCOL_VERSION,
                     create_surface=CreateSurface(
@@ -140,17 +157,22 @@ class CitizenSurfaceBuilder:
                         send_data_model=True,
                     ),
                 ),
-                A2UIMessage(
-                    version=A2UI_PROTOCOL_VERSION,
-                    update_data_model=UpdateDataModel(surface_id=surface_id, path="/", value=data),
-                ),
-                A2UIMessage(
-                    version=A2UI_PROTOCOL_VERSION,
-                    update_components=UpdateComponents(
-                        surface_id=surface_id, components=components
-                    ),
-                ),
-            ],
+                *refresh,
+            ]
+            actions = new_actions
+        else:
+            known_actions = {action.action_id for action in previous.actions}
+            messages = [*previous.messages, *refresh]
+            actions = [
+                *previous.actions,
+                *(action for action in new_actions if action.action_id not in known_actions),
+            ]
+
+        return A2UISurface(
+            surface_id=surface_id,
+            catalog_id=self.catalog.catalog_id,
+            channel=channel,
+            messages=messages,
             actions=actions,
         )
 

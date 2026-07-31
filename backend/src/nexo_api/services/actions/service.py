@@ -60,9 +60,7 @@ async def confirm_action(
     # esto, conocer un action_id bastaría para confirmar la escritura de otro.
     context = await pending_actions.owner_context(tenant_id, action_id)
     if context is None:
-        raise ProblemException(
-            code="RESOURCE_NOT_FOUND", title="El run de la acción no existe"
-        )
+        raise ProblemException(code="RESOURCE_NOT_FOUND", title="El run de la acción no existe")
     owner_user_id = context["owner_user_id"]
     if owner_user_id is not None and int(owner_user_id) != int(user.user_id):
         raise ProblemException(

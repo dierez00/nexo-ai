@@ -31,9 +31,7 @@ class UnknownActionOutcome(Exception):
 
 
 class RealActionExecutor:
-    def __init__(
-        self, *, catalog: ToolCatalog, executor: ToolExecutor, ids: UuidIdFactory
-    ) -> None:
+    def __init__(self, *, catalog: ToolCatalog, executor: ToolExecutor, ids: UuidIdFactory) -> None:
         self._catalog = catalog
         self._executor = executor
         self._ids = ids

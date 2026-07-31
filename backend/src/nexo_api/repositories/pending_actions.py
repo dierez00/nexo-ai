@@ -56,9 +56,7 @@ async def owner_context(tenant_id: int, action_id: str) -> RowMapping | None:
         where pa.action_id = :action_id and pa.tenant_id = :tenant_id
     """)
     async with read_session() as session:
-        result = await session.execute(
-            sql, {"tenant_id": tenant_id, "action_id": action_id}
-        )
+        result = await session.execute(sql, {"tenant_id": tenant_id, "action_id": action_id})
         return result.mappings().first()
 
 

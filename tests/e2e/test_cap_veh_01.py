@@ -383,6 +383,28 @@ async def test_the_surface_is_built_and_validates(runtime) -> None:
     assert {"Checklist", "CostSummary", "SlotPicker", "SourceList"} <= components
 
 
+async def test_the_surface_grows_across_stages_not_only_at_the_end(runtime) -> None:
+    """La persona ve algo antes del último nodo: verify, estimate y build_a2ui
+    agregan al mismo `surface_id` en vez de reemplazarlo (`a2ui.generated`)."""
+    result = await runtime.graph.invoke(citizen_request(MESSAGE))
+
+    assert result.surface is not None
+    surface_ids = {message.surface_id for message in result.surface.messages}
+    assert surface_ids == {result.surface.surface_id}, "una sola superficie por run"
+    update_pairs = sum(
+        1 for message in result.surface.messages if message.update_data_model is not None
+    )
+    assert update_pairs >= 3, "verify, estimate y build_a2ui deben aportar cada uno su etapa"
+
+    events = await runtime.events.read(RUN_ID)
+    stages = {
+        event.data.get("stage")
+        for event in events
+        if event.type.value == "a2ui.generated" and isinstance(event.data, dict)
+    }
+    assert {"verify", "estimate", "build_a2ui"} <= stages
+
+
 async def test_whatsapp_receives_a_numbered_fallback(fragments) -> None:
     """`DIE-F1-107`: el canal de texto recibe lista numerada."""
     evidence = next(iter(fragments.values()))

@@ -56,9 +56,7 @@ async def test_real_run_reaches_confirmation_and_persists_the_action() -> None:
     orchestrator = RealOrchestrator(assembly)
     sink = _CapturingSink()
 
-    result = await orchestrator.run(
-        _request(), InMemoryEventSink(), sink, tenant_id=1
-    )
+    result = await orchestrator.run(_request(), InMemoryEventSink(), sink, tenant_id=1)
 
     assert result.status is RunStatus.WAITING_CONFIRMATION
     assert result.estimate is not None

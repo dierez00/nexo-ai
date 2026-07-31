@@ -46,6 +46,7 @@ from nexo_contracts import (
     ChannelFallback,
     Domain,
     ErrorCode,
+    Estimate,
     EventStatus,
     EventType,
     EventVisibility,
@@ -755,6 +756,9 @@ class MVPGraph:
                 "total": len(outcome.verified_facts.facts),
             },
         )
+        run = await self._render_surface(
+            run, headline="Estamos verificando la información.", node=NODE_VERIFY
+        )
         run = await self.emitter.node_completed(run, NODE_VERIFY, duration_ms=0)
         return _graph(await self._persist(run, NODE_VERIFY))
 
@@ -777,6 +781,12 @@ class MVPGraph:
                 "estimate": outcome.estimate,
                 "warnings": [*run.warnings, *outcome.warnings],
             }
+        )
+        run = await self._render_surface(
+            run,
+            headline="Estamos calculando costos y tiempos.",
+            node=NODE_ESTIMATE,
+            estimate=run.estimate,
         )
         run = await self.emitter.node_completed(run, NODE_ESTIMATE, duration_ms=0)
         return _graph(await self._persist(run, NODE_ESTIMATE))
@@ -820,17 +830,28 @@ class MVPGraph:
             return _graph(await self._persist(run, NODE_BUILD_A2UI))
 
         run = await self.emitter.node_started(run, NODE_BUILD_A2UI)
-        surface = builder.build(
-            facts,
-            surface_id=self.ids.new_id("surf"),
-            channel=run.request.channel,
-            estimate=run.estimate,
-            pending_action=run.pending_action,
+        # Solo se ofrece un botón mientras la confirmación siga pendiente: tras
+        # ejecutarse (o cancelarse), reofrecerlo describiría un trámite que ya
+        # no puede volver a dispararse.
+        action = run.pending_action
+        awaiting = (
+            action
+            if action is not None and action.status is ActionStatus.PENDING_CONFIRMATION
+            else None
         )
+        run = await self._render_surface(
+            run,
+            headline="Esto es lo que encontré",
+            node=NODE_BUILD_A2UI,
+            estimate=run.estimate,
+            pending_action=awaiting,
+        )
+        surface = run.surface
+        assert surface is not None
 
         validation = None
         if self.deps.surface_validator is not None:
-            action_ids = frozenset({run.pending_action.action_id} if run.pending_action else set())
+            action_ids = frozenset({awaiting.action_id} if awaiting else set())
             validation = self.deps.surface_validator.validate(surface, run_action_ids=action_ids)
 
         if validation is not None and not validation.is_valid:
@@ -846,14 +867,11 @@ class MVPGraph:
                     ErrorCode.CONTRACT_INVALID, "la superficie no valida contra su catálogo"
                 ),
             )
-            run = run.model_copy(update={"fallback": self._fallback(run, "validation_failed")})
-        else:
             run = run.model_copy(
-                update={
-                    "surface": surface,
-                    "fallback": self._fallback(run, "channel_is_text_only"),
-                }
+                update={"surface": None, "fallback": self._fallback(run, "validation_failed")}
             )
+        else:
+            run = run.model_copy(update={"fallback": self._fallback(run, "channel_is_text_only")})
             run = await self.emitter.emit(
                 run,
                 EventType.A2UI_VALIDATED,
@@ -1003,6 +1021,48 @@ class MVPGraph:
 
     def _navigator(self, run: RunState) -> DomainNavigator | None:
         return self.deps.navigators.get(run.domain) if run.domain else None
+
+    async def _render_surface(
+        self,
+        run: RunState,
+        *,
+        headline: str,
+        node: str,
+        estimate: Estimate | None = None,
+        pending_action: ActionRequest | None = None,
+    ) -> RunState:
+        """Actualiza `run.surface` con lo que ya se sabe en esta etapa.
+
+        Cada llamada agrega un `updateDataModel` + `updateComponents` a la misma
+        superficie (`previous=run.surface`) en vez de reemplazarla: la persona
+        ve el checklist, luego el costo, luego la confirmación, sin esperar al
+        último nodo para tener algo en pantalla (§5.8 `a2ui.generated`).
+        """
+        builder = self.deps.surface_builder
+        facts = run.verified_facts
+        if builder is None or facts is None:
+            return run
+
+        surface_id = run.surface.surface_id if run.surface is not None else self.ids.new_id("surf")
+        surface = builder.build(
+            facts,
+            surface_id=surface_id,
+            channel=run.request.channel,
+            estimate=estimate,
+            pending_action=pending_action,
+            headline=headline,
+            warnings=tuple(run.warnings),
+            previous=run.surface,
+        )
+        run = run.model_copy(update={"surface": surface})
+        return await self.emitter.emit(
+            run,
+            EventType.A2UI_GENERATED,
+            actor_type=ActorType.SYSTEM,
+            actor_name="a2ui_builder",
+            status=EventStatus.SUCCEEDED,
+            data={"surface_id": surface.surface_id, "stage": node},
+        )
 
     # -- API pública ---------------------------------------------------------
 
