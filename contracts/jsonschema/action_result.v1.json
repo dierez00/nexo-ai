@@ -1,5 +1,351 @@
 {
+  "$defs": {
+    "ActionStatus": {
+      "enum": [
+        "pending_confirmation",
+        "confirmed",
+        "succeeded",
+        "failed",
+        "partial",
+        "cancelled"
+      ],
+      "title": "ActionStatus",
+      "type": "string"
+    },
+    "ErrorCode": {
+      "description": "Códigos de error estables (arquitectura §9.11).\n\nEl consumidor decide por `code`, nunca por el texto del mensaje.",
+      "enum": [
+        "VALIDATION_ERROR",
+        "AUTHENTICATION_REQUIRED",
+        "PERMISSION_DENIED",
+        "RESOURCE_NOT_FOUND",
+        "APPOINTMENT_CONFLICT",
+        "VERSION_CONFLICT",
+        "ACTION_CONFIRMATION_REQUIRED",
+        "RATE_LIMITED",
+        "BUDGET_EXCEEDED",
+        "PROVIDER_ERROR",
+        "MODEL_UNAVAILABLE",
+        "MODEL_OUTPUT_INVALID",
+        "TOOL_TIMEOUT",
+        "TOOL_NOT_FOUND",
+        "RUN_TIMEOUT",
+        "RUN_CANCELLED",
+        "UNKNOWN_OUTCOME",
+        "CONFIGURATION_INVALID",
+        "CONTRACT_INVALID"
+      ],
+      "title": "ErrorCode",
+      "type": "string"
+    },
+    "ErrorDetail": {
+      "additionalProperties": false,
+      "description": "Detalle accionable de un error, sin contenido sensible.",
+      "properties": {
+        "field": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ruta del campo que falló, en notación de puntos.",
+          "title": "Field"
+        },
+        "reason": {
+          "description": "Motivo estable y corto, en snake_case. Ejemplo: 'conflict'.",
+          "maxLength": 200,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "title": "ErrorDetail",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "NormalizedError": {
+      "additionalProperties": false,
+      "description": "Error normalizado que cruza cualquier frontera de Nexo IA.\n\n`outcome` es el campo que impide reintentos peligrosos: un `UNKNOWN`\nsignifica que no sabemos si la operación tuvo efecto, y por tanto nunca se\nreintenta de forma automática (`DIE-F0-035`).",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "details": {
+          "items": {
+            "$ref": "#/$defs/ErrorDetail"
+          },
+          "maxItems": 50,
+          "title": "Details",
+          "type": "array"
+        },
+        "message": {
+          "description": "Mensaje para operadores. Nunca incluye prompts, secretos ni PII.",
+          "maxLength": 500,
+          "title": "Message",
+          "type": "string"
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome",
+          "default": "known_failure",
+          "description": "Certeza sobre el efecto producido antes del fallo."
+        },
+        "retry_after_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After Ms"
+        },
+        "retryable": {
+          "description": "Si la operación puede reintentarse tal cual, sin intervención.",
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "title": "NormalizedError",
+      "type": "object"
+    },
+    "Outcome": {
+      "description": "Certeza sobre el efecto de una operación.\n\n`UNKNOWN` es el caso peligroso: un write con outcome desconocido nunca se\nreintenta automáticamente y produce `partial` (`DIE-F1-077`, `DIE-F1-081`).",
+      "enum": [
+        "known_success",
+        "known_failure",
+        "unknown"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "ToolCallStatus": {
+      "enum": [
+        "succeeded",
+        "failed",
+        "denied",
+        "timeout"
+      ],
+      "title": "ToolCallStatus",
+      "type": "string"
+    },
+    "ToolConfirmation": {
+      "additionalProperties": false,
+      "description": "Comprobante verificable de una escritura.\n\nSin folio, UUID o identificador equivalente no hay éxito: el resultado se\ndegrada a `partial` (`DIE-F1-078`).",
+      "properties": {
+        "identifier": {
+          "description": "Folio, UUID o identificador devuelto por el sistema destino.",
+          "maxLength": 120,
+          "minLength": 3,
+          "title": "Identifier",
+          "type": "string"
+        },
+        "identifier_kind": {
+          "default": "folio",
+          "maxLength": 40,
+          "title": "Identifier Kind",
+          "type": "string"
+        },
+        "is_mock": {
+          "default": true,
+          "title": "Is Mock",
+          "type": "boolean"
+        },
+        "issued_at": {
+          "format": "date-time",
+          "title": "Issued At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "identifier",
+        "issued_at"
+      ],
+      "title": "ToolConfirmation",
+      "type": "object"
+    },
+    "ToolError": {
+      "additionalProperties": false,
+      "description": "Error normalizado de una tool (§5.4).",
+      "properties": {
+        "error": {
+          "$ref": "#/$defs/NormalizedError"
+        },
+        "provider": {
+          "default": "mock",
+          "maxLength": 100,
+          "title": "Provider",
+          "type": "string"
+        },
+        "safe_details": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Safe Details",
+          "type": "object"
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "title": "ToolError",
+      "type": "object"
+    },
+    "ToolResult": {
+      "additionalProperties": false,
+      "description": "Resultado de una invocación (§5.4).",
+      "properties": {
+        "confirmation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ToolConfirmation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "data": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Data",
+          "type": "object"
+        },
+        "duration_ms": {
+          "maximum": 3600000,
+          "minimum": 0,
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ToolError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "idempotency_replayed": {
+          "default": false,
+          "title": "Idempotency Replayed",
+          "type": "boolean"
+        },
+        "is_mock": {
+          "default": true,
+          "title": "Is Mock",
+          "type": "boolean"
+        },
+        "name": {
+          "description": "Nombre `dominio.verbo_objeto`, por ejemplo 'vehiculos.reservar_cita'.",
+          "maxLength": 95,
+          "title": "Name",
+          "type": "string"
+        },
+        "provider": {
+          "default": "mock",
+          "maxLength": 100,
+          "title": "Provider",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/ToolCallStatus"
+        },
+        "tool_call_id": {
+          "maxLength": 66,
+          "minLength": 4,
+          "title": "Tool Call Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool_call_id",
+        "name",
+        "status",
+        "duration_ms"
+      ],
+      "title": "ToolResult",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/action_result.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "ActionResult"
+  "additionalProperties": false,
+  "description": "Resultado de ejecutar una acción confirmada (§5.1).",
+  "properties": {
+    "action_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Action Id",
+      "type": "string"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NormalizedError"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "idempotency_replayed": {
+      "default": false,
+      "title": "Idempotency Replayed",
+      "type": "boolean"
+    },
+    "status": {
+      "$ref": "#/$defs/ActionStatus"
+    },
+    "tool_call_id": {
+      "anyOf": [
+        {
+          "maxLength": 66,
+          "minLength": 4,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tool Call Id"
+    },
+    "tool_result": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ToolResult"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "action_id",
+    "status"
+  ],
+  "title": "ActionResult",
+  "type": "object"
 }

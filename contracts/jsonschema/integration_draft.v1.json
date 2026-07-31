@@ -1,5 +1,212 @@
 {
+  "$defs": {
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "IntegrationState": {
+      "description": "Ciclo de vida del MCP Mapper (`DIE-F3-011`).\n\nSe congela en Fase 0 aunque el Mapper sea trabajo de Fase 3: los estados\nforman parte de los contratos de §5.4 y no deben renegociarse después.",
+      "enum": [
+        "draft",
+        "parsed",
+        "validated",
+        "tested",
+        "approved",
+        "published",
+        "deprecated",
+        "rejected"
+      ],
+      "title": "IntegrationState",
+      "type": "string"
+    },
+    "RiskLevel": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "RiskLevel",
+      "type": "string"
+    },
+    "ToolMetadata": {
+      "additionalProperties": false,
+      "description": "Descriptor versionado de una tool (§5.4).\n\nLos valores por defecto niegan: modo lectura, riesgo bajo, sin roles\npermitidos. Una tool mal declarada no es invocable por nadie (`DIE-F0-032`).",
+      "properties": {
+        "allowed_roles": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Allowed Roles",
+          "type": "array"
+        },
+        "description": {
+          "default": "",
+          "maxLength": 500,
+          "title": "Description",
+          "type": "string"
+        },
+        "domain": {
+          "$ref": "#/$defs/Domain"
+        },
+        "input_schema_ref": {
+          "description": "Referencia inmutable a un JSON Schema publicado en `contracts`.",
+          "maxLength": 300,
+          "pattern": "^contracts://[a-z0-9_\\-./]+\\.v\\d+$",
+          "title": "Input Schema Ref",
+          "type": "string"
+        },
+        "is_mock": {
+          "default": true,
+          "title": "Is Mock",
+          "type": "boolean"
+        },
+        "max_attempts": {
+          "default": 1,
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "mode": {
+          "$ref": "#/$defs/ToolMode",
+          "default": "read"
+        },
+        "name": {
+          "description": "Nombre `dominio.verbo_objeto`, por ejemplo 'vehiculos.reservar_cita'.",
+          "maxLength": 95,
+          "title": "Name",
+          "type": "string"
+        },
+        "output_schema_ref": {
+          "description": "Referencia inmutable a un JSON Schema publicado en `contracts`.",
+          "maxLength": 300,
+          "pattern": "^contracts://[a-z0-9_\\-./]+\\.v\\d+$",
+          "title": "Output Schema Ref",
+          "type": "string"
+        },
+        "requires_confirmation": {
+          "default": false,
+          "title": "Requires Confirmation",
+          "type": "boolean"
+        },
+        "requires_idempotency_key": {
+          "default": false,
+          "title": "Requires Idempotency Key",
+          "type": "boolean"
+        },
+        "risk": {
+          "$ref": "#/$defs/RiskLevel",
+          "default": "low"
+        },
+        "timeout_ms": {
+          "default": 5000,
+          "maximum": 3600000,
+          "minimum": 0,
+          "title": "Timeout Ms",
+          "type": "integer"
+        },
+        "version": {
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "domain",
+        "input_schema_ref",
+        "output_schema_ref"
+      ],
+      "title": "ToolMetadata",
+      "type": "object"
+    },
+    "ToolMode": {
+      "description": "Modo de una tool. Solo `WRITE` puede producir efectos externos.",
+      "enum": [
+        "read",
+        "write",
+        "compute"
+      ],
+      "title": "ToolMode",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/integration_draft.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "IntegrationDraft"
+  "additionalProperties": false,
+  "description": "Borrador de integración del MCP Mapper (§5.4, ciclo de Fase 3).",
+  "properties": {
+    "auth_secret_ref": {
+      "anyOf": [
+        {
+          "description": "Referencia a un secreto resuelto fuera del repositorio (`DIE-F0-033`).",
+          "maxLength": 300,
+          "pattern": "^secret://[a-z0-9_\\-./]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Auth Secret Ref"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "domain": {
+      "$ref": "#/$defs/Domain"
+    },
+    "egress_allowlist": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 50,
+      "title": "Egress Allowlist",
+      "type": "array"
+    },
+    "integration_id": {
+      "maxLength": 68,
+      "minLength": 6,
+      "title": "Integration Id",
+      "type": "string"
+    },
+    "proposed_tools": {
+      "items": {
+        "$ref": "#/$defs/ToolMetadata"
+      },
+      "maxItems": 50,
+      "title": "Proposed Tools",
+      "type": "array"
+    },
+    "state": {
+      "$ref": "#/$defs/IntegrationState",
+      "default": "draft"
+    },
+    "title": {
+      "maxLength": 200,
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "integration_id",
+    "title",
+    "domain",
+    "created_at"
+  ],
+  "title": "IntegrationDraft",
+  "type": "object"
 }

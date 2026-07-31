@@ -33,7 +33,7 @@ def repository_root() -> Path:
 def schema_for(name: str) -> dict[str, Any]:
     """JSON Schema de un contrato, con `$id` estable y dialecto explícito."""
     model = CONTRACT_REGISTRY[name]
-    schema = model.model_json_schema(by_alias=True, mode="serialization")
+    schema = model.model_json_schema(by_alias=True, mode="validation")
     return {
         "$schema": SCHEMA_DIALECT,
         "$id": f"{SCHEMA_ID_PREFIX}/{CONTRACTS_SCHEMA_VERSION}/{name}.json",

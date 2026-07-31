@@ -1,5 +1,174 @@
 {
+  "$defs": {
+    "ModelCandidate": {
+      "additionalProperties": false,
+      "description": "Candidato considerado por el router, con su puntaje explicable.",
+      "properties": {
+        "alias": {
+          "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+          "pattern": "^[a-z][a-z0-9_]{2,40}$",
+          "title": "Alias",
+          "type": "string"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/ModelCapabilities"
+        },
+        "health": {
+          "$ref": "#/$defs/ModelHealth",
+          "default": "unknown"
+        },
+        "rejected_reason": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rejected Reason"
+        },
+        "score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Score",
+          "type": "number"
+        }
+      },
+      "required": [
+        "alias",
+        "capabilities",
+        "score"
+      ],
+      "title": "ModelCandidate",
+      "type": "object"
+    },
+    "ModelCapabilities": {
+      "additionalProperties": false,
+      "description": "Lo que un modelo puede hacer, en términos que el router entiende.",
+      "properties": {
+        "allows_sensitive_data": {
+          "default": false,
+          "description": "Si la política de datos permite enviarle contenido sensible.",
+          "title": "Allows Sensitive Data",
+          "type": "boolean"
+        },
+        "cost_per_1k_input_usd": {
+          "minimum": 0.0,
+          "title": "Cost Per 1K Input Usd",
+          "type": "number"
+        },
+        "cost_per_1k_output_usd": {
+          "minimum": 0.0,
+          "title": "Cost Per 1K Output Usd",
+          "type": "number"
+        },
+        "max_context_tokens": {
+          "maximum": 10000000,
+          "minimum": 1,
+          "title": "Max Context Tokens",
+          "type": "integer"
+        },
+        "max_output_tokens": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Max Output Tokens",
+          "type": "integer"
+        },
+        "supports_structured_output": {
+          "default": false,
+          "title": "Supports Structured Output",
+          "type": "boolean"
+        },
+        "supports_vision": {
+          "default": false,
+          "title": "Supports Vision",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "max_context_tokens",
+        "max_output_tokens",
+        "cost_per_1k_input_usd",
+        "cost_per_1k_output_usd"
+      ],
+      "title": "ModelCapabilities",
+      "type": "object"
+    },
+    "ModelDecisionReason": {
+      "description": "Motivo de la decisión del router; se registra en eventos sin revelar secretos.",
+      "enum": [
+        "policy_default",
+        "primary_provider_degraded",
+        "primary_provider_down",
+        "invalid_output_escalation",
+        "context_length_exceeded",
+        "budget_exhausted",
+        "deadline_exceeded",
+        "offline_profile"
+      ],
+      "title": "ModelDecisionReason",
+      "type": "string"
+    },
+    "ModelHealth": {
+      "enum": [
+        "healthy",
+        "degraded",
+        "down",
+        "unknown"
+      ],
+      "title": "ModelHealth",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/model_decision.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "ModelDecision"
+  "additionalProperties": false,
+  "description": "Decisión del router: qué se pidió, qué se usó y por qué (§5.6).",
+  "properties": {
+    "considered": {
+      "items": {
+        "$ref": "#/$defs/ModelCandidate"
+      },
+      "maxItems": 20,
+      "title": "Considered",
+      "type": "array"
+    },
+    "max_cost_usd": {
+      "minimum": 0.0,
+      "title": "Max Cost Usd",
+      "type": "number"
+    },
+    "policy_version": {
+      "maxLength": 40,
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "reason": {
+      "$ref": "#/$defs/ModelDecisionReason"
+    },
+    "requested_alias": {
+      "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+      "pattern": "^[a-z][a-z0-9_]{2,40}$",
+      "title": "Requested Alias",
+      "type": "string"
+    },
+    "selected_alias": {
+      "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+      "pattern": "^[a-z][a-z0-9_]{2,40}$",
+      "title": "Selected Alias",
+      "type": "string"
+    }
+  },
+  "required": [
+    "requested_alias",
+    "selected_alias",
+    "reason",
+    "policy_version",
+    "max_cost_usd"
+  ],
+  "title": "ModelDecision",
+  "type": "object"
 }

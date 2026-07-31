@@ -1,5 +1,171 @@
 {
+  "$defs": {
+    "Audience": {
+      "description": "Perfiles de destinatario. La personalización nunca altera hechos (`DIE-F4-079`).",
+      "enum": [
+        "citizen",
+        "senior",
+        "producer",
+        "business",
+        "public_servant",
+        "technical",
+        "low_digital_literacy"
+      ],
+      "title": "Audience",
+      "type": "string"
+    },
+    "DetectedIntent": {
+      "additionalProperties": false,
+      "description": "Una intención concreta dentro de la solicitud.\n\n`intent` es un slug estable (`renovar_licencia`, `consultar_adeudo`,\n`abrir_negocio`) y no texto libre: el catálogo, las skills y las\nevaluaciones lo usan como clave.",
+      "properties": {
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "domain": {
+          "$ref": "#/$defs/Domain"
+        },
+        "intent": {
+          "pattern": "^[a-z][a-z0-9_]{1,62}$",
+          "title": "Intent",
+          "type": "string"
+        },
+        "rationale": {
+          "default": "",
+          "description": "Por qué se detectó, en términos de lo que dijo la persona.",
+          "maxLength": 300,
+          "title": "Rationale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "intent",
+        "domain",
+        "confidence"
+      ],
+      "title": "DetectedIntent",
+      "type": "object"
+    },
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "JsonValue": {},
+    "OperationalUrgency": {
+      "description": "Urgencia **operativa** de una solicitud, no clínica ni jurídica.\n\nDescribe cuánto aprieta el plazo del trámite, y nada más. En salud (Fase 2)\nla distinción es crítica: `URGENT` significa «la cita vence mañana», nunca\n«esta persona necesita atención inmediata». Clasificar urgencia clínica\nsería diagnosticar, que está prohibido (§2.3).",
+      "enum": [
+        "routine",
+        "time_sensitive",
+        "urgent"
+      ],
+      "title": "OperationalUrgency",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/classification.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Classification"
+  "additionalProperties": false,
+  "description": "Salida del clasificador (F1.4).\n\nEs lo único que el supervisor necesita para planificar: qué dominios toca la\nsolicitud, qué quiere hacer la persona, qué contexto se pudo extraer y qué\nfalta por saber.",
+  "properties": {
+    "ambiguity_reason": {
+      "anyOf": [
+        {
+          "maxLength": 300,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ambiguity Reason"
+    },
+    "audience": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Audience"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Perfil deducido; nulo si el mensaje no lo sugiere."
+    },
+    "confidence": {
+      "default": 0.0,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "entities": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "description": "Datos sueltos extraídos del mensaje, sin PII directa.",
+      "title": "Entities",
+      "type": "object"
+    },
+    "intents": {
+      "description": "Intenciones detectadas, en orden de relevancia. Nunca se fusionan.",
+      "items": {
+        "$ref": "#/$defs/DetectedIntent"
+      },
+      "maxItems": 10,
+      "title": "Intents",
+      "type": "array"
+    },
+    "is_ambiguous": {
+      "default": false,
+      "description": "Hay dos lecturas materialmente distintas de la solicitud.",
+      "title": "Is Ambiguous",
+      "type": "boolean"
+    },
+    "is_out_of_scope": {
+      "default": false,
+      "description": "La solicitud no corresponde a ninguno de los dominios atendidos.",
+      "title": "Is Out Of Scope",
+      "type": "boolean"
+    },
+    "location": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Ubicación mencionada, tal cual la dijo la persona.",
+      "title": "Location"
+    },
+    "missing_information": {
+      "description": "Qué haría falta preguntar; el navegador decide si se pregunta.",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Missing Information",
+      "type": "array"
+    },
+    "urgency": {
+      "$ref": "#/$defs/OperationalUrgency",
+      "default": "routine"
+    }
+  },
+  "title": "Classification",
+  "type": "object"
 }

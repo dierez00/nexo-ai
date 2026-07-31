@@ -23,6 +23,7 @@ from pydantic import (
     model_serializer,
 )
 from pydantic.fields import FieldInfo
+from pydantic.json_schema import GetJsonSchemaHandler, JsonSchemaValue
 
 # Revisión del conjunto de contratos. Los cambios aditivos conservan esta
 # versión; eliminar o renombrar un campo exige publicar `v2` (`DIE-F0-007`).
@@ -65,6 +66,33 @@ class NexoModel(BaseModel):
                 if field.alias:
                     names.add(field.alias)
         return frozenset(names)
+
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls, core_schema: Any, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        """Excluye los campos internos del JSON Schema publicado.
+
+        `model_json_schema(mode="serialization")` no puede introspeccionar
+        `_strip_internal_fields` (un `model_serializer(mode="wrap")` sin tipo de
+        retorno declarado), así que `export.py` genera el schema en modo
+        `validation` y confía en este hook para aplicar la misma política de
+        wire que `apply_wire_policy` aplica en tiempo de ejecución.
+        """
+        json_schema = handler(core_schema)
+        json_schema = handler.resolve_ref_schema(json_schema)
+        internal = cls.internal_field_names()
+        if internal and "properties" in json_schema:
+            for name in list(json_schema["properties"]):
+                if name in internal:
+                    del json_schema["properties"][name]
+            if "required" in json_schema:
+                json_schema["required"] = [
+                    name for name in json_schema["required"] if name not in internal
+                ]
+                if not json_schema["required"]:
+                    del json_schema["required"]
+        return json_schema
 
     def apply_wire_policy(self, data: Any, info: SerializationInfo) -> Any:
         """Elimina los campos internos cuando se serializa en modo wire.

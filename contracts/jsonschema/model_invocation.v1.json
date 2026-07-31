@@ -1,5 +1,383 @@
 {
+  "$defs": {
+    "ErrorCode": {
+      "description": "Códigos de error estables (arquitectura §9.11).\n\nEl consumidor decide por `code`, nunca por el texto del mensaje.",
+      "enum": [
+        "VALIDATION_ERROR",
+        "AUTHENTICATION_REQUIRED",
+        "PERMISSION_DENIED",
+        "RESOURCE_NOT_FOUND",
+        "APPOINTMENT_CONFLICT",
+        "VERSION_CONFLICT",
+        "ACTION_CONFIRMATION_REQUIRED",
+        "RATE_LIMITED",
+        "BUDGET_EXCEEDED",
+        "PROVIDER_ERROR",
+        "MODEL_UNAVAILABLE",
+        "MODEL_OUTPUT_INVALID",
+        "TOOL_TIMEOUT",
+        "TOOL_NOT_FOUND",
+        "RUN_TIMEOUT",
+        "RUN_CANCELLED",
+        "UNKNOWN_OUTCOME",
+        "CONFIGURATION_INVALID",
+        "CONTRACT_INVALID"
+      ],
+      "title": "ErrorCode",
+      "type": "string"
+    },
+    "ErrorDetail": {
+      "additionalProperties": false,
+      "description": "Detalle accionable de un error, sin contenido sensible.",
+      "properties": {
+        "field": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ruta del campo que falló, en notación de puntos.",
+          "title": "Field"
+        },
+        "reason": {
+          "description": "Motivo estable y corto, en snake_case. Ejemplo: 'conflict'.",
+          "maxLength": 200,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "title": "ErrorDetail",
+      "type": "object"
+    },
+    "ModelCandidate": {
+      "additionalProperties": false,
+      "description": "Candidato considerado por el router, con su puntaje explicable.",
+      "properties": {
+        "alias": {
+          "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+          "pattern": "^[a-z][a-z0-9_]{2,40}$",
+          "title": "Alias",
+          "type": "string"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/ModelCapabilities"
+        },
+        "health": {
+          "$ref": "#/$defs/ModelHealth",
+          "default": "unknown"
+        },
+        "rejected_reason": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rejected Reason"
+        },
+        "score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Score",
+          "type": "number"
+        }
+      },
+      "required": [
+        "alias",
+        "capabilities",
+        "score"
+      ],
+      "title": "ModelCandidate",
+      "type": "object"
+    },
+    "ModelCapabilities": {
+      "additionalProperties": false,
+      "description": "Lo que un modelo puede hacer, en términos que el router entiende.",
+      "properties": {
+        "allows_sensitive_data": {
+          "default": false,
+          "description": "Si la política de datos permite enviarle contenido sensible.",
+          "title": "Allows Sensitive Data",
+          "type": "boolean"
+        },
+        "cost_per_1k_input_usd": {
+          "minimum": 0.0,
+          "title": "Cost Per 1K Input Usd",
+          "type": "number"
+        },
+        "cost_per_1k_output_usd": {
+          "minimum": 0.0,
+          "title": "Cost Per 1K Output Usd",
+          "type": "number"
+        },
+        "max_context_tokens": {
+          "maximum": 10000000,
+          "minimum": 1,
+          "title": "Max Context Tokens",
+          "type": "integer"
+        },
+        "max_output_tokens": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Max Output Tokens",
+          "type": "integer"
+        },
+        "supports_structured_output": {
+          "default": false,
+          "title": "Supports Structured Output",
+          "type": "boolean"
+        },
+        "supports_vision": {
+          "default": false,
+          "title": "Supports Vision",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "max_context_tokens",
+        "max_output_tokens",
+        "cost_per_1k_input_usd",
+        "cost_per_1k_output_usd"
+      ],
+      "title": "ModelCapabilities",
+      "type": "object"
+    },
+    "ModelDecision": {
+      "additionalProperties": false,
+      "description": "Decisión del router: qué se pidió, qué se usó y por qué (§5.6).",
+      "properties": {
+        "considered": {
+          "items": {
+            "$ref": "#/$defs/ModelCandidate"
+          },
+          "maxItems": 20,
+          "title": "Considered",
+          "type": "array"
+        },
+        "max_cost_usd": {
+          "minimum": 0.0,
+          "title": "Max Cost Usd",
+          "type": "number"
+        },
+        "policy_version": {
+          "maxLength": 40,
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/ModelDecisionReason"
+        },
+        "requested_alias": {
+          "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+          "pattern": "^[a-z][a-z0-9_]{2,40}$",
+          "title": "Requested Alias",
+          "type": "string"
+        },
+        "selected_alias": {
+          "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+          "pattern": "^[a-z][a-z0-9_]{2,40}$",
+          "title": "Selected Alias",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requested_alias",
+        "selected_alias",
+        "reason",
+        "policy_version",
+        "max_cost_usd"
+      ],
+      "title": "ModelDecision",
+      "type": "object"
+    },
+    "ModelDecisionReason": {
+      "description": "Motivo de la decisión del router; se registra en eventos sin revelar secretos.",
+      "enum": [
+        "policy_default",
+        "primary_provider_degraded",
+        "primary_provider_down",
+        "invalid_output_escalation",
+        "context_length_exceeded",
+        "budget_exhausted",
+        "deadline_exceeded",
+        "offline_profile"
+      ],
+      "title": "ModelDecisionReason",
+      "type": "string"
+    },
+    "ModelHealth": {
+      "enum": [
+        "healthy",
+        "degraded",
+        "down",
+        "unknown"
+      ],
+      "title": "ModelHealth",
+      "type": "string"
+    },
+    "NormalizedError": {
+      "additionalProperties": false,
+      "description": "Error normalizado que cruza cualquier frontera de Nexo IA.\n\n`outcome` es el campo que impide reintentos peligrosos: un `UNKNOWN`\nsignifica que no sabemos si la operación tuvo efecto, y por tanto nunca se\nreintenta de forma automática (`DIE-F0-035`).",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "details": {
+          "items": {
+            "$ref": "#/$defs/ErrorDetail"
+          },
+          "maxItems": 50,
+          "title": "Details",
+          "type": "array"
+        },
+        "message": {
+          "description": "Mensaje para operadores. Nunca incluye prompts, secretos ni PII.",
+          "maxLength": 500,
+          "title": "Message",
+          "type": "string"
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome",
+          "default": "known_failure",
+          "description": "Certeza sobre el efecto producido antes del fallo."
+        },
+        "retry_after_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After Ms"
+        },
+        "retryable": {
+          "description": "Si la operación puede reintentarse tal cual, sin intervención.",
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "title": "NormalizedError",
+      "type": "object"
+    },
+    "Outcome": {
+      "description": "Certeza sobre el efecto de una operación.\n\n`UNKNOWN` es el caso peligroso: un write con outcome desconocido nunca se\nreintenta automáticamente y produce `partial` (`DIE-F1-077`, `DIE-F1-081`).",
+      "enum": [
+        "known_success",
+        "known_failure",
+        "unknown"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/model_invocation.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "ModelInvocation"
+  "additionalProperties": false,
+  "description": "Registro de una invocación concreta (§5.6).\n\nEs la unidad de trazabilidad de costo del sistema: el gate de rendimiento\nexige que el 100% de los runs registren costo y tokens.",
+  "properties": {
+    "attempt": {
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Attempt",
+      "type": "integer"
+    },
+    "decision": {
+      "$ref": "#/$defs/ModelDecision"
+    },
+    "duration_ms": {
+      "maximum": 3600000,
+      "minimum": 0,
+      "title": "Duration Ms",
+      "type": "integer"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NormalizedError"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "estimated_cost_usd": {
+      "default": 0.0,
+      "minimum": 0.0,
+      "title": "Estimated Cost Usd",
+      "type": "number"
+    },
+    "input_tokens": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Input Tokens",
+      "type": "integer"
+    },
+    "invocation_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Invocation Id",
+      "type": "string"
+    },
+    "output_tokens": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Output Tokens",
+      "type": "integer"
+    },
+    "run_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_valid": {
+      "default": true,
+      "title": "Schema Valid",
+      "type": "boolean"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "trace_id": {
+      "maxLength": 69,
+      "minLength": 7,
+      "title": "Trace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "invocation_id",
+    "run_id",
+    "trace_id",
+    "decision",
+    "attempt",
+    "duration_ms",
+    "started_at"
+  ],
+  "title": "ModelInvocation",
+  "type": "object"
 }

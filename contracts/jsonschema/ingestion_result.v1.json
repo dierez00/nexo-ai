@@ -1,5 +1,78 @@
 {
+  "$defs": {
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "IngestionOutcome": {
+      "enum": [
+        "created",
+        "unchanged",
+        "superseded",
+        "rejected"
+      ],
+      "title": "IngestionOutcome",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/ingestion_result.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "IngestionResult"
+  "additionalProperties": false,
+  "description": "Reporte de una corrida de ingesta (§5.3).\n\nPermite verificar idempotencia: reingerir sin cambios produce solo\n`unchanged` y no crea chunks nuevos (`DIE-F1-019`).",
+  "properties": {
+    "checksums": {
+      "additionalProperties": {
+        "pattern": "^sha256:[a-f0-9]{64}$",
+        "type": "string"
+      },
+      "title": "Checksums",
+      "type": "object"
+    },
+    "chunks_created": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Chunks Created",
+      "type": "integer"
+    },
+    "corpus_version": {
+      "maxLength": 120,
+      "title": "Corpus Version",
+      "type": "string"
+    },
+    "domain": {
+      "$ref": "#/$defs/Domain"
+    },
+    "outcomes": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/IngestionOutcome"
+      },
+      "title": "Outcomes",
+      "type": "object"
+    },
+    "rejected_reasons": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Rejected Reasons",
+      "type": "array"
+    }
+  },
+  "required": [
+    "corpus_version",
+    "domain"
+  ],
+  "title": "IngestionResult",
+  "type": "object"
 }

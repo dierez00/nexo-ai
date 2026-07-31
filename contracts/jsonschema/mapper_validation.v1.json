@@ -1,5 +1,46 @@
 {
   "$id": "https://nexo.local/contracts/v1/mapper_validation.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "MapperValidation"
+  "additionalProperties": false,
+  "description": "Resultado de validar un borrador contra schemas y políticas.",
+  "properties": {
+    "blocked_reasons": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Blocked Reasons",
+      "type": "array"
+    },
+    "findings": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 200,
+      "title": "Findings",
+      "type": "array"
+    },
+    "integration_id": {
+      "maxLength": 68,
+      "minLength": 6,
+      "title": "Integration Id",
+      "type": "string"
+    },
+    "passed": {
+      "title": "Passed",
+      "type": "boolean"
+    },
+    "validated_at": {
+      "format": "date-time",
+      "title": "Validated At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "integration_id",
+    "passed",
+    "validated_at"
+  ],
+  "title": "MapperValidation",
+  "type": "object"
 }

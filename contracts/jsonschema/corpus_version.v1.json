@@ -1,5 +1,85 @@
 {
+  "$defs": {
+    "CorpusStatus": {
+      "enum": [
+        "draft",
+        "staged",
+        "active",
+        "rolled_back"
+      ],
+      "title": "CorpusStatus",
+      "type": "string"
+    },
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/corpus_version.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "CorpusVersion"
+  "additionalProperties": false,
+  "description": "Instantánea versionada del corpus de un dominio (§5.3).",
+  "properties": {
+    "chunk_count": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Chunk Count",
+      "type": "integer"
+    },
+    "corpus_version": {
+      "maxLength": 120,
+      "title": "Corpus Version",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "domain": {
+      "$ref": "#/$defs/Domain"
+    },
+    "source_ids": {
+      "items": {
+        "maxLength": 67,
+        "minLength": 5,
+        "type": "string"
+      },
+      "maxItems": 1000,
+      "title": "Source Ids",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/CorpusStatus"
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "maxLength": 120,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Supersedes"
+    }
+  },
+  "required": [
+    "corpus_version",
+    "domain",
+    "status",
+    "created_at"
+  ],
+  "title": "CorpusVersion",
+  "type": "object"
 }

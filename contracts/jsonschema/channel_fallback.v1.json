@@ -1,5 +1,61 @@
 {
+  "$defs": {
+    "Channel": {
+      "enum": [
+        "web",
+        "whatsapp",
+        "voice"
+      ],
+      "title": "Channel",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/channel_fallback.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "ChannelFallback"
+  "additionalProperties": false,
+  "description": "Representación segura cuando la superficie no puede renderizarse (§5.5).\n\nNunca queda vacío: si A2UI falla, el canal recibe texto plano equivalente en\nlugar de nada (`DIE-F1-106`).",
+  "properties": {
+    "action_hint": {
+      "anyOf": [
+        {
+          "maxLength": 300,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Action Hint"
+    },
+    "channel": {
+      "$ref": "#/$defs/Channel"
+    },
+    "numbered_items": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 50,
+      "title": "Numbered Items",
+      "type": "array"
+    },
+    "reason": {
+      "maxLength": 200,
+      "title": "Reason",
+      "type": "string"
+    },
+    "text": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "channel",
+    "reason",
+    "text"
+  ],
+  "title": "ChannelFallback",
+  "type": "object"
 }

@@ -1,5 +1,50 @@
 {
   "$id": "https://nexo.local/contracts/v1/approval.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Approval"
+  "additionalProperties": false,
+  "description": "Aprobación humana con actor, momento y versión aprobada.",
+  "properties": {
+    "approved_at": {
+      "format": "date-time",
+      "title": "Approved At",
+      "type": "string"
+    },
+    "approved_by": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Approved By",
+      "type": "string"
+    },
+    "diff_digest": {
+      "maxLength": 200,
+      "title": "Diff Digest",
+      "type": "string"
+    },
+    "integration_id": {
+      "maxLength": 68,
+      "minLength": 6,
+      "title": "Integration Id",
+      "type": "string"
+    },
+    "notes": {
+      "default": "",
+      "maxLength": 1000,
+      "title": "Notes",
+      "type": "string"
+    },
+    "version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "integration_id",
+    "approved_by",
+    "approved_at",
+    "diff_digest",
+    "version"
+  ],
+  "title": "Approval",
+  "type": "object"
 }

@@ -1,5 +1,45 @@
 {
   "$id": "https://nexo.local/contracts/v1/document.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Document"
+  "additionalProperties": false,
+  "description": "Archivo concreto asociado a una fuente.",
+  "properties": {
+    "document_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Document Id",
+      "type": "string"
+    },
+    "media_type": {
+      "maxLength": 100,
+      "title": "Media Type",
+      "type": "string"
+    },
+    "original_path": {
+      "description": "Ruta al archivo original preservado; la ingesta nunca lo sobrescribe.",
+      "maxLength": 500,
+      "title": "Original Path",
+      "type": "string"
+    },
+    "source_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Source Id",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 300,
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "document_id",
+    "source_id",
+    "title",
+    "media_type",
+    "original_path"
+  ],
+  "title": "Document",
+  "type": "object"
 }

@@ -154,6 +154,10 @@ class A2UIComponent(A2UIModel):
         absorbed["properties"] = merged
         return absorbed
 
+    # El JSON Schema exportado (contracts/jsonschema/a2ui_component.v1.json) describe
+    # la forma agrupada bajo `properties`, no la forma aplanada que produce este
+    # serializer: `model_json_schema` genera en modo `validation`, que nunca consulta
+    # serializers. No "arreglar" el schema a mano para reflejar el aplanado.
     @model_serializer(mode="wrap")
     def _flatten_protocol_properties(
         self,

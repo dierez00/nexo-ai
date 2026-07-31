@@ -1,5 +1,112 @@
 {
+  "$defs": {
+    "AgentName": {
+      "description": "Agentes de la matriz §13. El catálogo cerrado impide delegar a un agente inexistente.",
+      "enum": [
+        "classifier",
+        "supervisor",
+        "domain_navigator",
+        "verifier",
+        "estimator",
+        "transactional",
+        "writer",
+        "signal_analyst",
+        "judge",
+        "prompt_assistant"
+      ],
+      "title": "AgentName",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/agent_task.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "AgentTask"
+  "additionalProperties": false,
+  "description": "Tarea que el supervisor delega a un agente (§5.1).\n\n`allowed_sources` y `allowed_tools` son allowlists cerradas: el agente no\npuede ampliarlas, y el executor las revalida por su cuenta.",
+  "properties": {
+    "agent": {
+      "$ref": "#/$defs/AgentName"
+    },
+    "allowed_sources": {
+      "items": {
+        "maxLength": 67,
+        "minLength": 5,
+        "type": "string"
+      },
+      "maxItems": 200,
+      "title": "Allowed Sources",
+      "type": "array"
+    },
+    "allowed_tools": {
+      "items": {
+        "description": "Nombre `dominio.verbo_objeto`, por ejemplo 'vehiculos.reservar_cita'.",
+        "maxLength": 95,
+        "type": "string"
+      },
+      "maxItems": 50,
+      "title": "Allowed Tools",
+      "type": "array"
+    },
+    "attempt": {
+      "default": 1,
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Attempt",
+      "type": "integer"
+    },
+    "deadline_ms": {
+      "default": 6000,
+      "maximum": 3600000,
+      "minimum": 0,
+      "title": "Deadline Ms",
+      "type": "integer"
+    },
+    "input_refs": {
+      "items": {
+        "maxLength": 68,
+        "minLength": 6,
+        "type": "string"
+      },
+      "maxItems": 200,
+      "title": "Input Refs",
+      "type": "array"
+    },
+    "max_cost_usd": {
+      "default": 0.05,
+      "minimum": 0.0,
+      "title": "Max Cost Usd",
+      "type": "number"
+    },
+    "model_policy": {
+      "default": "general",
+      "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+      "pattern": "^[a-z][a-z0-9_]{2,40}$",
+      "title": "Model Policy",
+      "type": "string"
+    },
+    "objective": {
+      "maxLength": 500,
+      "title": "Objective",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 67,
+      "minLength": 5,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "task_id": {
+      "maxLength": 68,
+      "minLength": 6,
+      "title": "Task Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "task_id",
+    "run_id",
+    "agent",
+    "objective"
+  ],
+  "title": "AgentTask",
+  "type": "object"
 }

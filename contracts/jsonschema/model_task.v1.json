@@ -1,5 +1,89 @@
 {
+  "$defs": {
+    "ModelTaskKind": {
+      "description": "Tipo de tarea que consume el router para elegir política (`DIE-F3-001`).",
+      "enum": [
+        "classification",
+        "extraction",
+        "navigation",
+        "supervision",
+        "verification",
+        "drafting",
+        "vision",
+        "judge"
+      ],
+      "title": "ModelTaskKind",
+      "type": "string"
+    },
+    "RiskLevel": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "RiskLevel",
+      "type": "string"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/model_task.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "ModelTask"
+  "additionalProperties": false,
+  "description": "Solicitud de invocación tal como la formula un agente.",
+  "properties": {
+    "contains_sensitive_data": {
+      "default": false,
+      "title": "Contains Sensitive Data",
+      "type": "boolean"
+    },
+    "estimated_input_tokens": {
+      "maximum": 10000000,
+      "minimum": 0,
+      "title": "Estimated Input Tokens",
+      "type": "integer"
+    },
+    "latency_budget_ms": {
+      "default": 8000,
+      "maximum": 3600000,
+      "minimum": 0,
+      "title": "Latency Budget Ms",
+      "type": "integer"
+    },
+    "max_cost_usd": {
+      "default": 0.05,
+      "minimum": 0.0,
+      "title": "Max Cost Usd",
+      "type": "number"
+    },
+    "output_schema_ref": {
+      "maxLength": 300,
+      "title": "Output Schema Ref",
+      "type": "string"
+    },
+    "requested_alias": {
+      "description": "Alias lógico como 'high_accuracy' o 'structured_small'.",
+      "pattern": "^[a-z][a-z0-9_]{2,40}$",
+      "title": "Requested Alias",
+      "type": "string"
+    },
+    "requires_vision": {
+      "default": false,
+      "title": "Requires Vision",
+      "type": "boolean"
+    },
+    "risk": {
+      "$ref": "#/$defs/RiskLevel",
+      "default": "low"
+    },
+    "task_kind": {
+      "$ref": "#/$defs/ModelTaskKind"
+    }
+  },
+  "required": [
+    "task_kind",
+    "requested_alias",
+    "output_schema_ref",
+    "estimated_input_tokens"
+  ],
+  "title": "ModelTask",
+  "type": "object"
 }

@@ -1,5 +1,274 @@
 {
+  "$defs": {
+    "AgentName": {
+      "description": "Agentes de la matriz §13. El catálogo cerrado impide delegar a un agente inexistente.",
+      "enum": [
+        "classifier",
+        "supervisor",
+        "domain_navigator",
+        "verifier",
+        "estimator",
+        "transactional",
+        "writer",
+        "signal_analyst",
+        "judge",
+        "prompt_assistant"
+      ],
+      "title": "AgentName",
+      "type": "string"
+    },
+    "Domain": {
+      "description": "Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta lista se rechaza.",
+      "enum": [
+        "vehiculos",
+        "ayuntamiento_empresas",
+        "registro_civil",
+        "salud",
+        "ganaderia"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "SkillBudgets": {
+      "additionalProperties": false,
+      "description": "Presupuestos de la skill completa.",
+      "properties": {
+        "deadline_ms": {
+          "default": 20000,
+          "maximum": 3600000,
+          "minimum": 0,
+          "title": "Deadline Ms",
+          "type": "integer"
+        },
+        "max_concurrency": {
+          "default": 2,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Max Concurrency",
+          "type": "integer"
+        },
+        "max_cost_usd": {
+          "default": 0.2,
+          "minimum": 0.0,
+          "title": "Max Cost Usd",
+          "type": "number"
+        },
+        "max_questions": {
+          "default": 1,
+          "description": "Preguntas máximas admitidas; el gate de preguntas mínimas lo verifica.",
+          "maximum": 5,
+          "minimum": 0,
+          "title": "Max Questions",
+          "type": "integer"
+        }
+      },
+      "title": "SkillBudgets",
+      "type": "object"
+    },
+    "SkillStep": {
+      "additionalProperties": false,
+      "description": "Paso de una skill, con su paralelizabilidad declarada explícitamente.",
+      "properties": {
+        "agent": {
+          "$ref": "#/$defs/AgentName"
+        },
+        "deadline_ms": {
+          "default": 6000,
+          "maximum": 3600000,
+          "minimum": 0,
+          "title": "Deadline Ms",
+          "type": "integer"
+        },
+        "depends_on": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]{1,62}$",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Depends On",
+          "type": "array"
+        },
+        "max_attempts": {
+          "default": 1,
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "objective": {
+          "maxLength": 300,
+          "title": "Objective",
+          "type": "string"
+        },
+        "parallel_group": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Pasos con el mismo grupo pueden ejecutarse en paralelo.",
+          "title": "Parallel Group"
+        },
+        "step_id": {
+          "pattern": "^[a-z][a-z0-9_]{1,62}$",
+          "title": "Step Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "step_id",
+        "agent",
+        "objective"
+      ],
+      "title": "SkillStep",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/skill_manifest.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "SkillManifest"
+  "additionalProperties": false,
+  "description": "Manifiesto versionado de una skill operativa (§5.7).",
+  "properties": {
+    "a2ui_components": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 30,
+      "title": "A2Ui Components",
+      "type": "array"
+    },
+    "allowed_sources": {
+      "items": {
+        "maxLength": 67,
+        "minLength": 5,
+        "type": "string"
+      },
+      "maxItems": 200,
+      "title": "Allowed Sources",
+      "type": "array"
+    },
+    "allowed_tools": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 50,
+      "title": "Allowed Tools",
+      "type": "array"
+    },
+    "budgets": {
+      "$ref": "#/$defs/SkillBudgets"
+    },
+    "confirmation_required_for": {
+      "description": "Tools de escritura que exigen confirmación dentro de esta skill.",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Confirmation Required For",
+      "type": "array"
+    },
+    "domain": {
+      "$ref": "#/$defs/Domain"
+    },
+    "escalation_policy": {
+      "maxLength": 500,
+      "title": "Escalation Policy",
+      "type": "string"
+    },
+    "objective": {
+      "maxLength": 500,
+      "title": "Objective",
+      "type": "string"
+    },
+    "owner": {
+      "maxLength": 200,
+      "title": "Owner",
+      "type": "string"
+    },
+    "prompt_refs": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Prompt Refs",
+      "type": "array"
+    },
+    "question_conditions": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Question Conditions",
+      "type": "array"
+    },
+    "reusable_inputs": {
+      "items": {
+        "pattern": "^[a-z][a-z0-9_]{1,62}$",
+        "type": "string"
+      },
+      "maxItems": 50,
+      "title": "Reusable Inputs",
+      "type": "array"
+    },
+    "schema_refs": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Schema Refs",
+      "type": "array"
+    },
+    "skill_id": {
+      "maxLength": 69,
+      "minLength": 7,
+      "title": "Skill Id",
+      "type": "string"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/SkillStep"
+      },
+      "maxItems": 50,
+      "minItems": 1,
+      "title": "Steps",
+      "type": "array"
+    },
+    "success_criteria": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "minItems": 1,
+      "title": "Success Criteria",
+      "type": "array"
+    },
+    "title": {
+      "maxLength": 200,
+      "title": "Title",
+      "type": "string"
+    },
+    "version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "skill_id",
+    "version",
+    "title",
+    "domain",
+    "objective",
+    "owner",
+    "steps",
+    "success_criteria",
+    "escalation_policy"
+  ],
+  "title": "SkillManifest",
+  "type": "object"
 }

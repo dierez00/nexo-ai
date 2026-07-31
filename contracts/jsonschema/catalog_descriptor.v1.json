@@ -1,5 +1,84 @@
 {
+  "$defs": {
+    "ComponentDescriptor": {
+      "additionalProperties": false,
+      "description": "Descriptor de un componente permitido dentro de un catálogo (§5.5).",
+      "properties": {
+        "allows_children": {
+          "default": false,
+          "title": "Allows Children",
+          "type": "boolean"
+        },
+        "is_interactive": {
+          "default": false,
+          "description": "Si puede emitir una acción; obliga a validar action_id y permiso.",
+          "title": "Is Interactive",
+          "type": "boolean"
+        },
+        "name": {
+          "pattern": "^[A-Z][A-Za-z0-9]{1,40}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "schema_ref": {
+          "maxLength": 400,
+          "title": "Schema Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "schema_ref"
+      ],
+      "title": "ComponentDescriptor",
+      "type": "object"
+    }
+  },
   "$id": "https://nexo.local/contracts/v1/catalog_descriptor.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "CatalogDescriptor"
+  "additionalProperties": false,
+  "description": "Catálogo cerrado y versionado (§5.5).\n\nLa allowlist es exhaustiva: un componente ausente de `components` no puede\naparecer en ninguna superficie válida.",
+  "properties": {
+    "audience": {
+      "description": "'citizen' o 'admin'.",
+      "maxLength": 40,
+      "title": "Audience",
+      "type": "string"
+    },
+    "catalog_id": {
+      "description": "URN inmutable del catálogo negociado, por ejemplo 'urn:nexo-ia:a2ui:catalog:citizen:v1'.",
+      "maxLength": 200,
+      "pattern": "^urn:nexo-ia:a2ui:catalog:[a-z0-9_-]+:v\\d+$",
+      "title": "Catalog Id",
+      "type": "string"
+    },
+    "components": {
+      "items": {
+        "$ref": "#/$defs/ComponentDescriptor"
+      },
+      "maxItems": 200,
+      "minItems": 1,
+      "title": "Components",
+      "type": "array"
+    },
+    "title": {
+      "maxLength": 200,
+      "title": "Title",
+      "type": "string"
+    },
+    "version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "catalog_id",
+    "version",
+    "title",
+    "audience",
+    "components"
+  ],
+  "title": "CatalogDescriptor",
+  "type": "object"
 }
