@@ -1,0 +1,8 @@
+{
+  "approved_at": "2026-07-30T15:00:00Z",
+  "approved_by": "usr_admin_demo",
+  "diff_digest": "sha256:demo",
+  "integration_id": "intg_citas_demo",
+  "notes": "Aprobado para demostración con datos sintéticos.",
+  "version": "1.0"
+}

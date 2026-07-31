@@ -93,3 +93,27 @@ Ningún consumidor existente necesita cambiar.
 | `RunEvent.data` | Default explícito | El default vivía dentro de `SafePayload` e invisible para el análisis estático |
 | `RunState.classification`, `retrieval_results`, `proposed_tools`, `tool_results` | Campos internos opcionales | El checkpoint conserva toda entrada necesaria para reanudar en otro proceso |
 | `ActionRequest` | `cancelled` no exige consentimiento ni idempotency key | Cancelar antes de ejecutar no es autorizar una escritura |
+| `catalog_entity_telemetry` (nuevo) | `CatalogEntityTelemetry` / `CatalogTelemetryState` | Estado observable de una entidad del catálogo durante una ventana temporal; existía en código pero nunca se había publicado su ejemplo ni documentado aquí |
+
+## Fase 2 — herramientas de contrato
+
+Sin cambios de forma en ningún contrato existente; corrige la publicación de
+artefactos derivados y añade automatización.
+
+- `contracts/jsonschema/*.v1.json` y `contracts/events/*.v1.json` ahora publican
+  el schema real (`properties`, `required`, `type`) en vez de un stub opaco de 5
+  líneas. La causa era que `schema_for()` generaba en modo `serialization`, que
+  no puede introspeccionar un modelo con `model_serializer(mode="wrap")`;
+  ahora genera en modo `validation` y `NexoModel.__get_pydantic_json_schema__`
+  sigue excluyendo los campos `nexo_visibility: internal` del schema publicado.
+- Se añadieron ejemplos inválidos para invariantes que no tenían cobertura:
+  `approval`, `source`, `source_citation`, `tool_result`, `run_result`,
+  `judge_result`, `deterministic_evaluation_result`, `controlled_test_result`,
+  `ingestion_result`, `catalog_descriptor`, `component_descriptor`,
+  `a2ui_component`, `a2ui_action`, `a2ui_validation_result`,
+  `channel_fallback`.
+- `apps/web` genera sus tipos TypeScript directamente desde
+  `contracts/jsonschema/`/`contracts/events/` (`npm run generate:contracts`,
+  fuente en `apps/web/scripts/generate-contract-types.mjs`), en vez de mirrors
+  escritos a mano. Un job de CI (`frontend-contracts`) falla si el resultado
+  publicado se desincroniza del schema.
