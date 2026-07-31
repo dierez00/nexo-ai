@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Area,
   AreaChart,
@@ -15,6 +16,7 @@ import { AdminShell } from "@/components/nexo/admin-shell";
 import { StatusBadge } from "@/components/nexo/status-badge";
 import { tendencia } from "@/lib/mock";
 import { cn } from "@/lib/utils";
+import { apiFetch, type AdminCatalog, type MetricSet, type NexoConfigSummary } from "@/lib/api/client";
 
 const rangos = ["Hoy", "7 días", "30 días", "Trimestre"];
 
@@ -57,14 +59,84 @@ const dominios = [
   { nombre: "Ganadería", total: 188, tone: "warning" as const },
 ];
 
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("es-MX").format(value);
+}
+
+function formatMs(value: number) {
+  if (!value) return "0 ms";
+  if (value < 1000) return `${Math.round(value)} ms`;
+  return `${(value / 1000).toFixed(1)} s`;
+}
+
 export function AdminDashboard() {
   const [rango, setRango] = useState("7 días");
+  const metrics = useQuery({
+    queryKey: ["admin", "metrics", rango],
+    queryFn: () => apiFetch<MetricSet>("/api/v1/admin/metrics"),
+  });
+  const catalog = useQuery({
+    queryKey: ["admin", "catalog"],
+    queryFn: () => apiFetch<AdminCatalog>("/api/v1/admin/catalog"),
+  });
+  const config = useQuery({
+    queryKey: ["admin", "config"],
+    queryFn: () => apiFetch<NexoConfigSummary>("/api/v1/admin/config"),
+  });
+
+  const realMetricas = metrics.data
+    ? [
+        {
+          label: "Runs ejecutados",
+          valor: formatNumber(metrics.data.runs.total),
+          delta: `${formatNumber(metrics.data.conversations_total)} conversaciones`,
+          up: true,
+          nota: "ventana actual",
+        },
+        {
+          label: "Latencia promedio",
+          valor: formatMs(metrics.data.runs.avg_latency_ms),
+          delta: `$${metrics.data.runs.total_cost_usd.toFixed(4)}`,
+          up: false,
+          nota: "costo total",
+        },
+        {
+          label: "Acciones",
+          valor: formatNumber(metrics.data.actions.total),
+          delta: Object.keys(metrics.data.actions.by_status).join(", ") || "sin estados",
+          up: true,
+          nota: "por confirmar/ejecutadas",
+        },
+        {
+          label: "Citas",
+          valor: formatNumber(metrics.data.appointments.total),
+          delta: Object.keys(metrics.data.appointments.by_status).join(", ") || "sin estados",
+          up: true,
+          nota: "holds y reservas",
+        },
+      ]
+    : metricas;
+
+  const realDominios = metrics.data
+    ? Object.entries(metrics.data.runs.by_domain).map(([nombre, total]) => ({
+        nombre,
+        total,
+        tone: "accent" as const,
+      }))
+    : dominios;
+
+  const maxDominio = Math.max(1, ...realDominios.map((item) => item.total));
+  const usingFallback = Boolean(metrics.error || catalog.error || config.error);
 
   return (
     <AdminShell
       title="Dashboard"
       subtitle="Operación de los cinco dominios habilitados"
-      actions={<StatusBadge tone="success">Servicios operativos</StatusBadge>}
+      actions={
+        <StatusBadge tone={usingFallback ? "warning" : "success"}>
+          {usingFallback ? "Mostrando fallback" : "API conectada"}
+        </StatusBadge>
+      }
     >
       <div className="mb-5 flex flex-wrap gap-2">
         {rangos.map((r) => (
@@ -82,12 +154,16 @@ export function AdminDashboard() {
           </button>
         ))}
         <span className="mono self-center px-1 text-xs text-muted-foreground">
-          24 jul – 30 jul 2026
+          {metrics.data
+            ? `${new Date(metrics.data.window.start).toLocaleDateString("es-MX")} – ${new Date(
+                metrics.data.window.end,
+              ).toLocaleDateString("es-MX")}`
+            : "24 jul – 30 jul 2026"}
         </span>
       </div>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {metricas.map((m) => (
+        {realMetricas.map((m) => (
           <article
             key={m.label}
             className="rounded-2xl border border-border bg-card p-5 shadow-soft"
@@ -170,7 +246,7 @@ export function AdminDashboard() {
             Volumen por dominio
           </h2>
           <ul className="mt-4 space-y-4">
-            {dominios.map((d) => (
+            {realDominios.map((d) => (
               <li key={d.nombre}>
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                   <span className="truncate text-sm">{d.nombre}</span>
@@ -179,12 +255,49 @@ export function AdminDashboard() {
                 <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full rounded-full bg-accent"
-                    style={{ width: `${(d.total / 842) * 100}%` }}
+                    style={{ width: `${(d.total / maxDominio) * 100}%` }}
                   />
                 </div>
               </li>
             ))}
           </ul>
+        </article>
+      </section>
+
+      <section className="mt-4 grid gap-4 lg:grid-cols-2">
+        <article className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Catálogo operativo
+          </h2>
+          <dl className="mt-4 grid grid-cols-3 gap-3 text-sm">
+            <div>
+              <dt className="text-xs text-muted-foreground">Módulos</dt>
+              <dd className="mono mt-1 text-lg font-semibold">
+                {catalog.data?.modules.length ?? "—"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Roles</dt>
+              <dd className="mono mt-1 text-lg font-semibold">{catalog.data?.roles.length ?? "—"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Permisos</dt>
+              <dd className="mono mt-1 text-lg font-semibold">
+                {catalog.data?.permissions.length ?? "—"}
+              </dd>
+            </div>
+          </dl>
+        </article>
+
+        <article className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Configuración canónica
+          </h2>
+          <p className="mt-4 text-sm text-muted-foreground">
+            {config.data
+              ? `${Object.keys(config.data).length} bloques cargados desde /api/v1/admin/config.`
+              : "Se mostrará cuando el backend responda con la configuración del tenant."}
+          </p>
         </article>
       </section>
     </AdminShell>

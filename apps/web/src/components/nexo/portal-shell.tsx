@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, MessageSquare, Mic, ShieldCheck } from "lucide-react";
+import { Home, LogOut, MessageSquare, Mic, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AuthGate, useAuth } from "@/lib/auth/session";
 import { ThemeToggle } from "./theme-toggle";
 
 const nav = [
@@ -25,9 +26,11 @@ export function PortalShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { profile, logout } = useAuth();
 
   return (
-    <div className={cn("min-h-screen bg-background pb-20 md:pb-0", bleed && "flex flex-col")}>
+    <AuthGate>
+      <div className={cn("min-h-screen bg-background pb-20 md:pb-0", bleed && "flex flex-col")}>
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur">
         <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
           <Link href="/portal" className="min-w-0">
@@ -52,7 +55,17 @@ export function PortalShell({
                 );
               })}
             </nav>
+            <span className="hidden max-w-36 truncate text-xs text-muted-foreground sm:inline">
+              {profile?.name ?? profile?.email}
+            </span>
             <ThemeToggle />
+            <button
+              onClick={logout}
+              aria-label="Cerrar sesión"
+              className="grid size-8 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <LogOut className="size-3.5" />
+            </button>
           </div>
         </div>
       </header>
@@ -95,6 +108,7 @@ export function PortalShell({
           })}
         </ul>
       </nav>
-    </div>
+      </div>
+    </AuthGate>
   );
 }
