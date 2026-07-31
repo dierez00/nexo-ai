@@ -73,9 +73,7 @@ def test_domain_fixtures_are_published() -> None:
     """Los dos recorridos MVP tienen fixtures consumibles (`DIE-F0-029`)."""
     root = repository_root()
     vehiculos = sorted((root / "domains" / "vehiculos" / "fixtures").glob("*.json"))
-    empresas = sorted(
-        (root / "domains" / "ayuntamiento_empresas" / "fixtures").glob("*.json")
-    )
+    empresas = sorted((root / "domains" / "ayuntamiento_empresas" / "fixtures").glob("*.json"))
     assert vehiculos, "faltan fixtures de vehículos"
     assert empresas, "faltan fixtures de apertura de empresas"
 

@@ -77,3 +77,19 @@ Primera publicación. Congela los contratos de la sección 5 del plan de Fase 0.
 - Los campos marcados como internos (`nexo_visibility: internal`) existen en el
   estado serializado pero se eliminan en `model_dump_wire()` y no aparecen en
   `RunResult`.
+
+## Fase 1 — cambios aditivos sobre `v1`
+
+Todos compatibles según §1 de `docs/architecture/conventions.md`: campos
+opcionales nuevos, miembros nuevos de enum y relajación de restricciones.
+Ningún consumidor existente necesita cambiar.
+
+| Contrato | Cambio | Motivo |
+|---|---|---|
+| `classification` (nuevo) | Contrato de salida del clasificador | Cierra el hueco H-08 de Fase 0; `FakeClassification` desaparece |
+| `OperationalUrgency` (enum nuevo) | `routine` / `time_sensitive` / `urgent` | Urgencia **operativa**; en salud nunca describe una condición clínica |
+| `VerifiedFact.supporting_tool_call_id` | Campo opcional nuevo | Un hecho crítico puede fundamentarse en una tool, no solo en un documento (H1-17) |
+| `VerifiedFact` | La invariante de evidencia se relaja a «citación activa **o** tool» | Sin ello, el resultado de una escritura era inexpresable |
+| `RunEvent.data` | Default explícito | El default vivía dentro de `SafePayload` e invisible para el análisis estático |
+| `RunState.classification`, `retrieval_results`, `proposed_tools`, `tool_results` | Campos internos opcionales | El checkpoint conserva toda entrada necesaria para reanudar en otro proceso |
+| `ActionRequest` | `cancelled` no exige consentimiento ni idempotency key | Cancelar antes de ejecutar no es autorizar una escritura |

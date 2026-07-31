@@ -28,6 +28,7 @@ from .a2ui import (
     UpdateDataModel,
 )
 from .base import NexoModel
+from .classification import Classification, DetectedIntent
 from .enums import (
     A2UIValidationOutcome,
     ActionStatus,
@@ -49,6 +50,7 @@ from .enums import (
     ModelDecisionReason,
     ModelHealth,
     ModelTaskKind,
+    OperationalUrgency,
     Outcome,
     RetrievalMode,
     RiskLevel,
@@ -414,6 +416,32 @@ def _valid_examples() -> dict[str, NexoModel]:
             self_check=SelfCheckResult(schema_valid=True),
             confidence=0.96,
         ),
+        # El ejemplo canónico es el caso oficial `CAP-VEH-01`: dos intenciones
+        # que deben conservarse separadas (`DIE-F1-032`).
+        "classification": Classification(
+            intents=[
+                DetectedIntent(
+                    intent="renovar_licencia",
+                    domain=Domain.VEHICULOS,
+                    confidence=0.94,
+                    rationale="La persona dice explícitamente que quiere renovar.",
+                ),
+                DetectedIntent(
+                    intent="consultar_adeudo",
+                    domain=Domain.VEHICULOS,
+                    confidence=0.88,
+                    rationale=(
+                        "«saber si debo algo» es una consulta de adeudo, no parte de la renovación."
+                    ),
+                ),
+            ],
+            location="Durango",
+            audience=Audience.CITIZEN,
+            urgency=OperationalUrgency.ROUTINE,
+            entities={"tipo_licencia": "A"},
+            missing_information=["numero_de_licencia"],
+            confidence=0.91,
+        ),
         "action_request": RESERVE_ACTION,
         "action_result": ActionResult(
             action_id="act_reserve_01",
@@ -571,7 +599,9 @@ def _valid_examples() -> dict[str, NexoModel]:
             title="Citas de demostración",
             domain=Domain.VEHICULOS,
             proposed_tools=[RESERVE_TOOL],
-            auth_secret_ref="secret://demo/citas/token",
+            # No es un secreto sino una referencia a uno: el valor se resuelve
+            # fuera del repositorio (`DIE-F0-033`). El linter no distingue.
+            auth_secret_ref="secret://demo/citas/token",  # noqa: S106
             egress_allowlist=["example.invalid"],
             created_at=FIXED_NOW,
         ),

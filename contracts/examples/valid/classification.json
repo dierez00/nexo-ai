@@ -1,0 +1,29 @@
+{
+  "ambiguity_reason": null,
+  "audience": "citizen",
+  "confidence": 0.91,
+  "entities": {
+    "tipo_licencia": "A"
+  },
+  "intents": [
+    {
+      "confidence": 0.94,
+      "domain": "vehiculos",
+      "intent": "renovar_licencia",
+      "rationale": "La persona dice explícitamente que quiere renovar."
+    },
+    {
+      "confidence": 0.88,
+      "domain": "vehiculos",
+      "intent": "consultar_adeudo",
+      "rationale": "«saber si debo algo» es una consulta de adeudo, no parte de la renovación."
+    }
+  ],
+  "is_ambiguous": false,
+  "is_out_of_scope": false,
+  "location": "Durango",
+  "missing_information": [
+    "numero_de_licencia"
+  ],
+  "urgency": "routine"
+}

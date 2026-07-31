@@ -189,6 +189,10 @@
       "contract": "chunk",
       "file": "valid/chunk.json"
     },
+    "classification": {
+      "contract": "classification",
+      "file": "valid/classification.json"
+    },
     "component_descriptor": {
       "contract": "component_descriptor",
       "file": "valid/component_descriptor.json"
