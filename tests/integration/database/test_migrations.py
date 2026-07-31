@@ -16,6 +16,8 @@ EXPECTED_TABLES = {
     "files", "invoices", "payments", "sources", "documents", "chunks",
     "appointments", "conversations", "messages", "runs", "run_events",
     "actions", "langgraph_checkpoints", "judge_results",
+    "tools", "tool_calls", "metric_sets", "voice_sessions",
+    "prompt_versions", "corpus_versions", "contradictions",
 }
 
 

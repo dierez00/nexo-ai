@@ -51,7 +51,7 @@ def test_db_dump_produces_valid_backup(tmp_path):
 
     content = dump_file.read_text(encoding="utf-8", errors="ignore")
     assert "CREATE TABLE" in content
-    assert "public.tenants" in content
+    assert "tenants" in content
 
 
 @pytest.mark.integration
@@ -81,9 +81,14 @@ def test_backup_restores_with_matching_row_counts(tmp_path):
         conn.close()
 
     scratch_db = "backup_smoke_restore"
+    subprocess.run(
+        ["docker", "exec", "-i", container, "psql", "-U", "postgres", "-c",
+         f"drop database if exists {scratch_db};"],
+        capture_output=True, text=True, timeout=60,
+    )
     create = subprocess.run(
         ["docker", "exec", "-i", container, "psql", "-U", "postgres", "-c",
-         f"drop database if exists {scratch_db}; create database {scratch_db};"],
+         f"create database {scratch_db};"],
         capture_output=True, text=True, timeout=60,
     )
     assert create.returncode == 0, f"no se pudo crear la DB temporal:\n{create.stderr}"

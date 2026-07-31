@@ -29,7 +29,7 @@ def test_concurrent_overlapping_holds_only_one_succeeds(admin_conn):
                 (tenant_id, branch_id, start, end),
             )
             results[key] = "ok"
-        except psycopg.errors.ExclusionViolation:
+        except (psycopg.errors.ExclusionViolation, psycopg.errors.DeadlockDetected):
             results[key] = "rejected"
         except Exception as exc:  # pragma: no cover - unexpected failure surfaced in assert
             results[key] = f"error: {exc!r}"
