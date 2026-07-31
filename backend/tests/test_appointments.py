@@ -22,6 +22,8 @@ ADMIN = UserProfile(
     role="admin",
     permissions=["vehiculos.read", "vehiculos.write"],
 )
+KEY = "idem-hold-123"
+_RECORD = {"id": 1, "request_hash": "hash", "status": "processing"}
 
 
 def _client(user: UserProfile) -> TestClient:
@@ -76,9 +78,15 @@ def test_create_hold_ok(client: TestClient) -> None:
             "nexo_api.services.appointments.service.appts_repo.create_hold",
             new=AsyncMock(return_value=row),
         ),
+        patch(
+            "nexo_api.services.appointments.service.idempotency.claim",
+            new=AsyncMock(return_value=(_RECORD, True)),
+        ),
+        patch("nexo_api.services.appointments.service.idempotency_repo.complete", new=AsyncMock()),
     ):
         resp = client.post(
             "/api/v1/appointments/holds",
+            headers={"Idempotency-Key": KEY},
             json={
                 "branch_id": 1,
                 "module_code": "vehiculos",
@@ -103,9 +111,15 @@ def test_create_hold_overlap_409(client: TestClient) -> None:
             "nexo_api.services.appointments.service.appts_repo.create_hold",
             new=AsyncMock(side_effect=err),
         ),
+        patch(
+            "nexo_api.services.appointments.service.idempotency.claim",
+            new=AsyncMock(return_value=(_RECORD, True)),
+        ),
+        patch("nexo_api.services.appointments.service.idempotency_repo.complete", new=AsyncMock()),
     ):
         resp = client.post(
             "/api/v1/appointments/holds",
+            headers={"Idempotency-Key": KEY},
             json={
                 "branch_id": 1,
                 "module_code": "vehiculos",
@@ -125,6 +139,7 @@ def test_create_hold_unknown_branch_404(client: TestClient) -> None:
     ):
         resp = client.post(
             "/api/v1/appointments/holds",
+            headers={"Idempotency-Key": KEY},
             json={
                 "branch_id": 999,
                 "module_code": "vehiculos",
@@ -134,6 +149,20 @@ def test_create_hold_unknown_branch_404(client: TestClient) -> None:
             },
         )
     assert resp.status_code == 404
+
+
+def test_create_hold_requires_idempotency_key(client: TestClient) -> None:
+    resp = client.post(
+        "/api/v1/appointments/holds",
+        json={
+            "branch_id": 1,
+            "module_code": "vehiculos",
+            "service_name": "renovacion",
+            "starts_at": "2026-08-01T10:00:00Z",
+            "ends_at": "2026-08-01T10:30:00Z",
+        },
+    )
+    assert resp.status_code == 400
 
 
 def test_availability_permission_denied_403() -> None:

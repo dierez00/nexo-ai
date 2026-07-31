@@ -3,10 +3,6 @@
 from __future__ import annotations
 
 from nexo_api.services.orchestration.fake import FakeOrchestrator
-from nexo_api.services.orchestration.port import (
-    EmittedEvent,
-    OrchestrationResult,
-    Orchestrator,
-)
+from nexo_api.services.orchestration.port import Orchestrator, PendingActionSink
 
-__all__ = ["EmittedEvent", "FakeOrchestrator", "OrchestrationResult", "Orchestrator"]
+__all__ = ["FakeOrchestrator", "Orchestrator", "PendingActionSink"]

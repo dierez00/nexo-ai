@@ -1701,3 +1701,12 @@ config/permissions.yaml
 ---
 
 Este diseño prioriza un recorrido funcional, verificable y reproducible. La complejidad distribuida se introduce únicamente cuando una medición o integración real la justifique.
+
+## Actualización de materialización — 2026-07-30
+
+Ya están materializados el workspace `uv`, `.env.example`, Dockerfile/Compose,
+CI inicial, API FastAPI, adapters base, logs JSONL y runbook. El backend reserva
+la idempotencia de acciones y holds en un ledger multi-tenant; los eventos de run
+se persisten con secuencia por run y SSE los entrega en vivo mediante una tarea
+en proceso. No hay worker o cola durable todavía: ese límite se mantiene para la
+fase Pro/Extremo. Ver ADR 0007 y el plan de Dani para el estado operativo.

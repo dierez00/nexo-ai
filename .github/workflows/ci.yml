@@ -22,8 +22,46 @@ jobs:
       - name: Sync workspace
         run: uv sync --all-packages --frozen
 
+      - name: Verify lockfile
+        run: uv lock --check
+
       - name: Lint (ruff + mypy)
         run: bash scripts/lint.sh
 
       - name: Tests (pytest)
         run: bash scripts/test.sh
+
+  supabase-migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v2
+        with:
+          # config.toml uses the current CLI schema (Postgres 17, local_smtp,
+          # OAuth server, pgdelta, etc.).  Keep the CLI explicit so CI does not
+          # fall back to an older parser.
+          version: "2.110.0"
+
+      - name: Start local Supabase and apply migrations
+        run: supabase start && supabase db reset
+
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.0"
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Sync workspace and verify lockfile
+        run: uv sync --all-packages --frozen && uv lock --check
+
+      - name: Contracts suite
+        run: uv run --package nexo-contracts pytest contracts/tests

@@ -72,6 +72,12 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
     otel_exporter_otlp_endpoint: str = ""
 
+    # Ejecuci\u00f3n local de runs / idempotencia (MVP sin cola externa).
+    run_shutdown_grace_seconds: int = Field(default=15, ge=1, le=120)
+    sse_poll_interval_ms: int = Field(default=500, ge=100, le=5000)
+    sse_keepalive_seconds: int = Field(default=15, ge=1, le=60)
+    idempotency_processing_ttl_seconds: int = Field(default=300, ge=30, le=3600)
+
     @property
     def is_production(self) -> bool:
         return self.app_env == "production"

@@ -1,24 +1,12 @@
-"""Esquemas de acciones y confirmación (§9.2, §13)."""
+"""DTO HTTP para confirmar una acción pendiente canónica."""
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any
-
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ConfirmActionRequest(BaseModel):
-    consent: bool = False
-    input: dict[str, Any] = Field(default_factory=dict)
-    expected_version: int | None = None
+    model_config = ConfigDict(extra="forbid")
 
-
-class ActionResult(BaseModel):
-    action_id: str
-    idempotency_key: str
-    action_name: str
-    status: str
-    folio: str | None = None
-    result: dict[str, Any] = Field(default_factory=dict)
-    created_at: datetime
+    consent: bool = Field(default=False)
+    expected_version: int = Field(ge=1)

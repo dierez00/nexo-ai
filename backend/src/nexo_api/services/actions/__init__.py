@@ -3,6 +3,6 @@
 from __future__ import annotations
 
 from nexo_api.services.actions.fake import FakeActionExecutor
-from nexo_api.services.actions.port import ActionExecution, ActionExecutor
+from nexo_api.services.actions.port import ActionExecutor
 
-__all__ = ["ActionExecution", "ActionExecutor", "FakeActionExecutor"]
+__all__ = ["ActionExecutor", "FakeActionExecutor"]

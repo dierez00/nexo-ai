@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from nexo_api.core.middleware import TRACE_HEADER
+from nexo_contracts import HTTP_STATUS_BY_ERROR_CODE, RETRYABLE_ERROR_CODES, ErrorCode
 
 
 class ProblemDetail(BaseModel):
@@ -32,19 +33,31 @@ class ProblemException(Exception):
     def __init__(
         self,
         *,
-        status: int,
-        code: str,
+        code: ErrorCode | str,
         title: str,
         detail: str | None = None,
-        retryable: bool = False,
+        retryable: bool | None = None,
         errors: list[dict[str, Any]] | None = None,
+        status: int | None = None,
     ) -> None:
+        # La tabla de contratos es la autoridad: los callers no pueden escoger
+        # un HTTP/retryable incompatible con el código que publican.
+        # `status` se mantiene transitoriamente para no romper routers que aún
+        # lo pasen; nunca se usa para construir la respuesta.
+        del status, retryable
+        try:
+            canonical_code = ErrorCode(code)
+        except ValueError:
+            # Un adapter externo no controla la taxonomía HTTP. Evitamos que un
+            # texto arbitrario escape al cliente como código de contrato.
+            canonical_code = ErrorCode.PROVIDER_ERROR
+        derived_retryable = canonical_code in RETRYABLE_ERROR_CODES
         self.problem = ProblemDetail(
             title=title,
-            status=status,
-            code=code,
+            status=HTTP_STATUS_BY_ERROR_CODE.get(canonical_code, 500),
+            code=canonical_code.value,
             detail=detail,
-            retryable=retryable,
+            retryable=derived_retryable,
             errors=errors or [],
         )
         super().__init__(detail or title)

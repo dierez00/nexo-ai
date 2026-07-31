@@ -1,9 +1,8 @@
-"""Tests de confirmación de acciones (idempotencia, consentimiento, RBAC)."""
+"""Confirmación de acciones canónicas, sin dobles de esquema local."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator
-from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -11,6 +10,15 @@ from fastapi.testclient import TestClient
 from nexo_api.api.deps import get_current_user
 from nexo_api.main import create_app
 from nexo_api.schemas.auth import UserProfile
+
+from nexo_contracts import (
+    ActionRequest,
+    ActionResult,
+    ActionStatus,
+    ToolCallStatus,
+    ToolConfirmation,
+    ToolResult,
+)
 
 ADMIN = UserProfile(
     user_id="1",
@@ -21,19 +29,30 @@ ADMIN = UserProfile(
     role="admin",
     permissions=["vehiculos.write"],
 )
-
-ACTION = "vehiculos.reservar_cita"
 KEY = "idem-key-123"
-
-_ROW = {
-    "id": 5,
-    "idempotency_key": KEY,
-    "action_name": ACTION,
-    "status": "completed",
-    "result_folio": "FOLIO-ABCD1234",
-    "result_payload": {"echo": {}},
-    "created_at": datetime.now(UTC),
-}
+REQUEST = ActionRequest(
+    action_id="act_5",
+    run_id="run_42",
+    tool_name="vehiculos.reservar_cita",
+    input_schema_ref="contracts://vehiculos/reservar_cita.v1",
+    tool_version="1.0.0",
+    expected_version=1,
+    parameters={"slot": "10:00"},
+    required_permission="vehiculos.write",
+)
+ROW = {"request": REQUEST.model_dump(mode="json"), "status": "pending_confirmation"}
+RESULT = ActionResult(
+    action_id="act_5",
+    status=ActionStatus.SUCCEEDED,
+    tool_call_id="tc_5",
+    tool_result=ToolResult(
+        tool_call_id="tc_5",
+        name="vehiculos.reservar_cita",
+        status=ToolCallStatus.SUCCEEDED,
+        confirmation=ToolConfirmation(identifier="FOLIO-5", issued_at="2026-01-01T00:00:00Z"),
+        duration_ms=0,
+    ),
+)
 
 
 def _client(user: UserProfile) -> TestClient:
@@ -50,75 +69,79 @@ def client() -> Iterator[TestClient]:
     c.app.dependency_overrides.clear()  # type: ignore[attr-defined]
 
 
-def test_confirm_ok(client: TestClient) -> None:
+def test_confirm_returns_canonical_action_result(client: TestClient) -> None:
     with (
         patch(
-            "nexo_api.services.actions.service.actions_repo.find_by_idempotency_key",
-            new=AsyncMock(return_value=None),
+            "nexo_api.services.actions.service.pending_actions.get", new=AsyncMock(return_value=ROW)
         ),
         patch(
-            "nexo_api.services.actions.service.actions_repo.create",
-            new=AsyncMock(return_value=_ROW),
+            "nexo_api.services.actions.service.idempotency.claim",
+            new=AsyncMock(return_value=({"id": 1}, True)),
         ),
+        patch("nexo_api.services.actions.service.pending_actions.complete", new=AsyncMock()),
+        patch("nexo_api.services.actions.service.idempotency_repo.complete", new=AsyncMock()),
     ):
-        resp = client.post(
-            f"/api/v1/actions/{ACTION}/confirm",
+        response = client.post(
+            "/api/v1/actions/act_5/confirm",
             headers={"Idempotency-Key": KEY},
-            json={"consent": True, "input": {"slot": "10:00"}},
+            json={"consent": True, "expected_version": 1},
         )
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["action_id"] == "act_5"
-    assert body["folio"] == "FOLIO-ABCD1234"
+    assert response.status_code == 200
+    assert response.json()["status"] == "succeeded"
+    assert response.json()["tool_result"]["confirmation"]["identifier"].startswith("FOLIO-")
 
 
-def test_replay_returns_same_without_second_write(client: TestClient) -> None:
-    create_mock = AsyncMock()
+def test_replay_returns_canonical_result_without_executor(client: TestClient) -> None:
+    replay = RESULT.model_dump(mode="json")
     with (
         patch(
-            "nexo_api.services.actions.service.actions_repo.find_by_idempotency_key",
-            new=AsyncMock(return_value=_ROW),
+            "nexo_api.services.actions.service.pending_actions.get", new=AsyncMock(return_value=ROW)
         ),
-        patch("nexo_api.services.actions.service.actions_repo.create", new=create_mock),
+        patch(
+            "nexo_api.services.actions.service.idempotency.claim",
+            new=AsyncMock(return_value=({"id": 1, "response_body": replay}, False)),
+        ),
     ):
-        resp = client.post(
-            f"/api/v1/actions/{ACTION}/confirm",
+        response = client.post(
+            "/api/v1/actions/act_5/confirm",
             headers={"Idempotency-Key": KEY},
-            json={"consent": True, "input": {"slot": "10:00"}},
+            json={"consent": True, "expected_version": 1},
         )
-    assert resp.status_code == 200
-    assert resp.json()["action_id"] == "act_5"
-    create_mock.assert_not_called()  # replay: no segunda escritura
+    assert response.status_code == 200
+    assert response.json()["idempotency_replayed"] is True
 
 
-def test_missing_idempotency_key_400(client: TestClient) -> None:
-    resp = client.post(
-        f"/api/v1/actions/{ACTION}/confirm",
-        json={"consent": True},
+def test_confirm_rejects_client_parameters(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/actions/act_5/confirm",
+        headers={"Idempotency-Key": KEY},
+        json={"consent": True, "expected_version": 1, "input": {"other": "value"}},
     )
-    assert resp.status_code == 400
-    assert resp.json()["code"] == "VALIDATION_ERROR"
+    assert response.status_code == 422
 
 
 def test_missing_consent_422(client: TestClient) -> None:
-    resp = client.post(
-        f"/api/v1/actions/{ACTION}/confirm",
+    response = client.post(
+        "/api/v1/actions/act_5/confirm",
         headers={"Idempotency-Key": KEY},
-        json={"consent": False},
+        json={"consent": False, "expected_version": 1},
     )
-    assert resp.status_code == 422
-    assert resp.json()["code"] == "ACTION_CONFIRMATION_REQUIRED"
+    assert response.status_code == 422
+    assert response.json()["code"] == "ACTION_CONFIRMATION_REQUIRED"
 
 
 def test_permission_denied_403() -> None:
-    no_perm = ADMIN.model_copy(update={"permissions": []})
-    c = _client(no_perm)
-    with c:
-        resp = c.post(
-            f"/api/v1/actions/{ACTION}/confirm",
+    c = _client(ADMIN.model_copy(update={"permissions": []}))
+    with (
+        c,
+        patch(
+            "nexo_api.services.actions.service.pending_actions.get", new=AsyncMock(return_value=ROW)
+        ),
+    ):
+        response = c.post(
+            "/api/v1/actions/act_5/confirm",
             headers={"Idempotency-Key": KEY},
-            json={"consent": True},
+            json={"consent": True, "expected_version": 1},
         )
     c.app.dependency_overrides.clear()  # type: ignore[attr-defined]
-    assert resp.status_code == 403
-    assert resp.json()["code"] == "PERMISSION_DENIED"
+    assert response.status_code == 403

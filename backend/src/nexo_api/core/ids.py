@@ -14,6 +14,7 @@ RUN: Final = "run"
 ACTION: Final = "act"
 APPOINTMENT: Final = "apt"
 USER: Final = "usr"
+INSTITUTION: Final = "inst"
 
 
 def encode(prefix: str, raw: int) -> str:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Request, status
 
-from nexo_api.api.deps import get_current_user, get_orchestrator
+from nexo_api.api.deps import get_current_user, get_orchestrator, get_run_task_manager
 from nexo_api.core.errors import problem_responses
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.schemas.conversation import Conversation, ConversationCreate, MessageCreate
@@ -12,6 +12,7 @@ from nexo_api.schemas.run import RunAccepted
 from nexo_api.services.conversations import service as conversations_service
 from nexo_api.services.orchestration import Orchestrator
 from nexo_api.services.runs import service as runs_service
+from nexo_api.services.runs.tasks import RunTaskManager
 
 router = APIRouter(prefix="/api/v1", tags=["conversations"])
 
@@ -43,6 +44,9 @@ async def post_message(
     request: Request,
     user: UserProfile = Depends(get_current_user),
     orchestrator: Orchestrator = Depends(get_orchestrator),
+    task_manager: RunTaskManager = Depends(get_run_task_manager),
 ) -> RunAccepted:
     trace_id: str = request.state.trace_id
-    return await runs_service.post_message(user, conversation_id, body, trace_id, orchestrator)
+    return await runs_service.post_message(
+        user, conversation_id, body, trace_id, orchestrator, task_manager
+    )

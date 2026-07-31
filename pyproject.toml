@@ -9,17 +9,15 @@ package = false
 
 [tool.uv.workspace]
 members = [
+    "a2ui",
     "backend",
-    "integrations",
-    "observability",
-    # Núcleo inteligente (Diego). `contracts` va primero por ser la raíz de
-    # dependencias: ningún otro paquete puede compilarse sin él.
     "contracts",
+    "integrations",
+    "mcp",
+    "observability",
     "orchestration",
     "rag",
-    "mcp",
     "agents",
-    "a2ui",
 ]
 
 # Los paquetes del núcleo se resuelven entre sí desde el workspace, no desde un
@@ -40,6 +38,7 @@ dev = [
     "ruff>=0.6",
     "mypy>=1.11",
     "pyyaml>=6",
+    "psycopg[binary]>=3.1",
     "types-pyyaml>=6",
 ]
 

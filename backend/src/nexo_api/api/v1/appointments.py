@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date as DateType
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Header, status
 
 from nexo_api.api.deps import get_current_user
 from nexo_api.core.errors import problem_responses
@@ -39,6 +39,7 @@ async def availability(
 )
 async def create_hold(
     body: HoldCreate,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     user: UserProfile = Depends(get_current_user),
 ) -> AppointmentHold:
-    return await appointments_service.create_hold(user, body)
+    return await appointments_service.create_hold(user, body, idempotency_key)

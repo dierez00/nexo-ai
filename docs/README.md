@@ -22,6 +22,9 @@ Responsabilidad compartida; Dani coordina documentación de release.
 
 `architecture/overview.md`, `adr/0001-modular-monolith.md`, `team/*.md`. Crear ADR principales, onboarding y runbooks.
 
+Runbooks disponibles: [arranque del backend](runbooks/arranque.md) y
+[Twilio WhatsApp Sandbox](runbooks/twilio_whatsapp.md).
+
 Dependencias permitidas: puede enlazar cualquier módulo, pero no debe convertirse en una dependencia de ejecución.
 
 ## Terminado

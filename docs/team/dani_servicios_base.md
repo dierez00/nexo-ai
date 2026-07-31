@@ -25,6 +25,22 @@ FastAPI, auth/RBAC, perfiles, conversaciones, runs, SSE, citas, confirmaciones, 
 
 Catálogo/admin básico, webhooks robustos, perfiles completos, métricas API, pipeline events, rate limiting y documentación de arranque.
 
+## Estado operativo actualizado (2026-07-30)
+
+- El workspace `uv` incluye los ocho paquetes Python y CI valida lockfile, lint,
+  tipos y pruebas. Las pruebas con Supabase local para concurrencia quedan como
+  gate de integración al habilitar ese entorno en CI.
+- Todas las escrituras HTTP actuales usan el ledger compartido de idempotencia:
+  confirmaciones y holds reservan la clave antes del efecto, validan hash de
+  request y conservan `unknown` sin reintento automático.
+- Los runs responden `202` y se ejecutan en una tarea administrada por la API.
+  SSE hace polling de eventos persistidos por `sequence`, reanuda con
+  `Last-Event-ID` y termina tras el estado terminal. Es una garantía MVP en
+  proceso: reiniciar la API cancela trabajo activo.
+- Dependencias: Daher aprueba/aplica la migración de ledger y secuencias; Diego
+  conecta el `EventSinkPort` del grafo real al adaptador de persistencia; Cris
+  consume la secuencia SSE y el estado `queued`.
+
 ## 6. Tareas Pro
 
 Twilio Voice, adapters reales, circuit breaker, OpenTelemetry, capa de consultas autorizadas y soporte de publicación para MCP Mapper.
