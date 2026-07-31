@@ -33,6 +33,19 @@ async def create(
         return int(result.scalar_one())
 
 
+async def set_delivery_status(provider_message_id: str, status: str) -> None:
+    """Marca el estado de entrega en metadata (best-effort; no-op si no hay match)."""
+    sql = text("""
+        update public.messages
+        set metadata = jsonb_set(
+            coalesce(metadata, '{}'::jsonb), '{delivery_status}', to_jsonb(:status::text)
+        )
+        where metadata->>'provider_message_id' = :pmid
+    """)
+    async with uow() as session:
+        await session.execute(sql, {"status": status, "pmid": provider_message_id})
+
+
 async def exists_provider_message(conversation_id: int, provider_message_id: str) -> bool:
     """Dedup de webhooks: ¿ya existe un mensaje con este provider_message_id?"""
     sql = text("""

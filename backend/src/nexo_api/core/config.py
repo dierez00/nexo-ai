@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     public_base_url: str = "http://localhost:8000"
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
+    # Rate limiting in-app (por usuario/tenant) para escrituras/costosas.
+    rate_limit_per_minute: int = 60
+    rate_limit_burst: int = 20
+
     # ------------------------------------------------------------------
     # Base de datos
     # ------------------------------------------------------------------

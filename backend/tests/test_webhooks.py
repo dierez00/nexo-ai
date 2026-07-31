@@ -137,9 +137,13 @@ def test_whatsapp_duplicate_is_deduped(client: TestClient) -> None:
 
 def test_status_valid_signature_204(client: TestClient) -> None:
     params = {"MessageSid": "SM1", "MessageStatus": "delivered"}
-    resp = client.post(
-        "/webhooks/twilio/status",
-        data=params,
-        headers={"X-Twilio-Signature": _sign(STATUS_URL, params)},
-    )
+    with patch(
+        "nexo_api.services.channels.service.msg_repo.set_delivery_status",
+        new=AsyncMock(return_value=None),
+    ):
+        resp = client.post(
+            "/webhooks/twilio/status",
+            data=params,
+            headers={"X-Twilio-Signature": _sign(STATUS_URL, params)},
+        )
     assert resp.status_code == 204

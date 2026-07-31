@@ -3,11 +3,22 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ListTree, Workflow, Boxes, Plug, Layers, Menu, X } from "lucide-react";
+import {
+  LayoutDashboard,
+  ListTree,
+  Workflow,
+  Boxes,
+  Plug,
+  Layers,
+  ShieldCheck,
+  Menu,
+  X,
+} from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 
 const nav = [
+  { to: "/admin/panel", label: "Panel admin", icon: ShieldCheck, exact: true },
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/runs", label: "Runs", icon: ListTree, exact: false },
   { to: "/admin/workflow", label: "Workflow", icon: Workflow, exact: false },

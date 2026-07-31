@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, MessageSquare, Mic } from "lucide-react";
+import { Home, MessageSquare, Mic, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -10,6 +10,7 @@ const nav = [
   { to: "/portal", label: "Inicio", icon: Home },
   { to: "/portal/chat", label: "Chat", icon: MessageSquare },
   { to: "/agente-voz", label: "Voz", icon: Mic },
+  { to: "/admin/panel", label: "Admin", icon: ShieldCheck },
 ] as const;
 
 export function PortalShell({
@@ -73,7 +74,7 @@ export function PortalShell({
       )}
 
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 backdrop-blur md:hidden">
-        <ul className="mx-auto grid max-w-sm grid-cols-3">
+        <ul className="mx-auto grid max-w-sm grid-cols-4">
           {nav.map((item) => {
             const active =
               item.to === "/portal" ? pathname === item.to : pathname.startsWith(item.to);

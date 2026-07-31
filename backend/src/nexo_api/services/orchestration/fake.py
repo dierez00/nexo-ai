@@ -43,6 +43,7 @@ class FakeOrchestrator:
                     timestamp=datetime.now(UTC),
                     actor=EventActor(type=ActorType.SUPERVISOR, name="fake_orchestrator"),
                     status=status,
+                    correlation_id=request.trace_id,
                     data={"channel": request.channel.value},
                 )
             )

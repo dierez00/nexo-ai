@@ -14,13 +14,20 @@ import jwt
 from fastapi import Depends, Query, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from nexo_api.core.config import get_settings
 from nexo_api.core.errors import ProblemException
+from nexo_api.core.rate_limit import RateLimiter
 from nexo_api.core.security import verify_supabase_jwt
 from nexo_api.repositories.users import load_profile_by_auth_id
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.services.actions import ActionExecutor, FakeActionExecutor
 from nexo_api.services.orchestration import FakeOrchestrator, Orchestrator
 from nexo_api.services.runs.tasks import RunTaskManager
+
+_settings = get_settings()
+_write_limiter = RateLimiter(
+    burst=_settings.rate_limit_burst, per_minute=_settings.rate_limit_per_minute
+)
 
 
 def get_orchestrator() -> Orchestrator:
@@ -105,6 +112,34 @@ def require_permission(permission: str) -> Callable[[UserProfile], Awaitable[Use
                 code="PERMISSION_DENIED",
                 title="Permiso insuficiente",
                 detail=f"Se requiere el permiso '{permission}'.",
+            )
+        return user
+
+    return _checker
+
+
+async def enforce_rate_limit(user: UserProfile = Depends(get_current_user)) -> UserProfile:
+    """Rate limit por (tenant, usuario) para escrituras/costosas → 429."""
+    retry_after = _write_limiter.check(f"{user.tenant_id}:{user.user_id}")
+    if retry_after > 0:
+        raise ProblemException(
+            code="RATE_LIMITED",
+            title="Límite de peticiones excedido",
+            detail=f"Reintenta en aproximadamente {retry_after:.0f}s.",
+        )
+    return user
+
+
+def require_role(role: str) -> Callable[[UserProfile], Awaitable[UserProfile]]:
+    """Exige que el usuario tenga un rol específico (p.ej. 'admin') server-side."""
+
+    async def _checker(user: UserProfile = Depends(get_current_user)) -> UserProfile:
+        if user.role != role:
+            raise ProblemException(
+                status=403,
+                code="PERMISSION_DENIED",
+                title="Rol insuficiente",
+                detail=f"Se requiere el rol '{role}'.",
             )
         return user
 
