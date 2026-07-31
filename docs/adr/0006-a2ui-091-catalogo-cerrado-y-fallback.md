@@ -1,9 +1,9 @@
 # 0006 — A2UI v0.9.1, catálogo cerrado y fallback seguro
 
-- **Estado:** accepted
+- **Estado:** accepted — `citizen:v1` congelado
 - **Fecha:** 2026-07-30
 - **Decisor:** Diego
-- **Revisan:** Cris (renderer, accesibilidad y catálogos)
+- **Revisan:** Cris (renderer cerrado); Diego (integración al flujo)
 - **Tarea:** `DIE-F0-006`
 
 ## Contexto
@@ -37,6 +37,11 @@ permisos, accesibilidad y seguridad antes de renderizar.
 5. **Toda superficie tiene fallback.** Si la validación falla, el canal recibe
    texto plano equivalente —lista numerada en WhatsApp, resumen en voz— en lugar
    de nada.
+6. **Citizen v1 está congelado desde el 2026-07-30.** El descriptor,
+   propiedades, schemas y fixtures entregados quedan ligados a
+   `urn:nexo-ia:a2ui:catalog:citizen:v1`. Sus huellas viven en
+   `a2ui/catalogs/citizen/v1/freeze.json`; cualquier cambio incompatible
+   publica `citizen:v2`.
 
 **Excepción de convención, deliberada y acotada:** A2UI define sus mensajes en
 `camelCase` (`createSurface`, `surfaceId`, `catalogId`), mientras el resto del
@@ -51,7 +56,9 @@ siguen en `snake_case` y el alias hace la traducción, acotada al paquete
 - Una superficie inválida degrada de forma segura en vez de romper el canal.
 - Cris recibe fixtures JSONL válidos e inválidos con la forma exacta del
   protocolo, sin traducción a cargo del renderer.
-- Añadir un componente es una decisión revisable en PR.
+- El flujo puede integrarse contra una frontera estable; el test de congelación
+  detecta drift de catálogo, schemas o fixtures.
+- Añadir un componente exige un catálogo nuevo y una decisión revisable en PR.
 
 **En contra**
 
@@ -69,10 +76,15 @@ siguen en `snake_case` y el alias hace la traducción, acotada al paquete
 
 - `contracts/src/nexo_contracts/a2ui.py`
 - `contracts/tests/test_round_trip.py::test_a2ui_component_absorbs_unknown_properties_by_design`
-- Catálogos y fixtures de referencia en `.agents/skills/build-a2ui-frontend/assets/`.
+- `a2ui/catalogs/citizen/v1/catalog.json`
+- `a2ui/catalogs/citizen/v1/freeze.json`
+- `a2ui/fixtures/citizen/v1/`
+- `a2ui/tests/test_a2ui.py::test_citizen_v1_freeze_matches_every_delivered_artifact`
 
 ## Criterio de reevaluación
 
-Se reabre si A2UI publica una versión incompatible que aporte lo suficiente para
-justificar migrar, o si el catálogo cerrado impide un caso de uso real que no
-pueda resolverse añadiendo componentes.
+`citizen:v1` no se reabre por evolución funcional. Si A2UI publica una versión
+incompatible o aparece un caso que exige otros componentes, se evalúa y publica
+`citizen:v2`, conservando v1 para consumidores existentes. Una excepción de
+seguridad en v1 requiere documentar la vulnerabilidad, revisar compatibilidad y
+rotar explícitamente las huellas congeladas.

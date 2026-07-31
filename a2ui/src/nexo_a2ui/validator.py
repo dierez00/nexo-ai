@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from pydantic import JsonValue
+
 from nexo_contracts import (
     A2UIComponent,
     A2UIMessageKind,
@@ -68,12 +70,13 @@ class SurfaceValidator:
             return _result(surface, errors)
 
         known = self.catalog.component_names()
+        data_model = self._data_model(surface)
         for message in surface.messages:
             if message.kind is not A2UIMessageKind.UPDATE_COMPONENTS:
                 continue
             assert message.update_components is not None
             for component in message.update_components.components:
-                errors.extend(self._validate_component(component, known))
+                errors.extend(self._validate_component(component, known, data_model))
 
         errors.extend(self._validate_actions(surface, run_action_ids))
         return _result(surface, errors)
@@ -81,7 +84,10 @@ class SurfaceValidator:
     # -- componente ---------------------------------------------------------
 
     def _validate_component(
-        self, component: A2UIComponent, known: frozenset[str]
+        self,
+        component: A2UIComponent,
+        known: frozenset[str],
+        data_model: JsonValue,
     ) -> list[A2UIValidationError]:
         errors: list[A2UIValidationError] = []
 
@@ -122,6 +128,15 @@ class SurfaceValidator:
             )
 
         errors.extend(self._validate_property_values(component))
+        for path in _binding_paths(component.properties):
+            if not _path_exists(data_model, path):
+                errors.append(
+                    A2UIValidationError(
+                        component_id=component.id,
+                        rule="binding_path_not_found",
+                        detail="el binding referencia una ruta ausente del data model",
+                    )
+                )
 
         # `DIE-F1-105`: solo un componente declarado interactivo puede disparar
         # una acción. Sin esto, un `Text` con `actionId` sería un botón invisible.
@@ -134,6 +149,16 @@ class SurfaceValidator:
                 )
             )
         return errors
+
+    @staticmethod
+    def _data_model(surface: A2UISurface) -> JsonValue:
+        """Reconstruye el modelo raíz que precede al árbol del MVP."""
+        data_model: JsonValue = {}
+        for message in surface.messages:
+            update = message.update_data_model
+            if update is not None and update.path == "/":
+                data_model = update.value
+        return data_model
 
     def _validate_property_values(self, component: A2UIComponent) -> list[A2UIValidationError]:
         errors: list[A2UIValidationError] = []
@@ -236,3 +261,34 @@ def _result(surface: A2UISurface, errors: list[A2UIValidationError]) -> A2UIVali
         outcome=A2UIValidationOutcome.INVALID if errors else A2UIValidationOutcome.VALID,
         errors=errors,
     )
+
+
+def _binding_paths(value: JsonValue) -> tuple[str, ...]:
+    paths: list[str] = []
+    if isinstance(value, dict):
+        path = value.get("path")
+        if isinstance(path, str):
+            paths.append(path)
+        for child in value.values():
+            paths.extend(_binding_paths(child))
+    elif isinstance(value, list):
+        for child in value:
+            paths.extend(_binding_paths(child))
+    return tuple(paths)
+
+
+def _path_exists(data_model: JsonValue, path: str) -> bool:
+    if path == "/":
+        return True
+    if not path.startswith("/"):
+        return False
+    current = data_model
+    for part in path.removeprefix("/").split("/"):
+        if isinstance(current, dict) and part in current:
+            current = current[part]
+            continue
+        if isinstance(current, list) and part.isdigit() and int(part) < len(current):
+            current = current[int(part)]
+            continue
+        return False
+    return True

@@ -2,6 +2,8 @@
 #
 # Un `catalog_id` es inmutable por versión: cambiar los componentes permitidos
 # exige publicar un catálogo nuevo, no editar el existente.
+# Citizen v1 está congelado; sus huellas viven en
+# `a2ui/catalogs/citizen/v1/freeze.json`.
 #
 # Schema: nexo_contracts.config.CatalogsConfig
 
