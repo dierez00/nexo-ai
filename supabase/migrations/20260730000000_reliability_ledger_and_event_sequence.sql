@@ -53,8 +53,9 @@ end $$;
 create unique index if not exists actions_tenant_name_key_idx
   on public.actions (tenant_id, action_name, idempotency_key);
 
--- Fase A: base demo/local reinicializada. Los eventos se guardan ya con la
--- forma canónica; no se traducen registros anteriores.
+-- Fase A: los nuevos eventos se guardan ya con la forma canónica. Las bases
+-- demo usadas antes de esta migración pueden contener `node_start`/`node_end`;
+-- se normalizan primero para poder activar el contrato sin perder trazabilidad.
 alter table public.run_events add column if not exists event_id text;
 alter table public.run_events add column if not exists sequence integer;
 alter table public.run_events add column if not exists actor_type text;
@@ -63,6 +64,42 @@ alter table public.run_events add column if not exists event_status text;
 alter table public.run_events add column if not exists duration_ms integer;
 alter table public.run_events add column if not exists error jsonb;
 alter table public.run_events add column if not exists policy_version text;
+
+with legacy_events as (
+  select id, row_number() over (partition by run_id order by created_at, id)::integer as sequence
+  from public.run_events
+  where sequence is null
+)
+update public.run_events as event
+set
+  event_id = coalesce(event.event_id, format('evt_legacy_%s', event.id)),
+  sequence = coalesce(event.sequence, legacy_events.sequence),
+  event_type = case event.event_type
+    when 'node_start' then 'agent.started'
+    when 'node_end' then 'agent.completed'
+    else event.event_type
+  end,
+  actor_type = coalesce(event.actor_type, 'agent'),
+  actor_name = coalesce(nullif(event.actor_name, ''), nullif(event.node_name, ''), 'legacy'),
+  event_status = coalesce(
+    event.event_status,
+    case event.event_type
+      when 'node_start' then 'started'
+      else 'succeeded'
+    end
+  )
+from legacy_events
+where event.id = legacy_events.id;
+
+-- Una instalación que hubiese añadido las columnas en una ejecución interrumpida
+-- puede tener valores nulos fuera del CTE anterior; complételos también.
+update public.run_events
+set
+  event_id = coalesce(event_id, format('evt_legacy_%s', id)),
+  actor_type = coalesce(actor_type, 'agent'),
+  actor_name = coalesce(nullif(actor_name, ''), nullif(node_name, ''), 'legacy'),
+  event_status = coalesce(event_status, 'succeeded');
+
 alter table public.run_events alter column event_id set not null;
 alter table public.run_events alter column sequence set not null;
 alter table public.run_events alter column actor_type set not null;
@@ -74,6 +111,15 @@ create unique index if not exists run_events_run_sequence_idx on public.run_even
 
 -- El POST de mensaje reserva primero un run y su worker lo cambia a running.
 alter table public.runs drop constraint if exists runs_status_check;
+
+update public.runs
+set status = case status
+  when 'completed' then 'succeeded'
+  when 'requires_action' then 'waiting_confirmation'
+  else status
+end
+where status in ('completed', 'requires_action');
+
 alter table public.runs add constraint runs_status_check
   check (status in ('queued', 'planning', 'running', 'waiting_confirmation', 'succeeded', 'partial', 'failed', 'cancelled'));
 
