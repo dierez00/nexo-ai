@@ -79,6 +79,11 @@ explicit_package_bases = true
 mypy_path = "backend/src:integrations/src:observability/src"
 exclude = ['\.agents/', '\.venv/']
 
+# El SDK de twilio no publica py.typed / stubs.
+[[tool.mypy.overrides]]
+module = ["twilio.*"]
+ignore_missing_imports = true
+
 # =============================================================================
 # pytest
 # =============================================================================

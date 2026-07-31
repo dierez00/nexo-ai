@@ -12,7 +12,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from nexo_observability.logging import configure_logging, get_logger
 
-from nexo_api.api import health
+from nexo_api.api import health, webhooks
+from nexo_api.api.v1 import actions as actions_router
+from nexo_api.api.v1 import appointments as appointments_router
 from nexo_api.api.v1 import auth as auth_router
 from nexo_api.api.v1 import conversations as conversations_router
 from nexo_api.api.v1 import runs as runs_router
@@ -62,6 +64,9 @@ def create_app() -> FastAPI:
     app.include_router(auth_router.router)
     app.include_router(conversations_router.router)
     app.include_router(runs_router.router)
+    app.include_router(actions_router.router)
+    app.include_router(appointments_router.router)
+    app.include_router(webhooks.router)
     return app
 
 

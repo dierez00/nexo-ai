@@ -43,17 +43,6 @@ class Settings(BaseSettings):
     )
 
     # ------------------------------------------------------------------
-    # Auth — JWT bearer
-    # ------------------------------------------------------------------
-    jwt_secret: SecretStr = Field(
-        default=...,
-        description="Secreto HMAC (HS256) o clave privada PEM (RS256).",
-    )
-    jwt_alg: str = "HS256"
-    jwt_access_ttl_seconds: int = 900
-    jwt_refresh_ttl_seconds: int = 604800
-
-    # ------------------------------------------------------------------
     # Twilio
     # ------------------------------------------------------------------
     twilio_account_sid: str = ""

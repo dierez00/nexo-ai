@@ -17,9 +17,9 @@ FastAPI, auth/RBAC, perfiles, conversaciones, runs, SSE, citas, confirmaciones, 
 - [x] Bootstrap FastAPI, config y health/readiness.
 - [x] Auth, roles, perfiles y separación institucional. *(Supabase Auth+JWKS; tenancy por tenant_id en repos)*
 - [x] Conversaciones, mensajes, runs y SSE. *(SSE reanudable por Last-Event-ID; auth por header o query param)*
-- [ ] Confirmaciones con idempotencia y citas.
-- [ ] Webhooks/fallback Twilio WhatsApp Sandbox.
-- [~] Compose propuesto, logs JSONL y CI inicial. *(logs JSONL ✅; Compose/CI pendientes)*
+- [x] Confirmaciones con idempotencia y citas. *(citas: availability + holds; solapamiento→409 vía GiST)*
+- [x] Webhooks/fallback Twilio WhatsApp Sandbox. *(firma verificada, dedupe por provider_message_id, TwiML)*
+- [x] Compose propuesto, logs JSONL y CI inicial. *(Dockerfile + docker-compose + GitHub Actions lint/test)*
 
 ## 5. Tareas Core
 
@@ -76,12 +76,12 @@ Config → health → contratos → auth → conversaciones/runs → SSE → cit
 - [x] Request/trace IDs. *(TraceIdMiddleware, header X-Trace-Id)*
 - [x] Problem Details.
 - [x] SSE y reconexión. *(sse-starlette; Last-Event-ID; token por query param para EventSource)*
-- [ ] Idempotencia/confirmaciones.
-- [ ] Firmas y deduplicación Twilio.
+- [x] Idempotencia/confirmaciones. *(Idempotency-Key + replay idéntico; consent→422; RBAC por módulo)*
+- [x] Firmas y deduplicación Twilio. *(RequestValidator; pii_ref del remitente; dedupe idempotente)*
 - [ ] Timeouts/retries/circuit breaker. *(Pro)*
 - [x] Health/shutdown.
-- [ ] Compose/CI/runbooks.
-- [~] README y tests. *(tests verdes; READMEs por módulo existen)*
+- [~] Compose/CI/runbooks. *(Compose + CI ✅; runbooks de deploy/rollback pendientes)*
+- [x] README y tests. *(33 tests verdes; OpenAPI autogenerado en /docs; READMEs por módulo)*
 
 ## 16. Paralelismo y bloqueos
 
