@@ -24,6 +24,7 @@ from nexo_api.core.db import dispose_engine
 from nexo_api.core.errors import ProblemException, problem_exception_handler
 from nexo_api.core.middleware import TraceIdMiddleware
 from nexo_api.repositories import idempotency as idempotency_repo
+from nexo_api.services.orchestration import build_graph_deps
 from nexo_api.services.runs.tasks import RunTaskManager
 
 log = get_logger(__name__)
@@ -34,7 +35,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     configure_logging(settings.log_level)
     app.state.run_task_manager = RunTaskManager()
-    log.info("app.startup", app_env=settings.app_env)
+    app.state.graph_assembly = None
+    if settings.orchestrator_profile == "real":
+        # Ensamblar el grafo real una sola vez (carga corpus/agentes). Falla
+        # rápido: un perfil `real` mal configurado no debe arrancar en silencio.
+        app.state.graph_assembly = await build_graph_deps()
+    log.info(
+        "app.startup",
+        app_env=settings.app_env,
+        orchestrator_profile=settings.orchestrator_profile,
+    )
     if settings.app_env != "development":
         try:
             count = await idempotency_repo.mark_stale_processing_unknown(

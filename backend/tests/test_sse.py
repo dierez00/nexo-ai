@@ -8,11 +8,18 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-from nexo_api.api.deps import get_current_user_sse
+from nexo_api.api.deps import get_user_or_public_sse
 from nexo_api.main import create_app
 from nexo_api.schemas.auth import UserProfile
 
-from nexo_contracts import ActorType, EventActor, EventStatus, EventType, RunEvent
+from nexo_contracts import (
+    ActorType,
+    EventActor,
+    EventStatus,
+    EventType,
+    EventVisibility,
+    RunEvent,
+)
 
 USER = UserProfile(
     user_id="1",
@@ -28,7 +35,7 @@ USER = UserProfile(
 @pytest.fixture
 def client() -> Iterator[TestClient]:
     app = create_app()
-    app.dependency_overrides[get_current_user_sse] = lambda: USER
+    app.dependency_overrides[get_user_or_public_sse] = lambda: USER
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
@@ -92,6 +99,47 @@ def test_sse_resumes_after_last_event_id(client: TestClient) -> None:
         response = client.get("/api/v1/runs/run_42/events", headers={"Last-Event-ID": "1"})
     assert response.status_code == 200
     assert captured["after"] == 1
+
+
+def _restricted_event(sequence: int) -> RunEvent:
+    return RunEvent(
+        event_id=f"evt_secret_{sequence}",
+        run_id="run_42",
+        trace_id="trace_abc",
+        sequence=sequence,
+        type=EventType.MODEL_COMPLETED,
+        timestamp=datetime.now(UTC),
+        actor=EventActor(type=ActorType.MODEL, name="general"),
+        status=EventStatus.SUCCEEDED,
+        correlation_id="trace_abc",
+        visibility=EventVisibility.RESTRICTED,
+        data={"input_units": 1200, "output_units": 90},
+        public_data={},
+    )
+
+
+def test_sse_hides_restricted_events(client: TestClient) -> None:
+    with (
+        patch(
+            "nexo_api.services.runs.service.runs_repo.get",
+            new=AsyncMock(return_value={"status": "succeeded"}),
+        ),
+        patch(
+            "nexo_api.services.runs.service.PostgresEventSink.read",
+            new=AsyncMock(return_value=(_restricted_event(1), _event(2))),
+        ),
+        patch(
+            "nexo_api.services.runs.service.runs_repo.get_status",
+            new=AsyncMock(return_value="succeeded"),
+        ),
+    ):
+        response = client.get("/api/v1/runs/run_42/events")
+    assert response.status_code == 200
+    # El evento de modelo (restringido) no se filtra al cliente…
+    assert "evt_secret_1" not in response.text
+    assert "input_units" not in response.text
+    # …pero el evento público sí se entrega.
+    assert "evt_42_2" in response.text
 
 
 def test_sse_404_on_unknown_run(client: TestClient) -> None:

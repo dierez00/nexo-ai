@@ -40,6 +40,28 @@ async def get(tenant_id: int, action_id: str) -> RowMapping | None:
         return result.mappings().first()
 
 
+async def owner_context(tenant_id: int, action_id: str) -> RowMapping | None:
+    """Traza del run y usuario dueño de la acción, para validar pertenencia.
+
+    Une la acción con su run y la conversación del run: el `user_id` de la
+    conversación es quien puede confirmar. `trace_id` se propaga a la invocación
+    de la tool para correlacionar la auditoría. Devuelve ``None`` si la acción no
+    apunta a un run existente del tenant.
+    """
+    sql = text("""
+        select r.trace_id as trace_id, c.user_id as owner_user_id
+        from public.pending_actions pa
+        join public.runs r on r.id = pa.run_id and r.tenant_id = pa.tenant_id
+        left join public.conversations c on c.id = r.conversation_id
+        where pa.action_id = :action_id and pa.tenant_id = :tenant_id
+    """)
+    async with read_session() as session:
+        result = await session.execute(
+            sql, {"tenant_id": tenant_id, "action_id": action_id}
+        )
+        return result.mappings().first()
+
+
 async def complete(tenant_id: int, action_id: str, result: ActionResult) -> None:
     async with uow() as session:
         await session.execute(

@@ -30,6 +30,7 @@ from nexo_contracts import (
     EventActor,
     EventStatus,
     EventType,
+    EventVisibility,
     Identity,
     NormalizedError,
     RunEvent,
@@ -37,6 +38,23 @@ from nexo_contracts import (
     RunResult,
     RunStatus,
 )
+
+
+def _public_event(event: RunEvent) -> dict[str, str] | None:
+    """Proyecta un ``RunEvent`` a su forma pública para el stream SSE.
+
+    Los eventos `restricted` (invocaciones de modelo, fallbacks) son auditoría
+    de operador y no se envían al cliente. Para los públicos se expone
+    `public_data` —la proyección minimizada— y nunca el `data` de auditoría; si
+    `public_data` viene vacío se cae al `data`, que en un evento público ya es
+    seguro.
+    """
+    if event.visibility is not EventVisibility.PUBLIC:
+        return None
+    payload = event.model_dump(mode="json")
+    payload["data"] = payload.get("public_data") or payload.get("data", {})
+    payload.pop("public_data", None)
+    return {"id": str(event.sequence), "event": event.type.value, "data": json.dumps(payload)}
 
 
 def _decode(prefix: str, wire_id: str, label: str) -> int:
@@ -220,12 +238,18 @@ async def event_stream(
     elapsed = 0
     while True:
         for event in await sink.read(run_id_wire, after=sequence):
-            sequence = event.sequence
-            yield {"id": str(sequence), "event": event.type.value, "data": event.model_dump_json()}
+            sequence = event.sequence  # avanza aunque el evento no se emita al cliente
+            projected = _public_event(event)
+            if projected is not None:
+                yield projected
         current = await runs_repo.get_status(run_id_internal)
         status = RunStatus(current) if current else status
-        if status in TERMINAL_RUN_STATUSES:
+        # `waiting_confirmation` cierra el stream aunque no sea terminal: la pasada
+        # del run terminó y ahora espera a la persona. Reabrir el SSE tras
+        # confirmar reanuda la secuencia por `Last-Event-ID` sin huecos.
+        if status in TERMINAL_RUN_STATUSES or status is RunStatus.WAITING_CONFIRMATION:
             yield {
+                "id": str(sequence),
                 "event": "run.status",
                 "data": json.dumps({"run_id": run_id_wire, "status": status.value}),
             }

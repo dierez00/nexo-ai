@@ -35,6 +35,14 @@ class Settings(BaseSettings):
     web_origin: str = "http://localhost:3000"
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
+    # Perfil de orquestación. `fake` usa dobles en proceso (default, sin cargar
+    # corpus ni agentes). `real` ensambla el grafo MVP real (tools mock, modelo
+    # fake) en el lifespan. Cambiarlo no toca routers ni servicios (§deps).
+    orchestrator_profile: Literal["fake", "real"] = "fake"
+
+    # Tenant al que se asocian los ciudadanos anónimos (chat y citas sin token).
+    public_tenant_slug: str = "gobierno-demo"
+
     # Rate limiting in-app (por usuario/tenant) para escrituras/costosas.
     rate_limit_per_minute: int = 60
     rate_limit_burst: int = 20

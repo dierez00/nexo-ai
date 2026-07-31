@@ -2354,6 +2354,10 @@ components:
           default: false
           title: Is Owner
           type: boolean
+        is_public:
+          default: false
+          title: Is Public
+          type: boolean
         name:
           title: Name
           type: string
@@ -2778,7 +2782,7 @@ paths:
           description: Validation Error
       security:
       - HTTPBearer: []
-      summary: Disponibilidad de citas
+      summary: Disponibilidad de citas (acceso público)
       tags:
       - appointments
   /api/v1/appointments/holds:
@@ -2844,7 +2848,7 @@ paths:
           description: Límite excedido (RATE_LIMITED / BUDGET_EXCEEDED)
       security:
       - HTTPBearer: []
-      summary: Crear hold de cita (409 si solapa)
+      summary: Crear hold de cita (acceso público; 409 si solapa)
       tags:
       - appointments
   /api/v1/auth/login:
@@ -3014,7 +3018,7 @@ paths:
           description: Validation Error
       security:
       - HTTPBearer: []
-      summary: Crear conversación
+      summary: Crear conversación (acceso público)
       tags:
       - conversations
   /api/v1/conversations/{conversation_id}/messages:
@@ -3066,7 +3070,7 @@ paths:
           description: Límite excedido (RATE_LIMITED / BUDGET_EXCEEDED)
       security:
       - HTTPBearer: []
-      summary: Postear mensaje y ejecutar un run
+      summary: Postear mensaje y ejecutar un run (acceso público)
       tags:
       - conversations
   /api/v1/runs/{run_id}:
