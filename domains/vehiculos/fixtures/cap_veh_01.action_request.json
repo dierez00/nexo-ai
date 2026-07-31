@@ -1,0 +1,19 @@
+{
+  "action_id": "act_reserve_01",
+  "consent": false,
+  "expected_version": 1,
+  "idempotency_key": null,
+  "input_schema_ref": "contracts://tools/vehiculos.reservar_cita.input.v1",
+  "parameters": {
+    "slot_id": "slot_101"
+  },
+  "required_permission": "appointment:create",
+  "requires_confirmation": true,
+  "run_id": "run_01JNE8ZP",
+  "status": "pending_confirmation",
+  "supporting_fact_ids": [
+    "fact_cost_01"
+  ],
+  "tool_name": "vehiculos.reservar_cita",
+  "tool_version": "1.0.0"
+}

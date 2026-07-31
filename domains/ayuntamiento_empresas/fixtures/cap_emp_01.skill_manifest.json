@@ -1,0 +1,66 @@
+{
+  "a2ui_components": [],
+  "allowed_sources": [
+    "src_licencias_v3"
+  ],
+  "allowed_tools": [
+    "vehiculos.consultar_adeudo",
+    "vehiculos.reservar_cita"
+  ],
+  "budgets": {
+    "deadline_ms": 20000,
+    "max_concurrency": 2,
+    "max_cost_usd": 0.2,
+    "max_questions": 1
+  },
+  "confirmation_required_for": [
+    "vehiculos.reservar_cita"
+  ],
+  "domain": "vehiculos",
+  "escalation_policy": "Si no hay evidencia suficiente, responder parcial con warning.",
+  "objective": "Reunir requisitos, adeudo y cita para renovar una licencia.",
+  "owner": "equipo-nexo",
+  "prompt_refs": [],
+  "question_conditions": [],
+  "reusable_inputs": [],
+  "schema_refs": [],
+  "skill_id": "skill_renovar_licencia",
+  "steps": [
+    {
+      "agent": "domain_navigator",
+      "deadline_ms": 6000,
+      "depends_on": [],
+      "max_attempts": 1,
+      "objective": "Recuperar requisitos vigentes con citas.",
+      "parallel_group": null,
+      "step_id": "recuperar_requisitos"
+    },
+    {
+      "agent": "verifier",
+      "deadline_ms": 6000,
+      "depends_on": [
+        "recuperar_requisitos"
+      ],
+      "max_attempts": 1,
+      "objective": "Verificar requisitos y costos.",
+      "parallel_group": "consolidacion",
+      "step_id": "verificar"
+    },
+    {
+      "agent": "estimator",
+      "deadline_ms": 6000,
+      "depends_on": [
+        "recuperar_requisitos"
+      ],
+      "max_attempts": 1,
+      "objective": "Calcular costo total y documentos faltantes.",
+      "parallel_group": "consolidacion",
+      "step_id": "estimar"
+    }
+  ],
+  "success_criteria": [
+    "Cita reservada con folio verificable"
+  ],
+  "title": "Renovar licencia de conducir",
+  "version": "1.0.0"
+}
