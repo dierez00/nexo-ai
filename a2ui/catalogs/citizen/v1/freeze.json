@@ -1,0 +1,23 @@
+{
+  "artifacts": {
+    "a2ui/catalogs/citizen/v1/catalog.json": "8236f956f9a024fb056233cd57d0374f9634f8640c6de0e70fb91a55cc24f740",
+    "a2ui/fixtures/citizen/v1/invalid/binding_not_found.jsonl": "e48adb5037f1ee3ffeefd0458377eb19556cfc1805cd9e2e184be24551488ee6",
+    "a2ui/fixtures/citizen/v1/invalid/component_not_allowed.jsonl": "52559a2a0a800bd0a57eb0bc886108b6ef93baafd67341117816bba734351f30",
+    "a2ui/fixtures/citizen/v1/invalid/forged_action.jsonl": "3f63db5bb2322ce6f4089054776d746446f45b1fcf6a4441371484e9cfb846bd",
+    "a2ui/fixtures/citizen/v1/valid/cap_emp_01.jsonl": "df8b5648f21f64fe4f8a448b0144233083544adaf1c3ec33ce3c03ac282830db",
+    "a2ui/fixtures/citizen/v1/valid/cap_veh_01.jsonl": "c1a0d0d8b4571a2f51dbcf5f6e5014160d32b480b5c2bc235841423d9570abb4",
+    "contracts/jsonschema/a2ui_action.v1.json": "3f0b5a6e18054f69651d1381c8308b1088974d0d676a75b6d1d5fe3f036edd1b",
+    "contracts/jsonschema/a2ui_component.v1.json": "cb613d80462a045c574dea3d3117967e882b0943bfe9032a0c99c89ebcb696c4",
+    "contracts/jsonschema/a2ui_message.v1.json": "186b1f92aaa3c683900460fef1dc20707b0ae94e22128729431065ff5e9ce8df",
+    "contracts/jsonschema/a2ui_surface.v1.json": "14c3da47cf29574d7cda256d97345c0ccf280d31e27258bb502ef12f8bc10e5c",
+    "contracts/jsonschema/a2ui_validation_result.v1.json": "b64aebad40933da6072c1dee293d4fb0865046b04f8a4711ed1fc082c4591bc4",
+    "contracts/jsonschema/catalog_descriptor.v1.json": "5205b14928e00ab9a987347eb02dd849fd6f758e2fd3952cb1da5530e6c1054c",
+    "contracts/jsonschema/channel_fallback.v1.json": "d8e7157f0c5dd8c0765a7c9a0e2a671313e996f6e6ba3530316e3d5f7a07f396"
+  },
+  "catalog_id": "urn:nexo-ia:a2ui:catalog:citizen:v1",
+  "catalog_version": "1.0.0",
+  "frozen_at": "2026-07-30",
+  "protocol_version": "v0.9.1",
+  "schema_version": "1",
+  "status": "frozen"
+}

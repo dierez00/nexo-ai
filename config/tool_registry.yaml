@@ -4,8 +4,12 @@
 # presente sin versión, no existe para el sistema.
 #
 # `enabled: false` es el default seguro: registrar una tool no la habilita.
-# Las tools de escritura permanecen deshabilitadas hasta que exista su adapter,
-# su prueba de contrato y su regla de permiso (trabajo de Fase 1).
+#
+# Las nueve del MVP están habilitadas desde F1.9: cada una tiene adapter mock,
+# contrato de entrada y salida, prueba de contrato y regla de permiso. Las de
+# escritura siguen exigiendo confirmación e idempotency key —eso lo impone el
+# contrato de `ToolMetadata`, no este archivo—, así que habilitarlas no las hace
+# invocables sin consentimiento.
 #
 # Schema: nexo_contracts.config.ToolRegistryConfig
 
@@ -17,53 +21,53 @@ tools:
     version: 1.0.0
     domain: vehiculos
     mode: read
-    enabled: false
+    enabled: true
 
   - name: vehiculos.localizar_modulo
     version: 1.0.0
     domain: vehiculos
     mode: read
-    enabled: false
+    enabled: true
 
   - name: vehiculos.buscar_citas
     version: 1.0.0
     domain: vehiculos
     mode: read
-    enabled: false
+    enabled: true
 
   - name: vehiculos.reservar_cita
     version: 1.0.0
     domain: vehiculos
     mode: write
-    enabled: false
+    enabled: true
 
   # --- Ayuntamiento y empresas (recorrido CAP-EMP-01) ---
   - name: ayuntamiento.consultar_uso_suelo
     version: 1.0.0
     domain: ayuntamiento_empresas
     mode: read
-    enabled: false
+    enabled: true
 
   - name: ayuntamiento.calcular_costos
     version: 1.0.0
     domain: ayuntamiento_empresas
     mode: compute
-    enabled: false
+    enabled: true
 
   - name: ayuntamiento.consultar_requisitos_negocio
     version: 1.0.0
     domain: ayuntamiento_empresas
     mode: read
-    enabled: false
+    enabled: true
 
   - name: ayuntamiento.consultar_citas
     version: 1.0.0
     domain: ayuntamiento_empresas
     mode: read
-    enabled: false
+    enabled: true
 
   - name: ayuntamiento.registrar_solicitud
     version: 1.0.0
     domain: ayuntamiento_empresas
     mode: write
-    enabled: false
+    enabled: true

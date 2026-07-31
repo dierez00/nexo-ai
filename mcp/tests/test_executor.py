@@ -116,9 +116,10 @@ async def test_registry_filters_by_institution() -> None:
 
 async def test_registry_filters_by_domain() -> None:
     registry = InMemoryToolRegistry([_read_tool()])
-    assert await registry.list_tools(
-        institution_id="inst_demo", roles=["citizen"], domain="salud"
-    ) == ()
+    assert (
+        await registry.list_tools(institution_id="inst_demo", roles=["citizen"], domain="salud")
+        == ()
+    )
 
 
 async def test_registry_refuses_to_replace_a_published_version() -> None:
@@ -233,9 +234,7 @@ async def test_read_call_cannot_reach_a_write_tool() -> None:
     """Declarar `read` sobre una tool de escritura no la vuelve inocua."""
     registry = InMemoryToolRegistry([_write_tool()])
     executor = InMemoryToolExecutor(registry)
-    result = await executor.execute(
-        _read_call(name="vehiculos.reservar_cita", mode=ToolMode.READ)
-    )
+    result = await executor.execute(_read_call(name="vehiculos.reservar_cita", mode=ToolMode.READ))
     assert result.status is ToolCallStatus.DENIED
 
 

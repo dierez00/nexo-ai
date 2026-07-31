@@ -13,20 +13,30 @@ import pytest
 from nexo_a2ui import (
     CITIZEN_CATALOG,
     CITIZEN_CATALOG_ID,
+    CITIZEN_FREEZE_PATH,
     CitizenSurfaceBuilder,
     SurfaceValidator,
     build_fallback,
+    export_catalog,
     format_money,
     load_catalog,
+    load_jsonl,
     render_catalog_json,
+    render_jsonl,
+    surface_from_messages,
+    verify_frozen_catalog,
 )
+from nexo_agents.domain_manifest import load_domain
 from nexo_contracts import (
     A2UI_PROTOCOL_VERSION,
+    A2UIAction,
     A2UIComponent,
     A2UIMessage,
     A2UIMessageKind,
     ActionRequest,
     Channel,
+    ConfigurationError,
+    Domain,
     Estimate,
     EstimateStep,
     FactCategory,
@@ -148,11 +158,62 @@ def test_the_catalog_round_trips_through_its_contract() -> None:
     assert loaded.component_names() == CITIZEN_CATALOG.component_names()
 
 
+def test_citizen_v1_freeze_matches_every_delivered_artifact() -> None:
+    manifest = verify_frozen_catalog(repository_root())
+
+    assert manifest.status == "frozen"
+    assert manifest.protocol_version == A2UI_PROTOCOL_VERSION
+    assert manifest.catalog_id == CITIZEN_CATALOG_ID
+
+
+def test_export_refuses_to_change_the_frozen_catalog(tmp_path) -> None:
+    source = repository_root() / CITIZEN_FREEZE_PATH
+    target = tmp_path / CITIZEN_FREEZE_PATH
+    target.parent.mkdir(parents=True)
+    target.write_bytes(source.read_bytes())
+    changed = CITIZEN_CATALOG.model_copy(update={"title": "Cambio incompatible"})
+
+    with pytest.raises(ConfigurationError, match="publique un catalog_id v2"):
+        export_catalog(tmp_path, changed)
+
+    assert not (tmp_path / "a2ui/catalogs/citizen/v1/catalog.json").exists()
+
+
 def test_only_two_components_are_interactive() -> None:
     """Cada componente interactivo es superficie de ataque que hay que validar."""
     interactive = {c.name for c in CITIZEN_CATALOG.components if c.is_interactive}
 
     assert interactive == {"SlotPicker", "ConfirmButton"}
+
+
+@pytest.mark.parametrize("domain", [Domain.VEHICULOS, Domain.AYUNTAMIENTO_EMPRESAS])
+def test_domain_component_references_exist_in_the_citizen_catalog(domain: Domain) -> None:
+    manifest = load_domain(repository_root(), domain)
+
+    assert set(manifest.a2ui_components) <= CITIZEN_CATALOG.component_names()
+
+
+def test_schedule_facts_render_as_slot_picker(builder, validator, facts) -> None:
+    schedule = facts.facts[0].model_copy(
+        update={
+            "fact_id": "fact_schedule",
+            "claim": "Hay horarios disponibles.",
+            "category": FactCategory.SCHEDULE,
+            "value": FactValue(items=["2026-08-03T09:00:00Z · slot_01"]),
+            "supporting_tool_call_id": "tc_000001",
+            "citations": [],
+        }
+    )
+    with_schedule = facts.model_copy(update={"facts": (*facts.facts, schedule)})
+
+    surface = builder.build(with_schedule, surface_id=SURFACE_ID)
+    result = validator.validate(surface)
+    tree = next(
+        message.update_components for message in surface.messages if message.update_components
+    )
+
+    assert result.is_valid
+    assert "SlotPicker" in {component.component for component in tree.components}
 
 
 # --- Builder (`DIE-F1-102`, `DIE-F1-103`) -----------------------------------
@@ -173,6 +234,14 @@ def test_the_surface_opens_with_create_and_carries_its_data(builder, facts) -> N
     assert kinds[0] is A2UIMessageKind.CREATE_SURFACE
     assert A2UIMessageKind.UPDATE_DATA_MODEL in kinds
     assert A2UIMessageKind.UPDATE_COMPONENTS in kinds
+
+
+def test_the_builder_serializes_one_protocol_message_per_jsonl_line(builder, facts) -> None:
+    surface = builder.build(facts, surface_id=SURFACE_ID)
+    payload = render_jsonl(surface)
+
+    assert len(payload.splitlines()) == len(surface.messages)
+    assert all('"version":"v0.9.1"' in line for line in payload.splitlines())
 
 
 def test_data_lives_in_the_data_model_not_in_the_tree(builder, facts) -> None:
@@ -290,6 +359,79 @@ def test_a_forged_action_from_another_run_is_rejected(builder, validator, facts,
 
     assert not result.is_valid
     assert any(error.rule == "action_not_authorised_for_run" for error in result.errors)
+
+
+# --- Fixtures para el renderer (`DIE-F1-109`) -------------------------------
+
+
+@pytest.mark.parametrize(
+    ("filename", "action_id"),
+    [
+        ("cap_veh_01.jsonl", "act_fixture_veh"),
+        ("cap_emp_01.jsonl", "act_fixture_emp"),
+    ],
+)
+def test_valid_renderer_fixtures_pass_the_server_validator(
+    validator: SurfaceValidator,
+    filename: str,
+    action_id: str,
+) -> None:
+    path = repository_root() / "a2ui" / "fixtures" / "citizen" / "v1" / "valid" / filename
+    action = _fixture_action(action_id)
+    surface = surface_from_messages(load_jsonl(path), actions=[action])
+
+    result = validator.validate(surface, run_action_ids=frozenset({action_id}))
+
+    assert result.is_valid, result.errors
+
+
+@pytest.mark.security
+@pytest.mark.parametrize(
+    ("filename", "rule"),
+    [
+        ("component_not_allowed.jsonl", "component_not_in_catalog"),
+        ("binding_not_found.jsonl", "binding_path_not_found"),
+    ],
+)
+def test_invalid_renderer_fixtures_are_rejected(
+    validator: SurfaceValidator,
+    filename: str,
+    rule: str,
+) -> None:
+    path = repository_root() / "a2ui" / "fixtures" / "citizen" / "v1" / "invalid" / filename
+    surface = surface_from_messages(load_jsonl(path))
+
+    result = validator.validate(surface)
+
+    assert not result.is_valid
+    assert rule in {error.rule for error in result.errors}
+
+
+@pytest.mark.security
+def test_the_forged_action_renderer_fixture_is_rejected(
+    validator: SurfaceValidator,
+) -> None:
+    path = (
+        repository_root()
+        / "a2ui"
+        / "fixtures"
+        / "citizen"
+        / "v1"
+        / "invalid"
+        / "forged_action.jsonl"
+    )
+    surface = surface_from_messages(
+        load_jsonl(path),
+        actions=[_fixture_action("act_other_run")],
+    )
+
+    result = validator.validate(
+        surface,
+        run_action_ids=frozenset({"act_expected_run"}),
+    )
+
+    assert not result.is_valid
+    assert "action_not_authorised_for_run" in {error.rule for error in result.errors}
 
 
 @pytest.mark.security
@@ -456,3 +598,14 @@ def _with_component(surface, component: A2UIComponent):  # type: ignore[no-untyp
             )
         )
     return surface.model_copy(update={"messages": messages})
+
+
+def _fixture_action(action_id: str) -> A2UIAction:
+    return A2UIAction(
+        action_id=action_id,
+        tool_name="fixtures.confirmar",
+        input_schema_ref="contracts://fixtures/confirmar.input.v1",
+        expected_version=1,
+        requires_confirmation=True,
+        label="Confirmar",
+    )

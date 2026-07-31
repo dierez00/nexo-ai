@@ -43,7 +43,9 @@ class RunEvent(FrozenNexoModel):
     actor: EventActor
     status: EventStatus
     duration_ms: PositiveMillis | None = None
-    data: SafePayload
+    # El default vive dentro de `SafePayload`, pero repetirlo aquí lo hace
+    # visible para quien lee el contrato y para el análisis estático.
+    data: SafePayload = Field(default_factory=dict)
     error: NormalizedError | None = None
     policy_version: str | None = Field(
         default=None,

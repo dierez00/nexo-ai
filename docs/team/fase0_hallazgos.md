@@ -283,7 +283,7 @@ Ninguna se implementó. Se registran para que se decidan en su fase.
 | Q-01 | ¿Se ratifica `contracts/src/nexo_contracts/` como hogar del paquete Pydantic? | **Dani** | Es su carpeta. Si se mueve, cambian los imports de todos los módulos |
 | Q-02 | ¿El schema físico de `run_events` y checkpoints admite `RunState` completo serializado? | **Daher** | Si exige normalizar el estado en tablas, cambia la política de checkpoints |
 | Q-03 | ¿La API expone `RunResult` tal cual o con una envoltura propia? | **Dani** | Determina si `RunResult` es contrato de wire o solo interno |
-| Q-04 | ¿El catálogo ciudadano v1 coincide con el de la skill `build-a2ui-frontend`? | **Cris** | `config/catalogs.yaml` apunta a `a2ui/catalogs/citizen/v1/catalog.json`, que aún no existe |
+| Q-04 | **Resuelta 2026-07-30:** se congela el `CatalogDescriptor` y JSONL implementados en el repo; no se migra al catálogo alternativo de la skill | **Tú / Cris** | El renderer se considera cerrado y Diego conecta esta frontera al flujo |
 | Q-05 | ¿Se adopta `uv` con lockfile antes de CI? | **Dani** | Sin lockfile, CI no reproduce el árbol de dependencias |
 | Q-06 | ¿Los nombres de evento de §5.8 son definitivos para el workflow viewer? | **Cris** | Renombrar un evento después de Fase 1 es un cambio incompatible |
 | Q-07 | ¿Confirmas la corrección de la redacción de `DIE-F0-038` en el plan? | **Tú** | Ver H-03; hoy el plan se contradice consigo mismo |

@@ -23,6 +23,7 @@
       "domain": "vehiculos",
       "fact_id": "fact_req_01",
       "reason": "citation_supports_claim",
+      "supporting_tool_call_id": null,
       "value": {
         "boolean": null,
         "date": null,
@@ -57,6 +58,7 @@
       "domain": "vehiculos",
       "fact_id": "fact_cost_01",
       "reason": "citation_supports_claim",
+      "supporting_tool_call_id": null,
       "value": {
         "boolean": null,
         "date": null,

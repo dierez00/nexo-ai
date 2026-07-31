@@ -149,12 +149,10 @@ class EvaluationReport(NexoModel):
     corpus_versions: dict[Domain, str] = Field(default_factory=dict)
     config_version: str = Field(max_length=60)
     seed: int | None = None
-    deterministic_results: Annotated[
-        list[DeterministicEvaluationResult], Field(max_length=500)
-    ] = Field(default_factory=list)
-    judge_results: Annotated[list[JudgeResult], Field(max_length=500)] = Field(
-        default_factory=list
+    deterministic_results: Annotated[list[DeterministicEvaluationResult], Field(max_length=500)] = (
+        Field(default_factory=list)
     )
+    judge_results: Annotated[list[JudgeResult], Field(max_length=500)] = Field(default_factory=list)
     generated_at: UtcDatetime
 
     @property

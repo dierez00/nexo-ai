@@ -1,0 +1,3 @@
+{"version":"v0.9.1","createSurface":{"surfaceId":"surf_invalid_action","catalogId":"urn:nexo-ia:a2ui:catalog:citizen:v1","sendDataModel":true}}
+{"version":"v0.9.1","updateDataModel":{"surfaceId":"surf_invalid_action","path":"/","value":{"title":"Acción de otro run"}}}
+{"version":"v0.9.1","updateComponents":{"surfaceId":"surf_invalid_action","components":[{"id":"root","component":"Column","children":["confirmar"],"align":"stretch","gap":"md"},{"id":"confirmar","component":"ConfirmButton","actionId":"act_other_run","label":"Confirmar","description":"No debe autorizarse."}]}}

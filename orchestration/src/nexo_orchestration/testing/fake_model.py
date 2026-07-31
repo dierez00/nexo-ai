@@ -11,6 +11,8 @@ escalamiento, reintentos y fallback sin proveedor real.
 
 from __future__ import annotations
 
+import hashlib
+import math
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -24,6 +26,7 @@ from nexo_contracts import (
     Outcome,
 )
 
+from ..models.adapters import AdapterResult
 from ..ports.model import ChatRequest, ChatResponse, ModelPortError
 
 
@@ -77,8 +80,13 @@ class Scenario:
         return NormalizedError.from_code(code, message, outcome=outcome)
 
 
-class FakeChatModel:
-    """Implementación de `ChatModelPort` sin red, determinista y programable."""
+class ScenarioScript:
+    """Guion de escenarios por `purpose`, con cursor propio.
+
+    Se extrae del modelo falso para que el adapter falso del gateway comparta
+    exactamente la misma mecánica: dos dobles que se comportan distinto ante el
+    mismo guion harían inútil probar contra uno de ellos.
+    """
 
     def __init__(
         self,
@@ -93,14 +101,13 @@ class FakeChatModel:
             )
         self._default = default
         self._cursor: dict[str, int] = {}
-        self.calls: list[ChatRequest] = []
 
     def program(self, purpose: str, *scenarios: Scenario) -> None:
         """Programa (o reprograma) el guion de un `purpose`."""
         self._scripts[purpose] = list(scenarios)
         self._cursor.pop(purpose, None)
 
-    def _next(self, purpose: str) -> Scenario:
+    def next(self, purpose: str) -> Scenario:
         script = self._scripts.get(purpose)
         if not script:
             if self._default is not None:
@@ -115,6 +122,26 @@ class FakeChatModel:
         scenario = script[min(index, len(script) - 1)]
         self._cursor[purpose] = index + 1
         return scenario
+
+
+class FakeChatModel:
+    """Implementación de `ChatModelPort` sin red, determinista y programable."""
+
+    def __init__(
+        self,
+        scenarios: dict[str, Scenario | Sequence[Scenario]] | None = None,
+        *,
+        default: Scenario | None = None,
+    ) -> None:
+        self._script = ScenarioScript(scenarios, default=default)
+        self.calls: list[ChatRequest] = []
+
+    def program(self, purpose: str, *scenarios: Scenario) -> None:
+        """Programa (o reprograma) el guion de un `purpose`."""
+        self._script.program(purpose, *scenarios)
+
+    def _next(self, purpose: str) -> Scenario:
+        return self._script.next(purpose)
 
     async def generate(self, request: ChatRequest) -> ChatResponse:
         self.calls.append(request)
@@ -142,3 +169,82 @@ class FakeChatModel:
         if purpose is None:
             return len(self.calls)
         return sum(1 for call in self.calls if call.purpose == purpose)
+
+
+class FakeChatAdapter:
+    """Implementación de `ChatAdapterPort` para probar el gateway (`DIE-F1-007`).
+
+    A diferencia de `FakeChatModel`, que sustituye al gateway entero, este doble
+    sustituye solo al proveedor: el gateway real resuelve el alias, calcula el
+    costo y decide el fallback por encima de él. Es lo que permite probar el
+    routing sin credenciales y sin inventar un segundo mecanismo de escenarios.
+
+    El costo lo calcula el gateway desde la configuración, así que
+    `Scenario.cost_usd` se ignora aquí a propósito.
+    """
+
+    def __init__(
+        self,
+        scenarios: dict[str, Scenario | Sequence[Scenario]] | None = None,
+        *,
+        provider: str = "fake",
+        default: Scenario | None = None,
+    ) -> None:
+        self._script = ScenarioScript(scenarios, default=default)
+        self._provider = provider
+        self.calls: list[tuple[str, str]] = []
+
+    @property
+    def provider(self) -> str:
+        return self._provider
+
+    def program(self, purpose: str, *scenarios: Scenario) -> None:
+        self._script.program(purpose, *scenarios)
+
+    async def generate(self, request: ChatRequest, *, model: str) -> AdapterResult:
+        self.calls.append((request.purpose, model))
+        scenario = self._script.next(request.purpose)
+        if scenario.behavior is not FakeBehavior.SUCCESS:
+            raise ModelPortError(scenario.error())
+        return AdapterResult(
+            data=scenario.data,
+            input_tokens=scenario.input_tokens,
+            output_tokens=scenario.output_tokens,
+            duration_ms=scenario.latency_ms,
+        )
+
+    def call_count(self, purpose: str | None = None) -> int:
+        if purpose is None:
+            return len(self.calls)
+        return sum(1 for called, _ in self.calls if called == purpose)
+
+
+class FakeEmbeddingsAdapter:
+    """Implementación de `EmbeddingsAdapterPort` sobre embeddings deterministas.
+
+    Existe para probar la resolución de alias del `EmbeddingsGateway`, no para
+    medir calidad: los vectores no tienen propiedades semánticas (ver TD-02).
+    """
+
+    def __init__(self, *, provider: str = "fake", dimension: int = 64) -> None:
+        self._provider = provider
+        self._dimension = dimension
+        self.calls: list[tuple[int, str]] = []
+
+    @property
+    def provider(self) -> str:
+        return self._provider
+
+    @property
+    def dimension(self) -> int:
+        return self._dimension
+
+    async def embed(self, texts: list[str], *, model: str) -> list[list[float]]:
+        self.calls.append((len(texts), model))
+        return [self._vector(text) for text in texts]
+
+    def _vector(self, text: str) -> list[float]:
+        digest = hashlib.sha256(text.encode("utf-8")).digest()
+        raw = [digest[index % len(digest)] / 255.0 for index in range(self._dimension)]
+        norm = math.sqrt(sum(value * value for value in raw)) or 1.0
+        return [value / norm for value in raw]

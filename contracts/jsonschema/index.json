@@ -84,6 +84,12 @@
       "ref": "contracts://chunk.v1",
       "schema": "jsonschema/chunk.v1.json"
     },
+    "classification": {
+      "model": "Classification",
+      "module": "nexo_contracts.classification",
+      "ref": "contracts://classification.v1",
+      "schema": "jsonschema/classification.v1.json"
+    },
     "component_descriptor": {
       "model": "ComponentDescriptor",
       "module": "nexo_contracts.a2ui",

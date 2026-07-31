@@ -23,6 +23,7 @@ from .a2ui import (
     ComponentDescriptor,
 )
 from .base import NexoModel
+from .classification import Classification
 from .errors import NormalizedError
 from .estimation import Estimate
 from .evaluation import (
@@ -91,6 +92,7 @@ EXECUTION_CONTRACTS: dict[str, type[NexoModel]] = {
     "run_snapshot": RunSnapshot,
     "agent_task": AgentTask,
     "agent_result": AgentResult,
+    "classification": Classification,
     "action_request": ActionRequest,
     "action_result": ActionResult,
 }

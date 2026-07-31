@@ -8,15 +8,25 @@ datos ni credenciales.
 from .checkpoints import InMemoryCheckpointStore
 from .clock import DEFAULT_EPOCH, FrozenClock, SequentialIdFactory
 from .event_sink import InMemoryEventSink
-from .fake_model import FakeBehavior, FakeChatModel, Scenario
+from .fake_model import (
+    FakeBehavior,
+    FakeChatAdapter,
+    FakeChatModel,
+    FakeEmbeddingsAdapter,
+    Scenario,
+    ScenarioScript,
+)
 
 __all__ = [
     "DEFAULT_EPOCH",
     "FakeBehavior",
+    "FakeChatAdapter",
     "FakeChatModel",
+    "FakeEmbeddingsAdapter",
     "FrozenClock",
     "InMemoryCheckpointStore",
     "InMemoryEventSink",
     "Scenario",
+    "ScenarioScript",
     "SequentialIdFactory",
 ]

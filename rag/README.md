@@ -28,7 +28,7 @@ Consume repositorios y `data/documents`; expone contratos, no detalles de pgvect
 
 Toda recuperación incluye citas activas, nunca cruza namespaces no autorizados y reingerir no duplica chunks.
 
-## Estado tras Fase 0
+## Estado tras Fase 1
 
 Solo puertos y dobles: `RetrieverPort`, `EmbeddingsPort` y `ChunkRepositoryPort`
 en `ports.py`, con implementaciones en memoria en `testing/`.
@@ -37,7 +37,9 @@ El doble de retrieval aplica los mismos filtros lógicos que aplicará el
 repositorio real —institución, dominio, estado y vigencia antes de puntuar— para
 que una prueba que pasa con él siga significando algo con PostgreSQL.
 
-**Advertencia:** los embeddings deterministas y la heurística léxica del doble
-no tienen propiedades semánticas. Sirven para verificar filtros, orden y
-citaciones; **no** para medir recall ni precisión. El baseline de calidad exige
-el retriever real (Fase 1, F1.3).
+Implementados corpus versionado de vehículos/empresas, ingesta idempotente,
+chunking Markdown, BM25, embeddings, fusión híbrida, filtros de vigencia y
+suficiencia de evidencia. El baseline semántico versionado obtiene
+recall@5/citation precision **1.000/1.000** sobre los 15 casos sintéticos del
+MVP; los límites de esa medición están en
+[`docs/team/fase1_hallazgos.md`](../docs/team/fase1_hallazgos.md).
