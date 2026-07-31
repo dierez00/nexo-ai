@@ -7,6 +7,7 @@ import json
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
 
+from nexo_observability.logging import get_logger
 from sqlalchemy import RowMapping
 
 from nexo_api.core import ids
@@ -39,6 +40,8 @@ from nexo_contracts import (
     RunResult,
     RunStatus,
 )
+
+log = get_logger(__name__)
 
 
 def _public_event(event: RunEvent) -> dict[str, str] | None:
@@ -166,6 +169,15 @@ async def post_message(
             if result.answer:
                 await msg_repo.create(conv_id, "assistant", result.answer)
         except Exception as exc:  # noqa: BLE001 - el fallo debe ser observable por SSE
+            # El evento que ve el cliente solo lleva el tipo de excepción, que no
+            # basta para diagnosticar nada. La traza completa va al log del
+            # servidor, que es donde puede contener detalle sin exponerlo.
+            log.exception(
+                "runs.background_failed",
+                run_id=run_id_wire,
+                trace_id=trace_id,
+                error=type(exc).__name__,
+            )
             sink = PostgresEventSink()
             sequence = await sink.last_sequence(run_id_wire) + 1
             error = NormalizedError.from_code(ErrorCode.PROVIDER_ERROR, "Falló el orquestador")
