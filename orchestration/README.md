@@ -27,3 +27,22 @@ Depende de `contracts`, `agents` e interfaces RAG/MCP/observabilidad. Responsabl
 ## Terminado
 
 La traza reconstruye decisiones; reanudar no duplica efectos; las ramas paralelas consolidan igual sin importar el orden.
+
+## Estado tras Fase 0
+
+Implementado:
+
+- `RunState` serializable y sus reducers deterministas (`reducers.py`).
+- Puertos de ejecución en `ports/`: chat model, checkpoint store, event sink,
+  clock e ID factory. Los de retrieval y tools viven en `rag` y `mcp`.
+- Dobles en memoria en `testing/`, publicados como parte del paquete porque los
+  consumen otros módulos y la demo offline.
+- Grafo mínimo `start → classify_fake → finalize_fake` sobre LangGraph
+  (`graph/minimal.py`), con eventos secuenciados, checkpoints y reanudación.
+- Carga y validación fail-fast de `config/` (`configuration.py`).
+
+Pendiente (Fase 1, F1.11): nodos completos del MVP, interrupt de confirmación,
+model router y fan-out.
+
+Este es el **único** módulo que importa LangGraph. `contracts`, `agents`, `rag`
+y `mcp` no conocen el framework del grafo.
