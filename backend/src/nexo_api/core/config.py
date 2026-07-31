@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
     app_env: Literal["development", "staging", "production"] = "development"
     public_base_url: str = "http://localhost:8000"
+    web_origin: str = "http://localhost:3000"
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
     # Perfil de orquestación. `fake` usa dobles en proceso (default, sin cargar

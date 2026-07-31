@@ -24,9 +24,39 @@ en módulos separados.
 ## Estado de ejecución
 
 Implementado: `docker compose up --build api`, healthchecks, CI, logging JSONL,
-OpenAPI y runbook. El streaming SSE del MVP se ejecuta en proceso; un reinicio
-cancela runs activos. Worker/cola durable, voz y adapters institucionales reales
-siguen pendientes.
+OpenAPI, runbook, login proxy Supabase Auth, JWT por JWKS y chat web con SSE
+autenticado. El streaming SSE del MVP se ejecuta en proceso; un reinicio cancela
+runs activos. Worker/cola durable y adapters institucionales reales siguen
+pendientes.
+
+### Setup Supabase cloud
+
+1. Aplica todas las migraciones en `supabase/migrations/` al proyecto cloud.
+2. En Supabase Dashboard → Project Settings → API, copia:
+   - Project URL → `SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_URL`.
+   - Publishable key → `SUPABASE_PUBLISHABLE_KEY`.
+   - Secret key → `SUPABASE_SECRET_KEY` solo en backend.
+3. Define `SUPABASE_JWKS_URL=https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json`.
+4. En Project Settings → Database → Connect, copia el connection string. Para el
+   backend persistente usa direct connection si tu entorno soporta IPv6; si no,
+   usa session pooler. Adáptalo a SQLAlchemy async:
+   `postgresql+asyncpg://usuario:password@host:puerto/postgres`.
+5. En el backend local configura `WEB_ORIGIN=http://localhost:3000` y en
+   `apps/web/.env.local` configura `NEXT_PUBLIC_NEXO_API_URL=http://localhost:8000`.
+6. Antes de invitar un usuario, crea el invite de negocio para que el trigger
+   genere `public.users` cuando acepte la invitación:
+
+```sql
+insert into public.invites (tenant_id, email, role_id, branch_id)
+select t.id, 'TU_EMAIL_ADMIN', r.id, b.id
+from public.tenants t
+join public.roles r on r.code = 'admin' and r.tenant_id is null
+left join public.branches b on b.tenant_id = t.id and b.code = 'MOD-CENTRO'
+where t.slug = 'gobierno-demo';
+```
+
+7. En Authentication → Users → Add user → Send invitation, invita ese email,
+   acepta el enlace, define contraseña y entra en `/login`.
 
 ### Núcleo Python (Fases 0 y 1 — `implementadas`)
 

@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+from nexo_api.api.deps import get_current_user
 from nexo_api.main import create_app
 from nexo_api.schemas.auth import UserProfile
 
@@ -103,6 +104,30 @@ def test_login_ok(client: TestClient) -> None:
     assert resp.json()["tokens"]["access_token"] == "acc.jwt.tok"
 
 
+def test_refresh_ok(client: TestClient) -> None:
+    session = type("S", (), {"access_token": "new.jwt.tok", "refresh_token": "new_ref"})()
+    user = type("U", (), {"id": "abc"})()
+    fake = _fake_client(session, user)
+    fake.auth.refresh_session = AsyncMock(
+        return_value=type("R", (), {"session": session, "user": user})()
+    )
+
+    async def _create(url: str, key: str) -> Any:
+        return fake
+
+    with (
+        patch("nexo_api.services.auth.login.create_supabase_client", new=_create),
+        patch(
+            "nexo_api.services.auth.login.load_profile_by_auth_id",
+            new=AsyncMock(return_value=PROFILE),
+        ),
+    ):
+        resp = client.post("/api/v1/auth/refresh", json={"refresh_token": "old_ref"})
+
+    assert resp.status_code == 200
+    assert resp.json()["tokens"]["access_token"] == "new.jwt.tok"
+
+
 def test_login_bad_credentials_401(client: TestClient) -> None:
     fake = _fake_client(None, None)
 
@@ -116,3 +141,30 @@ def test_login_bad_credentials_401(client: TestClient) -> None:
         )
     assert resp.status_code == 401
     assert resp.json()["code"] == "AUTHENTICATION_REQUIRED"
+
+
+def test_admin_can_create_user_without_invite() -> None:
+    app = create_app()
+    app.dependency_overrides[get_current_user] = lambda: PROFILE
+    with TestClient(app) as c:
+        with patch(
+            "nexo_api.api.v1.auth.create_user",
+            new=AsyncMock(return_value=PROFILE),
+        ) as create:
+            resp = c.post(
+                "/api/v1/auth/users",
+                json={
+                    "email": "nuevo@nexo.local",
+                    "password": "password123",
+                    "name": "Nuevo Usuario",
+                    "role_code": "citizen",
+                    "branch_code": "MOD-CENTRO",
+                },
+            )
+    app.dependency_overrides.clear()
+
+    assert resp.status_code == 200
+    create.assert_awaited_once()
+    body = create.await_args.args[1]
+    assert body.email == "nuevo@nexo.local"
+    assert body.email_confirm is True

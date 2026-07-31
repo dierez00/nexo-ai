@@ -630,6 +630,45 @@ components:
       - catalogId
       title: CreateSurface
       type: object
+    CreateUserRequest:
+      properties:
+        branch_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Branch Code
+        email:
+          title: Email
+          type: string
+        email_confirm:
+          default: true
+          title: Email Confirm
+          type: boolean
+        is_owner:
+          default: false
+          title: Is Owner
+          type: boolean
+        metadata:
+          additionalProperties: true
+          title: Metadata
+          type: object
+        name:
+          title: Name
+          type: string
+        password:
+          minLength: 8
+          title: Password
+          type: string
+        role_code:
+          default: citizen
+          title: Role Code
+          type: string
+      required:
+      - email
+      - password
+      - name
+      title: CreateUserRequest
+      type: object
     Domain:
       description: Los cinco namespaces iniciales (§2.3). Un dominio fuera de esta
         lista se rechaza.
@@ -1578,6 +1617,15 @@ components:
       - status
       - checks
       title: ReadyResponse
+      type: object
+    RefreshRequest:
+      properties:
+        refresh_token:
+          title: Refresh Token
+          type: string
+      required:
+      - refresh_token
+      title: RefreshRequest
       type: object
     RetryPolicy:
       additionalProperties: false
@@ -2838,6 +2886,106 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
           description: Validation Error
       summary: Login vía Supabase Auth
+      tags:
+      - auth
+  /api/v1/auth/refresh:
+    post:
+      operationId: refresh_api_v1_auth_refresh_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Permiso denegado (PERMISSION_DENIED)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Renovar sesión vía Supabase Auth
+      tags:
+      - auth
+  /api/v1/auth/users:
+    post:
+      operationId: create_auth_user_api_v1_auth_users_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Error de validación (VALIDATION_ERROR)
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Permiso denegado (PERMISSION_DENIED)
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Recurso no encontrado (RESOURCE_NOT_FOUND)
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Conflicto (APPOINTMENT_CONFLICT / VERSION_CONFLICT)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+        '502':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Error
+      security:
+      - HTTPBearer: []
+      summary: Crear usuario sin invitación
       tags:
       - auth
   /api/v1/conversations:
