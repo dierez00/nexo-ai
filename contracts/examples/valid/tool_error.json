@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "TOOL_TIMEOUT",
+    "details": [],
+    "message": "La tool no respondió dentro del deadline.",
+    "outcome": "unknown",
+    "retry_after_ms": null,
+    "retryable": false
+  },
+  "provider": "mock",
+  "safe_details": {
+    "timeout_ms": 5000
+  }
+}

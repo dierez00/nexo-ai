@@ -1,0 +1,9 @@
+{
+  "action_hint": "Responde CONFIRMAR para reservar tu cita.",
+  "channel": "whatsapp",
+  "numbered_items": [
+    "1. Identificación oficial vigente"
+  ],
+  "reason": "component_not_supported",
+  "text": "Renovación de licencia. Requisitos:"
+}

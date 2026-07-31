@@ -27,3 +27,19 @@ No depende de lógica. Dani custodia; Cris, Daher y Diego aprueban sus fronteras
 ## Terminado
 
 Frontend, API, agentes, MCP y A2UI aceptan los mismos fixtures sin traducciones implícitas.
+
+## Estado tras Fase 0
+
+Los modelos Pydantic de `src/nexo_contracts/` son la **fuente de verdad**. Todo
+lo demás se genera con `python -m nexo_contracts.export` y no se edita a mano:
+
+- `jsonschema/` y `events/` — 56 JSON Schema más `index.json`.
+- `examples/valid/` — un ejemplo canónico por contrato.
+- `examples/invalid/` — 26 payloads que deben rechazarse, con la regla que los
+  detecta en `manifest.json`.
+- `domains/*/fixtures/` — fixtures de los dos recorridos MVP.
+
+Compatibilidad y proceso de aprobación: [`CHANGELOG.md`](./CHANGELOG.md).
+Convenciones transversales: [`docs/architecture/conventions.md`](../docs/architecture/conventions.md).
+
+Un contract test falla si un artefacto publicado se desincroniza del modelo.

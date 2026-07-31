@@ -1,0 +1,10 @@
+{
+  "allows_sensitive_data": false,
+  "default_alias": "high_accuracy",
+  "escalation_alias": "reasoning",
+  "fallback_alias": "general",
+  "max_attempts": 2,
+  "min_accuracy_class": "high",
+  "policy_version": "policies-2026-07-30",
+  "task_kind": "verification"
+}

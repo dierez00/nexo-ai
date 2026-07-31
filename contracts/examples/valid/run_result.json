@@ -1,0 +1,194 @@
+{
+  "answer": "Puedes renovar tu licencia presentando identificación oficial vigente.",
+  "available_actions": [
+    {
+      "action_id": "act_reserve_01",
+      "expected_version": 1,
+      "input_schema_ref": "contracts://tools/vehiculos.reservar_cita.input.v1",
+      "label": "Confirmar cita",
+      "requires_confirmation": true,
+      "tool_name": "vehiculos.reservar_cita"
+    }
+  ],
+  "error": null,
+  "estimate": null,
+  "fallback": null,
+  "metrics": {
+    "duration_ms": 4200,
+    "first_event_ms": null,
+    "model_invocation_count": 2,
+    "retrieval_count": 0,
+    "tool_call_count": 0,
+    "total_cost_usd": 0.012,
+    "total_input_tokens": 0,
+    "total_output_tokens": 0
+  },
+  "run_id": "run_01JNE8ZP",
+  "sources": [
+    {
+      "char_end": 180,
+      "char_start": 0,
+      "corpus_version": "vehiculos-demo-2026-07-20",
+      "fragment_id": "frag_12",
+      "is_active": true,
+      "source_id": "src_licencias_v3",
+      "source_version": "3",
+      "valid_from": "2026-01-01",
+      "valid_to": null
+    }
+  ],
+  "status": "waiting_confirmation",
+  "surface": {
+    "actions": [
+      {
+        "action_id": "act_reserve_01",
+        "expected_version": 1,
+        "input_schema_ref": "contracts://tools/vehiculos.reservar_cita.input.v1",
+        "label": "Confirmar cita",
+        "requires_confirmation": true,
+        "tool_name": "vehiculos.reservar_cita"
+      }
+    ],
+    "catalog_id": "urn:nexo-ia:a2ui:catalog:citizen:v1",
+    "channel": "web",
+    "messages": [
+      {
+        "createSurface": {
+          "catalogId": "urn:nexo-ia:a2ui:catalog:citizen:v1",
+          "sendDataModel": false,
+          "surfaceId": "surf_licencia"
+        },
+        "updateComponents": null,
+        "updateDataModel": null,
+        "version": "v0.9.1"
+      },
+      {
+        "createSurface": null,
+        "updateComponents": null,
+        "updateDataModel": {
+          "path": "/",
+          "surfaceId": "surf_licencia",
+          "value": {
+            "title": "Renovación de licencia",
+            "total": "1,250.00 MXN"
+          }
+        },
+        "version": "v0.9.1"
+      },
+      {
+        "createSurface": null,
+        "updateComponents": {
+          "components": [
+            {
+              "actionId": null,
+              "children": [
+                "title",
+                "confirm"
+              ],
+              "component": "Column",
+              "id": "root"
+            },
+            {
+              "actionId": null,
+              "children": [],
+              "component": "Text",
+              "id": "title",
+              "text": {
+                "path": "/title"
+              }
+            },
+            {
+              "actionId": "act_reserve_01",
+              "children": [],
+              "component": "Button",
+              "id": "confirm",
+              "label": "Confirmar cita"
+            }
+          ],
+          "surfaceId": "surf_licencia"
+        },
+        "updateDataModel": null,
+        "version": "v0.9.1"
+      }
+    ],
+    "surface_id": "surf_licencia"
+  },
+  "trace_id": "trace_01JNE8ZP",
+  "verified_facts": {
+    "contradictions": [],
+    "created_at": "2026-07-30T15:00:00Z",
+    "facts": [
+      {
+        "category": "requirement",
+        "citations": [
+          {
+            "char_end": 180,
+            "char_start": 0,
+            "corpus_version": "vehiculos-demo-2026-07-20",
+            "fragment_id": "frag_12",
+            "is_active": true,
+            "source_id": "src_licencias_v3",
+            "source_version": "3",
+            "valid_from": "2026-01-01",
+            "valid_to": null
+          }
+        ],
+        "claim": "Se requiere identificación oficial vigente.",
+        "confidence": 0.95,
+        "depends_on": [],
+        "domain": "vehiculos",
+        "fact_id": "fact_req_01",
+        "reason": "citation_supports_claim",
+        "value": {
+          "boolean": null,
+          "date": null,
+          "items": [
+            "Identificación oficial vigente"
+          ],
+          "money": null,
+          "number": null,
+          "text": null
+        },
+        "verification": "accepted",
+        "write_eligible": false
+      },
+      {
+        "category": "cost",
+        "citations": [
+          {
+            "char_end": 180,
+            "char_start": 0,
+            "corpus_version": "vehiculos-demo-2026-07-20",
+            "fragment_id": "frag_12",
+            "is_active": true,
+            "source_id": "src_licencias_v3",
+            "source_version": "3",
+            "valid_from": "2026-01-01",
+            "valid_to": null
+          }
+        ],
+        "claim": "El costo de renovación de demostración es de 1,250.00 MXN.",
+        "confidence": 0.97,
+        "depends_on": [],
+        "domain": "vehiculos",
+        "fact_id": "fact_cost_01",
+        "reason": "citation_supports_claim",
+        "value": {
+          "boolean": null,
+          "date": null,
+          "items": null,
+          "money": {
+            "amount_minor": 125000,
+            "currency": "MXN"
+          },
+          "number": null,
+          "text": null
+        },
+        "verification": "accepted",
+        "write_eligible": true
+      }
+    ],
+    "snapshot_id": "snapshot_cap_veh_01"
+  },
+  "warnings": []
+}

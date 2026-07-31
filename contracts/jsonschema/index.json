@@ -1,0 +1,341 @@
+{
+  "contracts": {
+    "a2ui_action": {
+      "model": "A2UIAction",
+      "module": "nexo_contracts.a2ui",
+      "ref": "contracts://a2ui_action.v1",
+      "schema": "jsonschema/a2ui_action.v1.json"
+    },
+    "a2ui_component": {
+      "model": "A2UIComponent",
+      "module": "nexo_contracts.a2ui",
+      "ref": "contracts://a2ui_component.v1",
+      "schema": "jsonschema/a2ui_component.v1.json"
+    },
+    "a2ui_message": {
+      "model": "A2UIMessage",
+      "module": "nexo_contracts.a2ui",
+      "ref": "contracts://a2ui_message.v1",
+      "schema": "jsonschema/a2ui_message.v1.json"
+    },
+    "a2ui_surface": {
+      "model": "A2UISurface",
+      "module": "nexo_contracts.a2ui",
+      "ref": "contracts://a2ui_surface.v1",
+      "schema": "jsonschema/a2ui_surface.v1.json"
+    },
+    "a2ui_validation_result": {
+      "model": "A2UIValidationResult",
+      "module": "nexo_contracts.a2ui",
+      "ref": "contracts://a2ui_validation_result.v1",
+      "schema": "jsonschema/a2ui_validation_result.v1.json"
+    },
+    "action_request": {
+      "model": "ActionRequest",
+      "module": "nexo_contracts.execution",
+      "ref": "contracts://action_request.v1",
+      "schema": "jsonschema/action_request.v1.json"
+    },
+    "action_result": {
+      "model": "ActionResult",
+      "module": "nexo_contracts.execution",
+      "ref": "contracts://action_result.v1",
+      "schema": "jsonschema/action_result.v1.json"
+    },
+    "agent_result": {
+      "model": "AgentResult",
+      "module": "nexo_contracts.execution",
+      "ref": "contracts://agent_result.v1",
+      "schema": "jsonschema/agent_result.v1.json"
+    },
+    "agent_task": {
+      "model": "AgentTask",
+      "module": "nexo_contracts.execution",
+      "ref": "contracts://agent_task.v1",
+      "schema": "jsonschema/agent_task.v1.json"
+    },
+    "approval": {
+      "model": "Approval",
+      "module": "nexo_contracts.tools",
+      "ref": "contracts://approval.v1",
+      "schema": "jsonschema/approval.v1.json"
+    },
+    "candidate_fact": {
+      "model": "CandidateFact",
+      "module": "nexo_contracts.facts",
+      "ref": "contracts://candidate_fact.v1",
+      "schema": "jsonschema/candidate_fact.v1.json"
+    },
+    "catalog_descriptor": {
+      "model": "CatalogDescriptor",
+      "module": "nexo_contracts.a2ui",
+      "ref": "contracts://catalog_descriptor.v1",
+      "schema": "jsonschema/catalog_descriptor.v1.json"
+    },
+    "channel_fallback": {
+      "model": "ChannelFallback",
+      "module": "nexo_contracts.a2ui",
+      "ref": "contracts://channel_fallback.v1",
+      "schema": "jsonschema/channel_fallback.v1.json"
+    },
+    "chunk": {
+      "model": "Chunk",
+      "module": "nexo_contracts.rag",
+      "ref": "contracts://chunk.v1",
+      "schema": "jsonschema/chunk.v1.json"
+    },
+    "component_descriptor": {
+      "model": "ComponentDescriptor",
+      "module": "nexo_contracts.a2ui",
+      "ref": "contracts://component_descriptor.v1",
+      "schema": "jsonschema/component_descriptor.v1.json"
+    },
+    "contradiction": {
+      "model": "Contradiction",
+      "module": "nexo_contracts.facts",
+      "ref": "contracts://contradiction.v1",
+      "schema": "jsonschema/contradiction.v1.json"
+    },
+    "controlled_test_result": {
+      "model": "ControlledTestResult",
+      "module": "nexo_contracts.tools",
+      "ref": "contracts://controlled_test_result.v1",
+      "schema": "jsonschema/controlled_test_result.v1.json"
+    },
+    "corpus_version": {
+      "model": "CorpusVersion",
+      "module": "nexo_contracts.rag",
+      "ref": "contracts://corpus_version.v1",
+      "schema": "jsonschema/corpus_version.v1.json"
+    },
+    "deduction": {
+      "model": "Deduction",
+      "module": "nexo_contracts.facts",
+      "ref": "contracts://deduction.v1",
+      "schema": "jsonschema/deduction.v1.json"
+    },
+    "deterministic_evaluation_result": {
+      "model": "DeterministicEvaluationResult",
+      "module": "nexo_contracts.evaluation",
+      "ref": "contracts://deterministic_evaluation_result.v1",
+      "schema": "jsonschema/deterministic_evaluation_result.v1.json"
+    },
+    "document": {
+      "model": "Document",
+      "module": "nexo_contracts.rag",
+      "ref": "contracts://document.v1",
+      "schema": "jsonschema/document.v1.json"
+    },
+    "document_version": {
+      "model": "DocumentVersion",
+      "module": "nexo_contracts.rag",
+      "ref": "contracts://document_version.v1",
+      "schema": "jsonschema/document_version.v1.json"
+    },
+    "estimate": {
+      "model": "Estimate",
+      "module": "nexo_contracts.estimation",
+      "ref": "contracts://estimate.v1",
+      "schema": "jsonschema/estimate.v1.json"
+    },
+    "evaluation_report": {
+      "model": "EvaluationReport",
+      "module": "nexo_contracts.evaluation",
+      "ref": "contracts://evaluation_report.v1",
+      "schema": "jsonschema/evaluation_report.v1.json"
+    },
+    "event_sequence": {
+      "model": "EventSequence",
+      "module": "nexo_contracts.events",
+      "ref": "contracts://event_sequence.v1",
+      "schema": "events/event_sequence.v1.json"
+    },
+    "ingestion_result": {
+      "model": "IngestionResult",
+      "module": "nexo_contracts.rag",
+      "ref": "contracts://ingestion_result.v1",
+      "schema": "jsonschema/ingestion_result.v1.json"
+    },
+    "integration_draft": {
+      "model": "IntegrationDraft",
+      "module": "nexo_contracts.tools",
+      "ref": "contracts://integration_draft.v1",
+      "schema": "jsonschema/integration_draft.v1.json"
+    },
+    "judge_request": {
+      "model": "JudgeRequest",
+      "module": "nexo_contracts.evaluation",
+      "ref": "contracts://judge_request.v1",
+      "schema": "jsonschema/judge_request.v1.json"
+    },
+    "judge_result": {
+      "model": "JudgeResult",
+      "module": "nexo_contracts.evaluation",
+      "ref": "contracts://judge_result.v1",
+      "schema": "jsonschema/judge_result.v1.json"
+    },
+    "mapper_validation": {
+      "model": "MapperValidation",
+      "module": "nexo_contracts.tools",
+      "ref": "contracts://mapper_validation.v1",
+      "schema": "jsonschema/mapper_validation.v1.json"
+    },
+    "model_candidate": {
+      "model": "ModelCandidate",
+      "module": "nexo_contracts.model_gateway",
+      "ref": "contracts://model_candidate.v1",
+      "schema": "jsonschema/model_candidate.v1.json"
+    },
+    "model_capabilities": {
+      "model": "ModelCapabilities",
+      "module": "nexo_contracts.model_gateway",
+      "ref": "contracts://model_capabilities.v1",
+      "schema": "jsonschema/model_capabilities.v1.json"
+    },
+    "model_decision": {
+      "model": "ModelDecision",
+      "module": "nexo_contracts.model_gateway",
+      "ref": "contracts://model_decision.v1",
+      "schema": "jsonschema/model_decision.v1.json"
+    },
+    "model_invocation": {
+      "model": "ModelInvocation",
+      "module": "nexo_contracts.model_gateway",
+      "ref": "contracts://model_invocation.v1",
+      "schema": "jsonschema/model_invocation.v1.json"
+    },
+    "model_policy": {
+      "model": "ModelPolicy",
+      "module": "nexo_contracts.model_gateway",
+      "ref": "contracts://model_policy.v1",
+      "schema": "jsonschema/model_policy.v1.json"
+    },
+    "model_task": {
+      "model": "ModelTask",
+      "module": "nexo_contracts.model_gateway",
+      "ref": "contracts://model_task.v1",
+      "schema": "jsonschema/model_task.v1.json"
+    },
+    "normalized_error": {
+      "model": "NormalizedError",
+      "module": "nexo_contracts.errors",
+      "ref": "contracts://normalized_error.v1",
+      "schema": "jsonschema/normalized_error.v1.json"
+    },
+    "published_tool_version": {
+      "model": "PublishedToolVersion",
+      "module": "nexo_contracts.tools",
+      "ref": "contracts://published_tool_version.v1",
+      "schema": "jsonschema/published_tool_version.v1.json"
+    },
+    "retrieval_query": {
+      "model": "RetrievalQuery",
+      "module": "nexo_contracts.rag",
+      "ref": "contracts://retrieval_query.v1",
+      "schema": "jsonschema/retrieval_query.v1.json"
+    },
+    "retrieval_response": {
+      "model": "RetrievalResponse",
+      "module": "nexo_contracts.rag",
+      "ref": "contracts://retrieval_response.v1",
+      "schema": "jsonschema/retrieval_response.v1.json"
+    },
+    "retrieval_result": {
+      "model": "RetrievalResult",
+      "module": "nexo_contracts.rag",
+      "ref": "contracts://retrieval_result.v1",
+      "schema": "jsonschema/retrieval_result.v1.json"
+    },
+    "run_event": {
+      "model": "RunEvent",
+      "module": "nexo_contracts.events",
+      "ref": "contracts://run_event.v1",
+      "schema": "events/run_event.v1.json"
+    },
+    "run_request": {
+      "model": "RunRequest",
+      "module": "nexo_contracts.execution",
+      "ref": "contracts://run_request.v1",
+      "schema": "jsonschema/run_request.v1.json"
+    },
+    "run_result": {
+      "model": "RunResult",
+      "module": "nexo_contracts.execution",
+      "ref": "contracts://run_result.v1",
+      "schema": "jsonschema/run_result.v1.json"
+    },
+    "run_snapshot": {
+      "model": "RunSnapshot",
+      "module": "nexo_contracts.execution",
+      "ref": "contracts://run_snapshot.v1",
+      "schema": "jsonschema/run_snapshot.v1.json"
+    },
+    "run_state": {
+      "model": "RunState",
+      "module": "nexo_contracts.execution",
+      "ref": "contracts://run_state.v1",
+      "schema": "jsonschema/run_state.v1.json"
+    },
+    "self_check_result": {
+      "model": "SelfCheckResult",
+      "module": "nexo_contracts.evaluation",
+      "ref": "contracts://self_check_result.v1",
+      "schema": "jsonschema/self_check_result.v1.json"
+    },
+    "skill_manifest": {
+      "model": "SkillManifest",
+      "module": "nexo_contracts.skills",
+      "ref": "contracts://skill_manifest.v1",
+      "schema": "jsonschema/skill_manifest.v1.json"
+    },
+    "source": {
+      "model": "Source",
+      "module": "nexo_contracts.rag",
+      "ref": "contracts://source.v1",
+      "schema": "jsonschema/source.v1.json"
+    },
+    "source_citation": {
+      "model": "SourceCitation",
+      "module": "nexo_contracts.facts",
+      "ref": "contracts://source_citation.v1",
+      "schema": "jsonschema/source_citation.v1.json"
+    },
+    "tool_call": {
+      "model": "ToolCall",
+      "module": "nexo_contracts.tools",
+      "ref": "contracts://tool_call.v1",
+      "schema": "jsonschema/tool_call.v1.json"
+    },
+    "tool_error": {
+      "model": "ToolError",
+      "module": "nexo_contracts.tools",
+      "ref": "contracts://tool_error.v1",
+      "schema": "jsonschema/tool_error.v1.json"
+    },
+    "tool_metadata": {
+      "model": "ToolMetadata",
+      "module": "nexo_contracts.tools",
+      "ref": "contracts://tool_metadata.v1",
+      "schema": "jsonschema/tool_metadata.v1.json"
+    },
+    "tool_result": {
+      "model": "ToolResult",
+      "module": "nexo_contracts.tools",
+      "ref": "contracts://tool_result.v1",
+      "schema": "jsonschema/tool_result.v1.json"
+    },
+    "verified_fact": {
+      "model": "VerifiedFact",
+      "module": "nexo_contracts.facts",
+      "ref": "contracts://verified_fact.v1",
+      "schema": "jsonschema/verified_fact.v1.json"
+    },
+    "verified_facts": {
+      "model": "VerifiedFacts",
+      "module": "nexo_contracts.facts",
+      "ref": "contracts://verified_facts.v1",
+      "schema": "jsonschema/verified_facts.v1.json"
+    }
+  },
+  "contracts_schema_version": "v1"
+}

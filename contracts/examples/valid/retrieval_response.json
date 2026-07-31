@@ -1,0 +1,27 @@
+{
+  "corpus_version": "vehiculos-demo-2026-07-20",
+  "filtered_count": 2,
+  "results": [
+    {
+      "citation": {
+        "char_end": 180,
+        "char_start": 0,
+        "corpus_version": "vehiculos-demo-2026-07-20",
+        "fragment_id": "frag_12",
+        "is_active": true,
+        "source_id": "src_licencias_v3",
+        "source_version": "3",
+        "valid_from": "2026-01-01",
+        "valid_to": null
+      },
+      "fragment_id": "frag_12",
+      "fused_score": 0.91,
+      "injection_signals": [],
+      "lexical_score": null,
+      "source_id": "src_licencias_v3",
+      "text": "Presentar identificación oficial vigente.",
+      "title": "Renovación de licencia — versión demo 3",
+      "vector_score": null
+    }
+  ]
+}

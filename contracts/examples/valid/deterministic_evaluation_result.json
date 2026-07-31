@@ -1,0 +1,15 @@
+{
+  "a2ui_schema_valid": true,
+  "case_id": "CAP-VEH-01",
+  "citation_precision": 0.95,
+  "dataset_version": "capstone_v1",
+  "domain_match": true,
+  "max_questions_allowed": 1,
+  "permission_compliance": true,
+  "procedure_match": true,
+  "questions_asked": 1,
+  "source_coverage": 1.0,
+  "tool_selection_correct": true,
+  "unsupported_critical_claims": 0,
+  "write_verifiable": true
+}

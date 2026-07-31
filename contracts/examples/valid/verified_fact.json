@@ -1,0 +1,35 @@
+{
+  "category": "cost",
+  "citations": [
+    {
+      "char_end": 180,
+      "char_start": 0,
+      "corpus_version": "vehiculos-demo-2026-07-20",
+      "fragment_id": "frag_12",
+      "is_active": true,
+      "source_id": "src_licencias_v3",
+      "source_version": "3",
+      "valid_from": "2026-01-01",
+      "valid_to": null
+    }
+  ],
+  "claim": "El costo de renovación de demostración es de 1,250.00 MXN.",
+  "confidence": 0.97,
+  "depends_on": [],
+  "domain": "vehiculos",
+  "fact_id": "fact_cost_01",
+  "reason": "citation_supports_claim",
+  "value": {
+    "boolean": null,
+    "date": null,
+    "items": null,
+    "money": {
+      "amount_minor": 125000,
+      "currency": "MXN"
+    },
+    "number": null,
+    "text": null
+  },
+  "verification": "accepted",
+  "write_eligible": true
+}

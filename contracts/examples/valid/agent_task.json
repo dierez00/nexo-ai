@@ -1,0 +1,18 @@
+{
+  "agent": "verifier",
+  "allowed_sources": [
+    "src_licencias_v3"
+  ],
+  "allowed_tools": [],
+  "attempt": 1,
+  "deadline_ms": 6000,
+  "input_refs": [
+    "fact_req_01",
+    "fact_cost_01"
+  ],
+  "max_cost_usd": 0.05,
+  "model_policy": "high_accuracy",
+  "objective": "Validar requisitos, costos, ubicaciones y vigencia",
+  "run_id": "run_01JNE8ZP",
+  "task_id": "task_verify_01"
+}

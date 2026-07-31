@@ -1,0 +1,13 @@
+{
+  "updateComponents": {
+    "components": [
+      {
+        "component": "Text",
+        "id": "title",
+        "text": "hola"
+      }
+    ],
+    "surfaceId": "surf_licencia"
+  },
+  "version": "v0.9.1"
+}

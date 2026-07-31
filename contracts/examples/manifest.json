@@ -1,0 +1,361 @@
+{
+  "contracts_schema_version": "v1",
+  "invalid": {
+    "a2ui_component_tree__without_root": {
+      "contract": "a2ui_message",
+      "file": "invalid/a2ui_component_tree__without_root.json",
+      "rejected_by": "el árbol exige exactamente un componente root"
+    },
+    "a2ui_surface__action_not_declared": {
+      "contract": "a2ui_surface",
+      "file": "invalid/a2ui_surface__action_not_declared.json",
+      "rejected_by": "un componente no dispara una acción no declarada"
+    },
+    "a2ui_surface__missing_create_surface": {
+      "contract": "a2ui_surface",
+      "file": "invalid/a2ui_surface__missing_create_surface.json",
+      "rejected_by": "la superficie debe abrir con createSurface"
+    },
+    "action_request__confirmed_without_consent": {
+      "contract": "action_request",
+      "file": "invalid/action_request__confirmed_without_consent.json",
+      "rejected_by": "una acción confirmada exige consentimiento explícito"
+    },
+    "action_result__succeeded_without_verifiable_folio": {
+      "contract": "action_result",
+      "file": "invalid/action_result__succeeded_without_verifiable_folio.json",
+      "rejected_by": "sin identificador verificable no hay éxito"
+    },
+    "agent_result__non_transactional_proposes_write": {
+      "contract": "agent_result",
+      "file": "invalid/agent_result__non_transactional_proposes_write.json",
+      "rejected_by": "solo el agente transaccional puede proponer tools de escritura"
+    },
+    "estimate__cyclic_dependencies": {
+      "contract": "estimate",
+      "file": "invalid/estimate__cyclic_dependencies.json",
+      "rejected_by": "el DAG de permisos no admite ciclos"
+    },
+    "estimate__total_does_not_match_steps": {
+      "contract": "estimate",
+      "file": "invalid/estimate__total_does_not_match_steps.json",
+      "rejected_by": "el total se suma en código y debe cuadrar"
+    },
+    "event_sequence__non_monotonic": {
+      "contract": "event_sequence",
+      "file": "invalid/event_sequence__non_monotonic.json",
+      "rejected_by": "la secuencia por run es estrictamente monotónica"
+    },
+    "judge_request__same_model_as_generator": {
+      "contract": "judge_request",
+      "file": "invalid/judge_request__same_model_as_generator.json",
+      "rejected_by": "el judge usa un modelo distinto al generador"
+    },
+    "normalized_error__retryable_with_unknown_outcome": {
+      "contract": "normalized_error",
+      "file": "invalid/normalized_error__retryable_with_unknown_outcome.json",
+      "rejected_by": "un outcome desconocido nunca es reintentable"
+    },
+    "retrieval_result__score_out_of_range": {
+      "contract": "retrieval_result",
+      "file": "invalid/retrieval_result__score_out_of_range.json",
+      "rejected_by": "los puntajes están acotados a [0, 1]"
+    },
+    "run_event__naive_timestamp": {
+      "contract": "run_event",
+      "file": "invalid/run_event__naive_timestamp.json",
+      "rejected_by": "los timestamps exigen zona horaria"
+    },
+    "run_event__pii_in_payload": {
+      "contract": "run_event",
+      "file": "invalid/run_event__pii_in_payload.json",
+      "rejected_by": "los eventos no transportan PII directa"
+    },
+    "run_event__secret_in_payload": {
+      "contract": "run_event",
+      "file": "invalid/run_event__secret_in_payload.json",
+      "rejected_by": "los eventos no transportan secretos"
+    },
+    "run_request__id_looks_like_pii": {
+      "contract": "run_request",
+      "file": "invalid/run_request__id_looks_like_pii.json",
+      "rejected_by": "un ID opaco no incrusta secuencias que parezcan teléfonos"
+    },
+    "run_request__unknown_property": {
+      "contract": "run_request",
+      "file": "invalid/run_request__unknown_property.json",
+      "rejected_by": "los contratos rechazan propiedades desconocidas"
+    },
+    "run_request__unregistered_id_prefix": {
+      "contract": "run_request",
+      "file": "invalid/run_request__unregistered_id_prefix.json",
+      "rejected_by": "los IDs usan prefijos registrados"
+    },
+    "run_state__waiting_confirmation_without_action": {
+      "contract": "run_state",
+      "file": "invalid/run_state__waiting_confirmation_without_action.json",
+      "rejected_by": "esperar confirmación exige una acción persistida"
+    },
+    "skill_manifest__confirmation_outside_allowlist": {
+      "contract": "skill_manifest",
+      "file": "invalid/skill_manifest__confirmation_outside_allowlist.json",
+      "rejected_by": "una skill no amplía permisos"
+    },
+    "tool_call__write_without_idempotency_key": {
+      "contract": "tool_call",
+      "file": "invalid/tool_call__write_without_idempotency_key.json",
+      "rejected_by": "una escritura exige idempotency_key"
+    },
+    "tool_metadata__prefix_does_not_match_domain": {
+      "contract": "tool_metadata",
+      "file": "invalid/tool_metadata__prefix_does_not_match_domain.json",
+      "rejected_by": "el prefijo de la tool debe corresponder a su dominio"
+    },
+    "tool_metadata__write_without_confirmation": {
+      "contract": "tool_metadata",
+      "file": "invalid/tool_metadata__write_without_confirmation.json",
+      "rejected_by": "una tool de escritura debe exigir confirmación"
+    },
+    "verified_fact__critical_accepted_with_expired_citation": {
+      "contract": "verified_fact",
+      "file": "invalid/verified_fact__critical_accepted_with_expired_citation.json",
+      "rejected_by": "una citación inactiva no sostiene un hecho crítico"
+    },
+    "verified_fact__critical_accepted_without_citation": {
+      "contract": "verified_fact",
+      "file": "invalid/verified_fact__critical_accepted_without_citation.json",
+      "rejected_by": "un hecho crítico aceptado exige citación activa"
+    },
+    "verified_facts__accepted_fact_depends_on_rejected": {
+      "contract": "verified_facts",
+      "file": "invalid/verified_facts__accepted_fact_depends_on_rejected.json",
+      "rejected_by": "un hecho aceptado no puede depender de uno rechazado"
+    }
+  },
+  "valid": {
+    "a2ui_action": {
+      "contract": "a2ui_action",
+      "file": "valid/a2ui_action.json"
+    },
+    "a2ui_component": {
+      "contract": "a2ui_component",
+      "file": "valid/a2ui_component.json"
+    },
+    "a2ui_message": {
+      "contract": "a2ui_message",
+      "file": "valid/a2ui_message.json"
+    },
+    "a2ui_surface": {
+      "contract": "a2ui_surface",
+      "file": "valid/a2ui_surface.json"
+    },
+    "a2ui_validation_result": {
+      "contract": "a2ui_validation_result",
+      "file": "valid/a2ui_validation_result.json"
+    },
+    "action_request": {
+      "contract": "action_request",
+      "file": "valid/action_request.json"
+    },
+    "action_result": {
+      "contract": "action_result",
+      "file": "valid/action_result.json"
+    },
+    "agent_result": {
+      "contract": "agent_result",
+      "file": "valid/agent_result.json"
+    },
+    "agent_task": {
+      "contract": "agent_task",
+      "file": "valid/agent_task.json"
+    },
+    "approval": {
+      "contract": "approval",
+      "file": "valid/approval.json"
+    },
+    "candidate_fact": {
+      "contract": "candidate_fact",
+      "file": "valid/candidate_fact.json"
+    },
+    "catalog_descriptor": {
+      "contract": "catalog_descriptor",
+      "file": "valid/catalog_descriptor.json"
+    },
+    "channel_fallback": {
+      "contract": "channel_fallback",
+      "file": "valid/channel_fallback.json"
+    },
+    "chunk": {
+      "contract": "chunk",
+      "file": "valid/chunk.json"
+    },
+    "component_descriptor": {
+      "contract": "component_descriptor",
+      "file": "valid/component_descriptor.json"
+    },
+    "contradiction": {
+      "contract": "contradiction",
+      "file": "valid/contradiction.json"
+    },
+    "controlled_test_result": {
+      "contract": "controlled_test_result",
+      "file": "valid/controlled_test_result.json"
+    },
+    "corpus_version": {
+      "contract": "corpus_version",
+      "file": "valid/corpus_version.json"
+    },
+    "deduction": {
+      "contract": "deduction",
+      "file": "valid/deduction.json"
+    },
+    "deterministic_evaluation_result": {
+      "contract": "deterministic_evaluation_result",
+      "file": "valid/deterministic_evaluation_result.json"
+    },
+    "document": {
+      "contract": "document",
+      "file": "valid/document.json"
+    },
+    "document_version": {
+      "contract": "document_version",
+      "file": "valid/document_version.json"
+    },
+    "estimate": {
+      "contract": "estimate",
+      "file": "valid/estimate.json"
+    },
+    "evaluation_report": {
+      "contract": "evaluation_report",
+      "file": "valid/evaluation_report.json"
+    },
+    "event_sequence": {
+      "contract": "event_sequence",
+      "file": "valid/event_sequence.json"
+    },
+    "ingestion_result": {
+      "contract": "ingestion_result",
+      "file": "valid/ingestion_result.json"
+    },
+    "integration_draft": {
+      "contract": "integration_draft",
+      "file": "valid/integration_draft.json"
+    },
+    "judge_request": {
+      "contract": "judge_request",
+      "file": "valid/judge_request.json"
+    },
+    "judge_result": {
+      "contract": "judge_result",
+      "file": "valid/judge_result.json"
+    },
+    "mapper_validation": {
+      "contract": "mapper_validation",
+      "file": "valid/mapper_validation.json"
+    },
+    "model_candidate": {
+      "contract": "model_candidate",
+      "file": "valid/model_candidate.json"
+    },
+    "model_capabilities": {
+      "contract": "model_capabilities",
+      "file": "valid/model_capabilities.json"
+    },
+    "model_decision": {
+      "contract": "model_decision",
+      "file": "valid/model_decision.json"
+    },
+    "model_invocation": {
+      "contract": "model_invocation",
+      "file": "valid/model_invocation.json"
+    },
+    "model_policy": {
+      "contract": "model_policy",
+      "file": "valid/model_policy.json"
+    },
+    "model_task": {
+      "contract": "model_task",
+      "file": "valid/model_task.json"
+    },
+    "normalized_error": {
+      "contract": "normalized_error",
+      "file": "valid/normalized_error.json"
+    },
+    "published_tool_version": {
+      "contract": "published_tool_version",
+      "file": "valid/published_tool_version.json"
+    },
+    "retrieval_query": {
+      "contract": "retrieval_query",
+      "file": "valid/retrieval_query.json"
+    },
+    "retrieval_response": {
+      "contract": "retrieval_response",
+      "file": "valid/retrieval_response.json"
+    },
+    "retrieval_result": {
+      "contract": "retrieval_result",
+      "file": "valid/retrieval_result.json"
+    },
+    "run_event": {
+      "contract": "run_event",
+      "file": "valid/run_event.json"
+    },
+    "run_request": {
+      "contract": "run_request",
+      "file": "valid/run_request.json"
+    },
+    "run_result": {
+      "contract": "run_result",
+      "file": "valid/run_result.json"
+    },
+    "run_snapshot": {
+      "contract": "run_snapshot",
+      "file": "valid/run_snapshot.json"
+    },
+    "run_state": {
+      "contract": "run_state",
+      "file": "valid/run_state.json"
+    },
+    "self_check_result": {
+      "contract": "self_check_result",
+      "file": "valid/self_check_result.json"
+    },
+    "skill_manifest": {
+      "contract": "skill_manifest",
+      "file": "valid/skill_manifest.json"
+    },
+    "source": {
+      "contract": "source",
+      "file": "valid/source.json"
+    },
+    "source_citation": {
+      "contract": "source_citation",
+      "file": "valid/source_citation.json"
+    },
+    "tool_call": {
+      "contract": "tool_call",
+      "file": "valid/tool_call.json"
+    },
+    "tool_error": {
+      "contract": "tool_error",
+      "file": "valid/tool_error.json"
+    },
+    "tool_metadata": {
+      "contract": "tool_metadata",
+      "file": "valid/tool_metadata.json"
+    },
+    "tool_result": {
+      "contract": "tool_result",
+      "file": "valid/tool_result.json"
+    },
+    "verified_fact": {
+      "contract": "verified_fact",
+      "file": "valid/verified_fact.json"
+    },
+    "verified_facts": {
+      "contract": "verified_facts",
+      "file": "valid/verified_facts.json"
+    }
+  }
+}
