@@ -27,3 +27,12 @@ Depende de `contracts`; RAG/MCP se inyectan desde orquestación. Responsable: Di
 ## Terminado
 
 Cada agente pasa schema, permisos y tests deterministas sin proveedor real; no produce claims críticos sin fuente.
+
+## Estado tras Fase 1
+
+Implementados clasificador, navegadores de vehículos/empresas, verificador,
+estimadores deterministas, agente transaccional y redactor cerrado. Los
+manifiestos y skills YAML fijan prompts, fuentes, tools y pasos permitidos; los
+resultados MCP se convierten a hechos conservando su `tool_call_id`.
+
+Judge, prompt assistant y dominios posteriores pertenecen a fases posteriores.

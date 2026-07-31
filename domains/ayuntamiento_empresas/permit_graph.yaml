@@ -1,0 +1,73 @@
+# DAG de permisos para abrir un establecimiento comercial (`DIE-F1-058`).
+#
+# Los `step_id` son **estables**: aparecen en la estimación, en los eventos y en
+# el dataset de evaluación. Renombrar uno rompe la comparabilidad entre
+# baselines, así que es un cambio de versión, no una edición.
+#
+# Este archivo declara la *forma* de la ruta —qué depende de qué y cuánto tarda—
+# pero no autoriza a afirmarla: un paso solo entra en la estimación si hay un
+# hecho verificado que lo respalde (`DIE-F1-061`). El grafo dice qué buscar; la
+# evidencia dice qué se puede decir.
+#
+# En Fase 2 esto se absorbe en el catálogo central (`DIE-F2-002`), que sustituye
+# el enlace por palabras clave por IDs de trámite estables.
+#
+# Schema: nexo_agents.estimator.PermitGraph
+
+version: permits-ayuntamiento-2026-07-30
+domain: ayuntamiento_empresas
+title: Apertura de establecimiento comercial de bajo impacto
+
+steps:
+  - step_id: uso_de_suelo
+    title: Constancia de uso de suelo
+    depends_on: []
+    duration_days: 5
+    evidence_keywords:
+      - uso de suelo
+      - zonificacion
+      - constancia
+    required_documents:
+      - Identificación oficial vigente
+      - Comprobante de domicilio del establecimiento
+      - Croquis de ubicación
+      - Contrato de arrendamiento o escritura
+
+  - step_id: proteccion_civil
+    title: Visto bueno de protección civil
+    depends_on: [uso_de_suelo]
+    duration_days: 7
+    evidence_keywords:
+      - proteccion civil
+      - visto bueno
+      - extintor
+      - evacuacion
+    required_documents:
+      - Constancia de uso de suelo vigente
+      - Croquis con rutas de evacuación
+
+  - step_id: aviso_sanitario
+    title: Aviso de funcionamiento sanitario
+    depends_on: [uso_de_suelo]
+    duration_days: 3
+    # Solo aplica a giros de alimentos. El estimador lo incluye cuando hay
+    # evidencia verificada que lo respalde, no por defecto.
+    evidence_keywords:
+      - aviso de funcionamiento
+      - sanitario
+      - alimentos
+    required_documents:
+      - Constancia de uso de suelo
+      - Croquis del área de preparación de alimentos
+
+  - step_id: licencia_funcionamiento
+    title: Licencia de funcionamiento municipal
+    depends_on: [uso_de_suelo, proteccion_civil, aviso_sanitario]
+    duration_days: 10
+    evidence_keywords:
+      - licencia de funcionamiento
+      - licencia municipal
+    required_documents:
+      - Constancia de uso de suelo
+      - Visto bueno de protección civil
+      - Aviso de funcionamiento sanitario

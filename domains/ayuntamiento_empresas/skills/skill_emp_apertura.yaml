@@ -1,0 +1,121 @@
+# Skill operativa: apertura de un establecimiento comercial (`DIE-F1-110`).
+#
+# Plan del recorrido oficial CAP-EMP-01 («abrir una taquería en Durango»).
+#
+# Schema: nexo_contracts.skills.SkillManifest
+
+skill_id: skill_emp_apertura
+version: 1.0.0
+title: Apertura de un establecimiento comercial de bajo impacto
+domain: ayuntamiento_empresas
+owner: diego
+objective: >-
+  Entregar la ruta ordenada de permisos, sus dependencias, costos sumados con
+  código, documentos faltantes y tiempos, con cada claim crítico citado.
+
+steps:
+  - step_id: clasificar
+    agent: classifier
+    objective: Detectar la apertura de negocio y el giro de alimentos.
+    deadline_ms: 3000
+    max_attempts: 2
+
+  - step_id: recuperar_ruta
+    agent: domain_navigator
+    objective: Recuperar orden de trámites, dependencias, requisitos y tiempos.
+    depends_on: [clasificar]
+    parallel_group: lectura
+    deadline_ms: 8000
+    max_attempts: 2
+
+  - step_id: recuperar_costos
+    agent: domain_navigator
+    objective: Recuperar los derechos municipales de cada trámite por separado.
+    depends_on: [clasificar]
+    parallel_group: lectura
+    deadline_ms: 8000
+
+  - step_id: verificar
+    agent: verifier
+    objective: Verificar dependencias, costos y vigencia contra sus citaciones.
+    depends_on: [recuperar_ruta, recuperar_costos]
+    deadline_ms: 6000
+
+  - step_id: estimar
+    agent: estimator
+    objective: >-
+      Ordenar los trámites topológicamente y sumar los costos en unidades
+      menores con código. El modelo no toca los números.
+    depends_on: [verificar]
+    deadline_ms: 4000
+
+  - step_id: registrar_solicitud
+    agent: transactional
+    objective: Iniciar la solicitud solo tras confirmación explícita.
+    depends_on: [estimar]
+    deadline_ms: 5000
+    max_attempts: 1
+
+  - step_id: redactar
+    agent: writer
+    objective: Redactar la ruta ciudadana solo desde VerifiedFacts.
+    depends_on: [estimar]
+    deadline_ms: 6000
+
+allowed_sources:
+  - src_ayto_apertura
+  - src_ayto_uso_suelo
+  - src_ayto_tarifas
+  - src_ayto_proteccion_civil
+  - src_ayto_sanidad
+
+allowed_tools:
+  - ayuntamiento.consultar_uso_suelo
+  - ayuntamiento.calcular_costos
+  - ayuntamiento.consultar_requisitos_negocio
+  - ayuntamiento.consultar_citas
+  - ayuntamiento.registrar_solicitud
+
+confirmation_required_for:
+  - ayuntamiento.registrar_solicitud
+
+reusable_inputs:
+  - giro
+  - ubicacion
+  - superficie_m2
+
+question_conditions:
+  - No se sabe el domicilio y la zonificación cambia si el giro está permitido.
+  - No se sabe si el establecimiento supera los ochenta metros cuadrados.
+
+budgets:
+  deadline_ms: 20000
+  max_cost_usd: 0.20
+  max_questions: 1
+  max_concurrency: 2
+
+success_criteria:
+  - Los trámites se presentan en orden topológico con dependencias explícitas.
+  - Cada costo cita su fuente y el total se suma con código.
+  - Se identifican los requisitos adicionales del giro de alimentos.
+  - La solicitud solo se registra tras confirmación y devuelve folio verificable.
+
+escalation_policy: >-
+  Si falta evidencia de un trámite de la ruta, se entrega la parte verificada
+  con advertencia explícita y no se infiere el resto del DAG. Un ciclo o una
+  dependencia faltante detiene la estimación en vez de ordenarla mal.
+
+prompt_refs:
+  - nexo_agents/prompts/classifier.v1.md
+  - nexo_agents/prompts/navigator_ayuntamiento.v1.md
+
+schema_refs:
+  - contracts://classification.v1
+  - contracts://estimate.v1
+  - contracts://verified_facts.v1
+
+a2ui_components:
+  - Checklist
+  - StatusBanner
+  - SourceCitation
+  - ConfirmationSummary
