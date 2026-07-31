@@ -1,0 +1,164 @@
+{
+  "dataset_version": "retrieval-mvp-v1",
+  "cases": [
+    {
+      "case_id": "veh-requisitos-renovacion",
+      "query": "¿qué documentos necesito para renovar mi licencia de conducir?",
+      "domain": "vehiculos",
+      "valid_at": "2026-07-30",
+      "expected_fragments": [
+        "frag_nwndatdrgfnfnnih"
+      ],
+      "forbidden_sources": [
+        "src_veh_tarifas_2024"
+      ],
+      "notes": "Claim crítico de requisitos: debe apoyarse en la sección de documentos, no en el alcance."
+    },
+    {
+      "case_id": "veh-costo-renovacion-excluye-tarifario-sustituido",
+      "query": "¿cuánto cuesta renovar la licencia de conducir tipo A?",
+      "domain": "vehiculos",
+      "valid_at": "2026-07-30",
+      "expected_fragments": [
+        "frag_fytbkyhmvrqasdad"
+      ],
+      "forbidden_sources": [
+        "src_veh_tarifas_2024"
+      ],
+      "notes": "Escenario crítico 1 de §15: el tarifario 2024 usa casi las mismas palabras y no debe aparecer."
+    },
+    {
+      "case_id": "veh-adeudo-bloquea-renovacion",
+      "query": "tengo un adeudo vehicular pendiente, ¿puedo renovar de todas formas?",
+      "domain": "vehiculos",
+      "valid_at": "2026-07-30",
+      "expected_fragments": [
+        "frag_hbjburbpmbyectei"
+      ],
+      "notes": "Dependencia entre trámites: el adeudo bloquea la renovación."
+    },
+    {
+      "case_id": "veh-examen-medico-adulto-mayor",
+      "query": "mi papá tiene 70 años, ¿necesita algún examen extra para renovar?",
+      "domain": "vehiculos",
+      "valid_at": "2026-07-30",
+      "expected_fragments": [
+        "frag_xwwpqeaducbakihz"
+      ],
+      "notes": "Requisito condicional por edad; paráfrasis sin usar la palabra 'certificado'."
+    },
+    {
+      "case_id": "veh-modulos-y-horarios",
+      "query": "¿en qué módulos puedo renovar y cuál es su horario de atención?",
+      "domain": "vehiculos",
+      "valid_at": "2026-07-30",
+      "expected_fragments": [
+        "frag_xfybhqzehtqxetwd"
+      ],
+      "forbidden_sources": [
+        "src_ayto_uso_suelo",
+        "src_ayto_apertura"
+      ],
+      "notes": "Las fuentes prohibidas son de otro dominio: verifica el aislamiento de namespace."
+    },
+    {
+      "case_id": "veh-cita-previa-obligatoria",
+      "query": "¿necesito cita previa o puedo llegar directo al módulo?",
+      "domain": "vehiculos",
+      "valid_at": "2026-07-30",
+      "expected_fragments": [
+        "frag_wmiewahcfadtfrgh"
+      ],
+      "notes": "Condición de operación que determina si el run debe ofrecer agendar."
+    },
+    {
+      "case_id": "veh-tarifario-vencido-no-aplica-en-2026",
+      "query": "tarifas de renovación de licencia tipo A vigentes",
+      "domain": "vehiculos",
+      "valid_at": "2026-07-30",
+      "expected_fragments": [
+        "frag_fytbkyhmvrqasdad"
+      ],
+      "forbidden_sources": [
+        "src_veh_tarifas_2024"
+      ],
+      "notes": "Consulta deliberadamente ambigua entre los dos tarifarios; solo el vigente es admisible."
+    },
+    {
+      "case_id": "veh-fuera-de-alcance-pasaporte",
+      "query": "cómo tramito mi pasaporte mexicano en la delegación",
+      "domain": "vehiculos",
+      "valid_at": "2026-07-30",
+      "expect_insufficient": true,
+      "notes": "Fuera de alcance: no hay evidencia y el retriever no debe forzar resultados."
+    },
+    {
+      "case_id": "emp-orden-de-tramites-taqueria",
+      "query": "¿qué permisos necesito para abrir una taquería en Durango y en qué orden?",
+      "domain": "ayuntamiento_empresas",
+      "valid_at": "2026-07-30",
+      "expected_fragments": [
+        "frag_gkntecdjirydznwa"
+      ],
+      "notes": "Consulta oficial de CAP-EMP-01; sostiene el DAG de dependencias del estimador."
+    },
+    {
+      "case_id": "emp-zonificacion-uso-de-suelo",
+      "query": "¿puedo poner un negocio de comida en una zona habitacional?",
+      "domain": "ayuntamiento_empresas",
+      "valid_at": "2026-07-30",
+      "expected_fragments": [
+        "frag_tibtzpnjgsgntqmu"
+      ],
+      "notes": "Paráfrasis: la consulta no dice 'zonificación' ni 'H2'."
+    },
+    {
+      "case_id": "emp-costos-de-apertura",
+      "query": "¿cuánto cuesta la licencia de funcionamiento municipal?",
+      "domain": "ayuntamiento_empresas",
+      "valid_at": "2026-07-30",
+      "expected_fragments": [
+        "frag_yzkkqescyvvdnzqi"
+      ],
+      "notes": "Claim crítico de costo; alimenta la suma determinista del estimador."
+    },
+    {
+      "case_id": "emp-proteccion-civil-cocina-con-gas",
+      "query": "qué medidas de seguridad pide protección civil para una cocina con gas",
+      "domain": "ayuntamiento_empresas",
+      "valid_at": "2026-07-30",
+      "expected_fragments": [
+        "frag_uqireuvszfrgztbx"
+      ],
+      "notes": "Requisitos condicionados al giro de alimentos."
+    },
+    {
+      "case_id": "emp-aviso-sanitario-alimentos",
+      "query": "¿necesito permiso sanitario para vender comida preparada?",
+      "domain": "ayuntamiento_empresas",
+      "valid_at": "2026-07-30",
+      "expected_fragments": [
+        "frag_wrsqkduhbubumdmf"
+      ],
+      "notes": "La consulta dice 'permiso' y el documento dice 'aviso': exige recuperación semántica."
+    },
+    {
+      "case_id": "emp-tiempos-de-resolucion",
+      "query": "¿cuánto tardan en resolver los trámites de apertura?",
+      "domain": "ayuntamiento_empresas",
+      "valid_at": "2026-07-30",
+      "expected_fragments": [
+        "frag_vsnaifhstqvchshf"
+      ],
+      "notes": "Alimenta la estimación de tiempos del recorrido."
+    },
+    {
+      "case_id": "emp-fuera-de-alcance-marca-impi",
+      "query": "cómo registro una marca comercial ante el IMPI",
+      "domain": "ayuntamiento_empresas",
+      "valid_at": "2026-07-30",
+      "expect_insufficient": true,
+      "notes": "Trámite federal fuera del alcance municipal."
+    }
+  ]
+}

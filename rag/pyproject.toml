@@ -5,7 +5,14 @@ description = "Puertos de recuperación y embeddings de Nexo IA, con dobles en m
 requires-python = ">=3.12"
 dependencies = [
     "nexo-contracts",
+    "pyyaml>=6.0,<7",
 ]
+
+# Los embeddings reales son opcionales: la suite y la demo offline usan el doble
+# determinista y no descargan nada.
+[project.optional-dependencies]
+semantic = ["model2vec>=0.8,<1"]
+transformer = ["sentence-transformers>=3"]
 
 [build-system]
 requires = ["hatchling"]

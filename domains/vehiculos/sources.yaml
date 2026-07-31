@@ -1,0 +1,130 @@
+# Corpus documental del dominio `vehiculos` (`DIE-F1-009`, `DIE-F1-010`).
+#
+# Todo el contenido es SINTÉTICO (`is_synthetic: true`). No reproduce ningún
+# documento institucional real. Cuando exista corpus autorizado, convivirá aquí
+# con `is_synthetic: false`, y la separación debe seguir siendo visible en la
+# respuesta al público (`DIE-F1-011`).
+#
+# Los `checksum` los genera y verifica `python -m nexo_rag.corpus.cli`; no se
+# escriben a mano.
+#
+# Schema: nexo_rag.corpus.manifest.SourceManifest
+
+version: sources-vehiculos-2026-07-30
+domain: vehiculos
+corpus_version: vehiculos-2026-07-30
+
+sources:
+  # --- Requisitos vigentes de renovación (evidencia principal de CAP-VEH-01) ---
+  - source_id: src_veh_licencias
+    title: Requisitos de renovación de licencia de conducir tipo A
+    institution_id: inst_demo
+    publisher: Instituto de Control Vehicular de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-15T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_veh_licencias_requisitos
+        title: Renovación de licencia de conducir — requisitos vigentes
+        version: v3
+        media_type: text/markdown
+        path: data/documents/vehiculos/src_veh_licencias/v3/requisitos.md
+        checksum: sha256:7144d3adf7f191885b1863a68d4fef16966562efd8d5f8f4b5283c954e4ced44
+
+  # --- Tarifario vigente ---
+  - source_id: src_veh_tarifas
+    title: Tarifas de trámites vehiculares — ejercicio 2026
+    institution_id: inst_demo
+    publisher: Tesorería del Estado de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-15T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+      valid_to: 2026-12-31
+    documents:
+      - document_id: doc_veh_tarifas_2026
+        title: Tarifas de trámites vehiculares 2026
+        version: v2
+        media_type: text/markdown
+        path: data/documents/vehiculos/src_veh_tarifas/v2/tarifas.md
+        checksum: sha256:5d40162a8588c0e0f717c5d379c44be4e8634e93c9878b54adbb647996702d5c
+        supersedes: v1
+
+  # --- Tarifario SUSTITUIDO: caso negativo obligatorio ---
+  #
+  # Se conserva indexado con su estado real en vez de borrarse. Es lo que
+  # permite probar que una fuente con alta similitud léxica —habla de las mismas
+  # tarifas, con las mismas palabras— queda fuera del retrieval activo
+  # (`DIE-F1-016`, escenario crítico 1 de §15).
+  - source_id: src_veh_tarifas_2024
+    title: Tarifas de trámites vehiculares — ejercicio 2024 (sustituido)
+    institution_id: inst_demo
+    publisher: Tesorería del Estado de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: superseded
+    superseded_by: src_veh_tarifas
+    is_synthetic: true
+    verified_at: 2024-01-10T00:00:00Z
+    validity:
+      valid_from: 2024-01-01
+      valid_to: 2024-12-31
+    documents:
+      - document_id: doc_veh_tarifas_2024
+        title: Tarifas de trámites vehiculares 2024
+        version: v1
+        media_type: text/markdown
+        path: data/documents/vehiculos/src_veh_tarifas/v1/tarifas.md
+        checksum: sha256:4cbd6b152a662c699da625f0caaf0d28884310830cf63ecba842de5d667cea18
+
+  # --- Módulos, horarios y reglas de cita ---
+  - source_id: src_veh_modulos
+    title: Módulos de atención vehicular — ubicación y horarios
+    institution_id: inst_demo
+    publisher: Instituto de Control Vehicular de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-20T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_veh_modulos
+        title: Módulos de atención vehicular
+        version: v1
+        media_type: text/markdown
+        path: data/documents/vehiculos/src_veh_modulos/v1/modulos.md
+        checksum: sha256:bfe26b0aaf05b0697b3282a6fd906ef6232a2135c5381d97938aae0ba2409ceb
+
+  # --- Documento manipulado: caso adversarial de prompt injection ---
+  #
+  # Se declara ACTIVO deliberadamente. El escenario que hay que probar no es «un
+  # documento sospechoso queda fuera del índice» sino «un documento legítimo fue
+  # alterado en origen y aun así ninguna de sus órdenes tiene efecto»
+  # (`DIE-F1-025`, `DIE-F1-026`).
+  - source_id: src_veh_avisos
+    title: Avisos a la ciudadanía (documento manipulado, caso adversarial)
+    institution_id: inst_demo
+    publisher: Instituto de Control Vehicular de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-20T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_veh_aviso_manipulado
+        title: Aviso a la ciudadanía con prompt injection incrustado
+        version: v1
+        media_type: text/markdown
+        path: data/documents/vehiculos/src_veh_avisos/v1/aviso_manipulado.md
+        checksum: sha256:2775680be69b0a87cec59dd0c8d6e22cdcfb5f2137ca1fa36e266ae1bca16e07

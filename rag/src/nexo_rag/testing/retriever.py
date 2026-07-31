@@ -87,9 +87,7 @@ class InMemoryRetriever:
         # Sustituto determinista de la similitud vectorial: proporción del
         # vocabulario del fragmento cubierta por la consulta. No es semántico y
         # no pretende serlo (ver `DeterministicEmbeddings`).
-        vector = (
-            len(query_tokens & chunk_tokens) / len(chunk_tokens) if chunk_tokens else 0.0
-        )
+        vector = len(query_tokens & chunk_tokens) / len(chunk_tokens) if chunk_tokens else 0.0
         fused = min(1.0, LEXICAL_WEIGHT * lexical + VECTOR_WEIGHT * vector)
         return lexical, vector, fused
 
@@ -154,10 +152,16 @@ class InMemoryRetriever:
 
 
 class InMemoryChunkRepository:
-    """Repositorio de chunks idempotente por checksum (`DIE-F1-019`)."""
+    """Repositorio de chunks idempotente por checksum (`DIE-F1-019`).
+
+    Guarda vectores junto a los fragmentos, en un mapa aparte, porque así los
+    guardará el repositorio real: el `Chunk` es el contrato publicado y no
+    transporta 256 flotantes.
+    """
 
     def __init__(self) -> None:
         self._by_id: dict[str, Chunk] = {}
+        self._vectors: dict[str, list[float]] = {}
 
     async def upsert(self, chunks: list[Chunk]) -> int:
         created = 0
@@ -173,6 +177,30 @@ class InMemoryChunkRepository:
     async def count(self, *, corpus_version: str) -> int:
         del corpus_version  # el doble mantiene un único corpus en memoria
         return len(self._by_id)
+
+    async def get(self, chunk_id: str) -> Chunk | None:
+        return self._by_id.get(chunk_id)
+
+    async def candidates(self, *, domain: str, institution_id: str) -> tuple[Chunk, ...]:
+        """Acota por dominio e institución antes de que nadie puntúe nada.
+
+        El orden es estable por `chunk_id` para que dos corridas produzcan la
+        misma lista de candidatos y, por tanto, el mismo BM25: el IDF depende de
+        la colección, así que un orden inestable movería los puntajes.
+        """
+        return tuple(
+            self._by_id[key]
+            for key in sorted(self._by_id)
+            if self._by_id[key].domain.value == domain
+            and self._by_id[key].institution_id == institution_id
+        )
+
+    async def vector_of(self, chunk_id: str) -> list[float] | None:
+        return self._vectors.get(chunk_id)
+
+    def store_vectors(self, vectors: dict[str, list[float]]) -> None:
+        """Registra los vectores que produjo la ingesta."""
+        self._vectors.update(vectors)
 
     def all_chunks(self) -> list[Chunk]:
         return list(self._by_id.values())
