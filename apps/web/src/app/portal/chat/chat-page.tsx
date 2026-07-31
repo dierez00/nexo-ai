@@ -6,6 +6,7 @@ import { PortalShell } from "@/components/nexo/portal-shell";
 import { StatusBadge } from "@/components/nexo/status-badge";
 import { AssistantMessage, TypingIndicator, UserBubble } from "@/features/chat/bubble";
 import { ChatTimeline } from "@/features/chat/timeline";
+import { phasesFromEvents } from "@/features/chat/run-phases";
 import { AlertCard } from "@/features/chat/actions";
 import { ReceiptCard } from "@/features/chat/cards";
 import { ChatComposer } from "@/features/chat/composer";
@@ -13,6 +14,7 @@ import { PendingActionCard } from "@/features/chat/pending-action-card";
 import { SurfaceFromRun } from "@/features/a2ui/SurfaceFromRun";
 import { persistFolio } from "@/features/tramite/folio-history";
 import type { A2UIAction, Estimate } from "@/generated/contracts";
+import type { EventType } from "@/generated/contracts/run_event";
 import {
   ApiError,
   apiFetch,
@@ -38,6 +40,12 @@ type ChatStatus =
   | "waiting_confirmation"
   | "error";
 
+// `EventSource` solo entrega eventos con nombre a un listener registrado para
+// ese nombre, así que la lista tiene que existir en tiempo de ejecución. Lo que
+// no puede pasar es que se desincronice del contrato en silencio: un tipo nuevo
+// dejaría de llegar al chat sin que nada fallara. El `satisfies` rechaza un
+// nombre inventado y `MissingEventTypes` rompe la compilación si el contrato
+// gana un tipo que aquí no se escucha.
 const RUN_EVENT_TYPES = [
   "run.queued",
   "run.planning",
@@ -94,7 +102,11 @@ const RUN_EVENT_TYPES = [
   "corpus.validated",
   "corpus.activated",
   "corpus.rolled_back",
-] as const;
+] as const satisfies readonly EventType[];
+
+type MissingEventTypes = Exclude<EventType, (typeof RUN_EVENT_TYPES)[number]>;
+const _allEventTypesHandled: MissingEventTypes extends never ? true : never = true;
+void _allEventTypesHandled;
 
 const TERMINAL_STATUSES = new Set(["succeeded", "partial", "failed", "cancelled"]);
 
@@ -131,15 +143,6 @@ function statusLabel(status: ChatStatus) {
   if (status === "waiting_confirmation") return "Esperando tu confirmación";
   if (status === "error") return "Sin conexión con la API";
   return "Asistente en línea";
-}
-
-function eventDetail(event: RunEvent) {
-  const type = event.type.replaceAll(".", " ");
-  if (event.error?.message) return event.error.message;
-  if (event.public_data && Object.keys(event.public_data).length > 0) {
-    return JSON.stringify(event.public_data);
-  }
-  return type.charAt(0).toUpperCase() + type.slice(1);
 }
 
 export function ChatPage() {
@@ -380,6 +383,11 @@ export function ChatPage() {
 
   const busy = status === "creating" || status === "streaming";
   const enLinea = status !== "error";
+  // La traza sigue visible cuando el run se detiene a esperar una decisión o ya
+  // terminó: es lo que permite ver qué fuentes se consultaron antes de autorizar,
+  // y revisarlo después. Solo mientras corre hay una fase «en curso».
+  const runDetenido = !busy;
+  const fases = phasesFromEvents(events, runDetenido && status !== "waiting_confirmation");
 
   return (
     <PortalShell bleed>
@@ -482,20 +490,10 @@ export function ChatPage() {
             </AssistantMessage>
           ) : null}
 
-          {busy ? (
+          {busy || fases.length > 0 ? (
             <div className="space-y-4">
-              <TypingIndicator />
-              {events.length ? (
-                <ChatTimeline
-                  eventos={events.slice(-5).map((event, index, list) => ({
-                    estado: event.type,
-                    detalle: eventDetail(event),
-                    tone: event.status === "failed" ? "destructive" : "info",
-                    done: index < list.length - 1,
-                    active: index === list.length - 1,
-                  }))}
-                />
-              ) : null}
+              {busy ? <TypingIndicator /> : null}
+              <ChatTimeline fases={fases} />
             </div>
           ) : null}
 
