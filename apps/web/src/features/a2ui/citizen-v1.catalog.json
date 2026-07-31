@@ -1,0 +1,121 @@
+{
+  "allowed_properties": {
+    "Card": [
+      "title",
+      "tone"
+    ],
+    "Checklist": [
+      "items",
+      "progress",
+      "title"
+    ],
+    "Column": [
+      "align",
+      "gap"
+    ],
+    "ConfirmButton": [
+      "description",
+      "label"
+    ],
+    "CostSummary": [
+      "lines",
+      "title",
+      "total"
+    ],
+    "List": [
+      "items",
+      "ordered"
+    ],
+    "SlotPicker": [
+      "selected",
+      "slots",
+      "title"
+    ],
+    "SourceList": [
+      "sources",
+      "title"
+    ],
+    "StatusBanner": [
+      "message",
+      "title",
+      "tone"
+    ],
+    "Text": [
+      "text",
+      "variant"
+    ]
+  },
+  "allowed_tones": [
+    "danger",
+    "info",
+    "neutral",
+    "success",
+    "warning"
+  ],
+  "audience": "citizen",
+  "catalog_id": "urn:nexo-ia:a2ui:catalog:citizen:v1",
+  "components": [
+    {
+      "allows_children": true,
+      "is_interactive": false,
+      "name": "Column",
+      "schema_ref": "contracts://a2ui/citizen/v1/Column.v1"
+    },
+    {
+      "allows_children": true,
+      "is_interactive": false,
+      "name": "Card",
+      "schema_ref": "contracts://a2ui/citizen/v1/Card.v1"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": false,
+      "name": "Text",
+      "schema_ref": "contracts://a2ui/citizen/v1/Text.v1"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": false,
+      "name": "List",
+      "schema_ref": "contracts://a2ui/citizen/v1/List.v1"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": false,
+      "name": "Checklist",
+      "schema_ref": "contracts://a2ui/citizen/v1/Checklist.v1"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": false,
+      "name": "StatusBanner",
+      "schema_ref": "contracts://a2ui/citizen/v1/StatusBanner.v1"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": false,
+      "name": "CostSummary",
+      "schema_ref": "contracts://a2ui/citizen/v1/CostSummary.v1"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": false,
+      "name": "SourceList",
+      "schema_ref": "contracts://a2ui/citizen/v1/SourceList.v1"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": true,
+      "name": "SlotPicker",
+      "schema_ref": "contracts://a2ui/citizen/v1/SlotPicker.v1"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": true,
+      "name": "ConfirmButton",
+      "schema_ref": "contracts://a2ui/citizen/v1/ConfirmButton.v1"
+    }
+  ],
+  "title": "Catálogo ciudadano de Nexo IA",
+  "version": "1.0.0"
+}
