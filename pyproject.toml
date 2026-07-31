@@ -1,0 +1,87 @@
+[project]
+name = "nexo-ai"
+version = "0.1.0"
+description = "nexo-ai — workspace raíz (paquete virtual)"
+requires-python = ">=3.12"
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = [
+    "backend",
+    "integrations",
+    "observability",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "httpx>=0.27",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+# =============================================================================
+# Ruff — linter y formatter compartido
+# =============================================================================
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+# .agents = skills/plantillas vendidas (no es código del workspace)
+extend-exclude = [".agents", ".venv"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "S",   # flake8-bandit (seguridad básica)
+    "ANN", # anotaciones de tipo
+]
+ignore = [
+    "S101", # assert en tests está bien
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S", "ANN"]
+"**/migrations/**" = ["ANN"]
+# Repositorios: SQL siempre parametrizado; los f-strings solo interpolan listas
+# de columnas constantes (nunca input de usuario) → S608 es ruido aquí.
+"**/repositories/**" = ["S608"]
+
+# FastAPI usa Depends/Query/etc. como valores por defecto de argumentos:
+# es el idiom del framework, no el bug que B008 busca.
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Header",
+    "fastapi.Body",
+    "fastapi.Security",
+]
+
+# =============================================================================
+# mypy — type checking compartido
+# =============================================================================
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+no_implicit_reexport = true
+explicit_package_bases = true
+mypy_path = "backend/src:integrations/src:observability/src"
+exclude = ['\.agents/', '\.venv/']
+
+# =============================================================================
+# pytest
+# =============================================================================
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests", "backend/tests", "integrations/tests", "observability/tests"]

@@ -1,0 +1,9 @@
+# observability — .gitignore defensivo
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+*.egg-info/
+runtime/       # salida JSONL de runtime no se versiona
+dashboards/generated/

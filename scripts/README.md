@@ -22,6 +22,14 @@ Responsable: Dani; Diego mantiene ingesta/evals.
 
 Dependencias permitidas: CLIs públicas de los módulos y variables documentadas. Ejemplos: `run.sh`, `seed_demo.sh`, `ingest_demo.sh`, `eval.sh`. Implementar arranque de una línea y checks.
 
+## Scripts disponibles
+
+| Script | Qué hace |
+|---|---|
+| `lint.ps1` / `lint.sh` | ruff format --check + ruff check + mypy |
+| `test.ps1` / `test.sh` | pytest (exit 5 = sin tests = OK en bootstrap) |
+| `seed_demo.py` | Siembra permisos + role_permissions + usuario demo (Supabase Auth + `public.users`). Idempotente. Credenciales por `SEED_DEMO_EMAIL`/`SEED_DEMO_PASSWORD`. Uso: `uv run python scripts/seed_demo.py` |
+
 ## Terminado
 
 Los scripts documentan precondiciones, no ocultan errores y funcionan en un entorno limpio soportado.

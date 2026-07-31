@@ -1,0 +1,8 @@
+# integrations — .gitignore defensivo
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+*.egg-info/
+fixtures/recorded/  # payloads Twilio grabados con PII real no deben versionarse

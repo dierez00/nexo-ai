@@ -14,12 +14,12 @@ FastAPI, auth/RBAC, perfiles, conversaciones, runs, SSE, citas, confirmaciones, 
 
 ## 4. Tareas MVP
 
-- Bootstrap FastAPI, config y health/readiness.
-- Auth, roles, perfiles y separación institucional.
-- Conversaciones, mensajes, runs y SSE.
-- Confirmaciones con idempotencia y citas.
-- Webhooks/fallback Twilio WhatsApp Sandbox.
-- Compose propuesto, logs JSONL y CI inicial.
+- [x] Bootstrap FastAPI, config y health/readiness.
+- [x] Auth, roles, perfiles y separación institucional. *(Supabase Auth+JWKS; tenancy por tenant_id en repos)*
+- [x] Conversaciones, mensajes, runs y SSE. *(SSE reanudable por Last-Event-ID; auth por header o query param)*
+- [ ] Confirmaciones con idempotencia y citas.
+- [ ] Webhooks/fallback Twilio WhatsApp Sandbox.
+- [~] Compose propuesto, logs JSONL y CI inicial. *(logs JSONL ✅; Compose/CI pendientes)*
 
 ## 5. Tareas Core
 
@@ -70,18 +70,18 @@ Config → health → contratos → auth → conversaciones/runs → SSE → cit
 
 ## 15. Checklist
 
-- [ ] `.env.example` sin secretos.
-- [ ] CORS/CSRF/cookies/tokens.
-- [ ] RBAC/tenancy.
-- [ ] Request/trace IDs.
-- [ ] Problem Details.
-- [ ] SSE y reconexión.
+- [x] `.env.example` sin secretos.
+- [x] CORS/CSRF/cookies/tokens. *(CORS + JWT bearer; CSRF n/a con bearer)*
+- [x] RBAC/tenancy. *(require_permission + filtrado tenant_id)*
+- [x] Request/trace IDs. *(TraceIdMiddleware, header X-Trace-Id)*
+- [x] Problem Details.
+- [x] SSE y reconexión. *(sse-starlette; Last-Event-ID; token por query param para EventSource)*
 - [ ] Idempotencia/confirmaciones.
 - [ ] Firmas y deduplicación Twilio.
-- [ ] Timeouts/retries/circuit breaker.
-- [ ] Health/shutdown.
+- [ ] Timeouts/retries/circuit breaker. *(Pro)*
+- [x] Health/shutdown.
 - [ ] Compose/CI/runbooks.
-- [ ] README y tests.
+- [~] README y tests. *(tests verdes; READMEs por módulo existen)*
 
 ## 16. Paralelismo y bloqueos
 
