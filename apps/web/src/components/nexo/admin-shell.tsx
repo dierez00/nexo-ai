@@ -13,9 +13,11 @@ import {
   ShieldCheck,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
+import { AuthGate, useAuth } from "@/lib/auth/session";
 
 const nav = [
   { to: "/admin/panel", label: "Panel admin", icon: ShieldCheck, exact: true },
@@ -66,9 +68,11 @@ export function AdminShell({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const { profile, logout } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background">
+    <AuthGate requireAdmin>
+      <div className="min-h-screen bg-background">
       <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col border-r border-border bg-sidebar px-3 py-4 lg:flex">
         <div className="px-3 pb-6">
           <span className="wordmark">Nexo AI · Consola</span>
@@ -76,8 +80,8 @@ export function AdminShell({
         </div>
         <NavList />
         <div className="mt-auto rounded-xl border border-border bg-card p-3">
-          <p className="text-xs text-muted-foreground">Sesión de demostración</p>
-          <p className="mt-0.5 truncate text-sm font-medium">m.rivas@nexo.gob</p>
+          <p className="text-xs text-muted-foreground">Sesión activa</p>
+          <p className="mt-0.5 truncate text-sm font-medium">{profile?.email}</p>
         </div>
       </aside>
 
@@ -125,6 +129,13 @@ export function AdminShell({
                 Ver portal ciudadano
               </Link>
               <ThemeToggle />
+              <button
+                onClick={logout}
+                aria-label="Cerrar sesión"
+                className="grid size-8 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <LogOut className="size-3.5" />
+              </button>
             </div>
           </div>
         </header>
@@ -140,6 +151,7 @@ export function AdminShell({
           {children}
         </main>
       </div>
-    </div>
+      </div>
+    </AuthGate>
   );
 }

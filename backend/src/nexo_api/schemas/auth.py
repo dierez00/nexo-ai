@@ -12,6 +12,21 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+class CreateUserRequest(BaseModel):
+    email: str
+    password: str = Field(min_length=8)
+    name: str
+    role_code: str = "citizen"
+    branch_code: str | None = None
+    is_owner: bool = False
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    email_confirm: bool = True
+
+
 class TokenPair(BaseModel):
     access_token: str
     refresh_token: str

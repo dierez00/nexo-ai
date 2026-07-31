@@ -6,14 +6,16 @@ Entregar `/portal` y `/admin` desde una sola aplicación Next.js, con chat, A2UI
 
 ## Estado actual
 
-Interfaz completa con **fixtures estáticos** (Fase 0): no hay API, SSE ni auth todavía.
-La única capacidad conectada a un servicio real es el agente de voz.
+Interfaz conectada al backend FastAPI para auth, chat/SSE y métricas admin básicas.
+Algunas vistas conservan fixtures como fallback visual mientras se completan los
+flujos operativos.
 
 | Ruta                                                                                  | Estado                                                                        |
 | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `/`                                                                                   | mock — landing con los tres canales                                           |
-| `/portal`, `/portal/chat`, `/portal/tramite`, `/portal/citas`, `/portal/seguimiento`  | mock                                                                          |
-| `/admin`, `/admin/runs`, `/admin/workflow`, `/admin/catalogo`, `/admin/integraciones` | mock                                                                          |
+| `/login`                                                                              | implementada — login proxy vía FastAPI/Supabase Auth                          |
+| `/`                                                                                   | landing con los tres canales                                                  |
+| `/portal`, `/portal/chat`, `/portal/tramite`, `/portal/citas`, `/portal/seguimiento`  | protegidas; chat conectado a conversaciones/runs/SSE reales                   |
+| `/admin`, `/admin/runs`, `/admin/workflow`, `/admin/catalogo`, `/admin/integraciones` | protegidas por rol admin; dashboard consume métricas/catálogo/config          |
 | `/agente-voz`                                                                         | **implementada** — llamada real vía ElevenLabs (`@elevenlabs/client`, WebRTC) |
 | `/admin/a2ui-lab`                                                                     | **implementada** — renderer A2UI sobre superficies reales de `nexo-a2ui`      |
 
@@ -21,8 +23,8 @@ La única capacidad conectada a un servicio real es el agente de voz.
 error, sin resultados, requisitos, agendar, confirmada, completado, seguimiento…) desde un
 selector, para diseñar contra loading/empty/error/partial antes de tener backend.
 
-Fixtures en `src/features/chat/chat-mock.ts` y `src/lib/mock.ts`. Al conectar la API real,
-esos dos archivos son los únicos puntos a reemplazar.
+Fixtures en `src/features/chat/chat-mock.ts` y `src/lib/mock.ts`. Se mantienen
+para fallback visual y laboratorios mientras los endpoints operativos maduran.
 
 ## Renderer A2UI
 
@@ -59,6 +61,17 @@ npm install
 cp .env.example .env.local   # NEXT_PUBLIC_ELEVENLABS_AGENT_ID es necesario para /agente-voz
 npm run dev
 ```
+
+Variables web:
+
+```bash
+NEXT_PUBLIC_NEXO_API_URL=http://localhost:8000
+NEXT_PUBLIC_ELEVENLABS_AGENT_ID=
+```
+
+La sesión del browser se guarda en `localStorage` como `nexo.auth.v1`; el
+frontend manda `Authorization: Bearer <access_token>` a FastAPI y pasa el token
+en `?access_token=` únicamente para SSE, porque `EventSource` no permite headers.
 
 ### Stack
 
