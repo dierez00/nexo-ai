@@ -25,6 +25,9 @@ Responsabilidad compartida; Dani coordina documentación de release.
 Runbooks disponibles: [arranque del backend](runbooks/arranque.md) y
 [Twilio WhatsApp Sandbox](runbooks/twilio_whatsapp.md).
 
+Estado consolidado del proyecto (docs vs. código, apartados completados):
+[estado de implementación](estado_implementacion.md).
+
 Dependencias permitidas: puede enlazar cualquier módulo, pero no debe convertirse en una dependencia de ejecución.
 
 ## Terminado
