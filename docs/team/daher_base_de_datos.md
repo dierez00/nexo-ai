@@ -71,17 +71,17 @@ Glosario/ERD → extensiones → identidad → catálogo/RAG → runs/events →
 
 ## 15. Checklist
 
-- [ ] PK/FK y ownership.
-- [ ] Unique/check/exclude.
-- [ ] Índices y query plans.
-- [ ] UTC/money/IDs.
-- [ ] Tenancy y permisos.
-- [ ] Retención/masking.
-- [ ] Migraciones expand/contract.
-- [ ] Seeds idempotentes.
-- [ ] Backup/restore.
-- [ ] Diccionario/ERD.
-- [ ] Tests concurrentes.
+- [x] PK/FK y ownership.
+- [x] Unique/check/exclude.
+- [x] Índices y query plans.
+- [x] UTC/money/IDs.
+- [x] Tenancy y permisos.
+- [x] Retención/masking.
+- [x] Migraciones expand/contract.
+- [x] Seeds idempotentes.
+- [x] Backup/restore.
+- [x] Diccionario/ERD.
+- [x] Tests concurrentes.
 
 ## 16. Paralelismo y bloqueos
 

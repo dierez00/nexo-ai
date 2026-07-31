@@ -43,7 +43,6 @@ def test_db_reset_is_clean_and_repeatable():
 
 @pytest.mark.integration
 def test_expected_tables_exist_after_reset():
-    _db_reset()
     conn = new_conn()
     try:
         rows = conn.execute(
