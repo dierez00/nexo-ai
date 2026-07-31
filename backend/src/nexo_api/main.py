@@ -12,7 +12,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from nexo_observability.logging import configure_logging, get_logger
 
-from nexo_api.api import health
+from nexo_api.api import health, webhooks
+from nexo_api.api.v1 import actions as actions_router
+from nexo_api.api.v1 import appointments as appointments_router
 from nexo_api.api.v1 import auth as auth_router
 from nexo_api.api.v1 import conversations as conversations_router
 from nexo_api.api.v1 import runs as runs_router
@@ -41,6 +43,23 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="nexo-ai API",
         version="0.1.0",
+        summary="Gateway HTTP/SSE/webhooks del asistente institucional nexo-ai.",
+        description=(
+            "API del backend (Dani). Convenciones: JSON snake_case, UTC, IDs opacos "
+            "(`conv_`, `run_`, `act_`, `apt_`), dinero en unidades menores. Los errores "
+            "usan **Problem Details** (`type/code/status/retryable`); el frontend nunca "
+            "parsea texto. Toda respuesta propaga `X-Trace-Id`. Auth = Supabase Auth "
+            "(JWT bearer validado por JWKS)."
+        ),
+        openapi_tags=[
+            {"name": "auth", "description": "Login y perfil."},
+            {"name": "conversations", "description": "Conversaciones, mensajes y disparo de runs."},
+            {"name": "runs", "description": "Snapshot de runs y stream SSE de eventos."},
+            {"name": "actions", "description": "Confirmación de acciones con idempotencia."},
+            {"name": "appointments", "description": "Disponibilidad y holds de citas."},
+            {"name": "webhooks", "description": "Webhooks firmados de Twilio (WhatsApp)."},
+            {"name": "health", "description": "Liveness y readiness."},
+        ],
         lifespan=lifespan,
     )
 
@@ -62,6 +81,9 @@ def create_app() -> FastAPI:
     app.include_router(auth_router.router)
     app.include_router(conversations_router.router)
     app.include_router(runs_router.router)
+    app.include_router(actions_router.router)
+    app.include_router(appointments_router.router)
+    app.include_router(webhooks.router)
     return app
 
 

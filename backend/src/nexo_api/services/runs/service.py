@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import AsyncGenerator
+from datetime import datetime
 
 from sqlalchemy import RowMapping
 
@@ -16,7 +17,7 @@ from nexo_api.repositories import runs as runs_repo
 from nexo_api.repositories._base import load_json
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.schemas.conversation import MessageCreate
-from nexo_api.schemas.run import Identity, RunAccepted, RunEvent, RunRequest, RunResult
+from nexo_api.schemas.run import Identity, RunAccepted, RunEvent, RunRequest, RunResult, RunStatus
 from nexo_api.services.orchestration.port import Orchestrator
 
 
@@ -29,39 +30,40 @@ def _decode(prefix: str, wire_id: str, label: str) -> int:
         ) from exc
 
 
-async def post_message(
-    user: UserProfile,
-    conversation_id_wire: str,
-    body: MessageCreate,
+class RunOutcome:
+    """Resultado interno de ejecutar un run (para reusar entre web y canales)."""
+
+    def __init__(
+        self, run_id_wire: str, status: RunStatus, answer: str, created_at: datetime
+    ) -> None:
+        self.run_id_wire = run_id_wire
+        self.status = status
+        self.answer = answer
+        self.created_at = created_at
+
+
+async def execute_run(
+    tenant_id: int,
+    conversation_id: int,
+    user_message: str,
+    channel: str,
+    identity: Identity,
     trace_id: str,
     orchestrator: Orchestrator,
-) -> RunAccepted:
-    tenant_id = int(user.tenant_id)
-    conv_id = _decode(ids.CONVERSATION, conversation_id_wire, "conversación")
-
-    conversation = await conv_repo.get(tenant_id, conv_id)
-    if conversation is None:
-        raise ProblemException(
-            status=404, code="RESOURCE_NOT_FOUND", title="Conversación no encontrada"
-        )
-
-    await msg_repo.create(conv_id, "user", body.content)
-    run_row = await runs_repo.create(tenant_id, conv_id, trace_id)
+) -> RunOutcome:
+    """Crea el run, invoca la orquestación y persiste eventos + snapshot.
+    No guarda mensajes (eso lo hace el caller según el canal)."""
+    run_row = await runs_repo.create(tenant_id, conversation_id, trace_id)
     run_id = int(run_row["id"])
     run_id_wire = ids.encode(ids.RUN, run_id)
 
     request = RunRequest(
         run_id=run_id_wire,
         trace_id=trace_id,
-        conversation_id=conversation_id_wire,
-        user_message=body.content,
-        channel=str(conversation["channel"]),
-        identity=Identity(
-            user_id=user.user_id,
-            tenant_id=user.tenant_id,
-            roles=[user.role],
-            permissions=user.permissions,
-        ),
+        conversation_id=ids.encode(ids.CONVERSATION, conversation_id),
+        user_message=user_message,
+        channel=channel,
+        identity=identity,
     )
     result = await orchestrator.run(request)
 
@@ -84,14 +86,49 @@ async def post_message(
         latency_ms=int(result.metrics.get("latency_ms", 0)),
         total_cost_usd=float(result.metrics.get("total_cost_usd", 0.0)),
     )
-    await msg_repo.create(conv_id, "assistant", result.answer)
+    return RunOutcome(run_id_wire, result.status, result.answer, run_row["created_at"])
+
+
+async def post_message(
+    user: UserProfile,
+    conversation_id_wire: str,
+    body: MessageCreate,
+    trace_id: str,
+    orchestrator: Orchestrator,
+) -> RunAccepted:
+    tenant_id = int(user.tenant_id)
+    conv_id = _decode(ids.CONVERSATION, conversation_id_wire, "conversación")
+
+    conversation = await conv_repo.get(tenant_id, conv_id)
+    if conversation is None:
+        raise ProblemException(
+            status=404, code="RESOURCE_NOT_FOUND", title="Conversación no encontrada"
+        )
+
+    await msg_repo.create(conv_id, "user", body.content)
+    identity = Identity(
+        user_id=user.user_id,
+        tenant_id=user.tenant_id,
+        roles=[user.role],
+        permissions=user.permissions,
+    )
+    outcome = await execute_run(
+        tenant_id,
+        conv_id,
+        body.content,
+        str(conversation["channel"]),
+        identity,
+        trace_id,
+        orchestrator,
+    )
+    await msg_repo.create(conv_id, "assistant", outcome.answer)
 
     return RunAccepted(
-        run_id=run_id_wire,
+        run_id=outcome.run_id_wire,
         trace_id=trace_id,
-        status=result.status,
-        events_url=f"/api/v1/runs/{run_id_wire}/events",
-        created_at=run_row["created_at"],
+        status=outcome.status,
+        events_url=f"/api/v1/runs/{outcome.run_id_wire}/events",
+        created_at=outcome.created_at,
     )
 
 

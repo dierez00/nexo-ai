@@ -17,12 +17,18 @@ from nexo_api.core.errors import ProblemException
 from nexo_api.core.security import verify_supabase_jwt
 from nexo_api.repositories.users import load_profile_by_auth_id
 from nexo_api.schemas.auth import UserProfile
+from nexo_api.services.actions import ActionExecutor, FakeActionExecutor
 from nexo_api.services.orchestration import FakeOrchestrator, Orchestrator
 
 
 def get_orchestrator() -> Orchestrator:
     """Provee el orquestador. Hoy fake; se cambia por el real de Diego sin tocar routers."""
     return FakeOrchestrator()
+
+
+def get_action_executor() -> ActionExecutor:
+    """Provee el ejecutor transaccional. Hoy fake; luego la tool MCP real."""
+    return FakeActionExecutor()
 
 
 _bearer = HTTPBearer(auto_error=False)

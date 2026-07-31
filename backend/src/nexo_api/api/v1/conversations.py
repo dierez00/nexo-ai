@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Request, status
 
 from nexo_api.api.deps import get_current_user, get_orchestrator
+from nexo_api.core.errors import problem_responses
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.schemas.conversation import Conversation, ConversationCreate, MessageCreate
 from nexo_api.schemas.run import RunAccepted
@@ -15,7 +16,13 @@ from nexo_api.services.runs import service as runs_service
 router = APIRouter(prefix="/api/v1", tags=["conversations"])
 
 
-@router.post("/conversations", response_model=Conversation, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/conversations",
+    response_model=Conversation,
+    status_code=status.HTTP_201_CREATED,
+    summary="Crear conversación",
+    responses=problem_responses(401),
+)
 async def create_conversation(
     body: ConversationCreate,
     user: UserProfile = Depends(get_current_user),
@@ -27,6 +34,8 @@ async def create_conversation(
     "/conversations/{conversation_id}/messages",
     response_model=RunAccepted,
     status_code=status.HTTP_202_ACCEPTED,
+    summary="Postear mensaje y ejecutar un run",
+    responses=problem_responses(401, 404),
 )
 async def post_message(
     conversation_id: str,

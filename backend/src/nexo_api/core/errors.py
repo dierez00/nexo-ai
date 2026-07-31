@@ -58,3 +58,23 @@ async def problem_exception_handler(request: Request, exc: ProblemException) -> 
         content=problem.model_dump(),
         headers={TRACE_HEADER: problem.trace_id} if problem.trace_id else None,
     )
+
+
+# Descripciones por código para documentar los errores en OpenAPI (§9.1).
+_PROBLEM_DESCRIPTIONS: dict[int, str] = {
+    400: "Error de validación (VALIDATION_ERROR)",
+    401: "Autenticación requerida (AUTHENTICATION_REQUIRED)",
+    403: "Permiso denegado (PERMISSION_DENIED)",
+    404: "Recurso no encontrado (RESOURCE_NOT_FOUND)",
+    409: "Conflicto (APPOINTMENT_CONFLICT / VERSION_CONFLICT)",
+    422: "Confirmación requerida (ACTION_CONFIRMATION_REQUIRED)",
+    429: "Límite excedido (RATE_LIMITED / BUDGET_EXCEEDED)",
+}
+
+
+def problem_responses(*codes: int) -> dict[int | str, dict[str, Any]]:
+    """Genera el `responses=` de una ruta documentando errores Problem Details."""
+    return {
+        code: {"model": ProblemDetail, "description": _PROBLEM_DESCRIPTIONS.get(code, "Error")}
+        for code in codes
+    }

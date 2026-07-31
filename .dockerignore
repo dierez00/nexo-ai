@@ -1,0 +1,15 @@
+.venv/
+**/__pycache__/
+**/*.pyc
+.git/
+.github/
+.agents/
+.claude/
+node_modules/
+apps/web/node_modules/
+.env
+*.log
+docs/
+tests/
+**/tests/
+scratchpad/

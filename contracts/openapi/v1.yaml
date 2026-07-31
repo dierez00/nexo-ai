@@ -1,0 +1,967 @@
+components:
+  schemas:
+    ActionResult:
+      properties:
+        action_id:
+          title: Action Id
+          type: string
+        action_name:
+          title: Action Name
+          type: string
+        created_at:
+          format: date-time
+          title: Created At
+          type: string
+        folio:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Folio
+        idempotency_key:
+          title: Idempotency Key
+          type: string
+        result:
+          additionalProperties: true
+          title: Result
+          type: object
+        status:
+          title: Status
+          type: string
+      required:
+      - action_id
+      - idempotency_key
+      - action_name
+      - status
+      - created_at
+      title: ActionResult
+      type: object
+    AppointmentHold:
+      properties:
+        appointment_id:
+          title: Appointment Id
+          type: string
+        branch_id:
+          title: Branch Id
+          type: integer
+        ends_at:
+          format: date-time
+          title: Ends At
+          type: string
+        hold_expires_at:
+          format: date-time
+          title: Hold Expires At
+          type: string
+        module_code:
+          title: Module Code
+          type: string
+        service_name:
+          title: Service Name
+          type: string
+        starts_at:
+          format: date-time
+          title: Starts At
+          type: string
+        status:
+          title: Status
+          type: string
+      required:
+      - appointment_id
+      - status
+      - branch_id
+      - module_code
+      - service_name
+      - starts_at
+      - ends_at
+      - hold_expires_at
+      title: AppointmentHold
+      type: object
+    AppointmentSlot:
+      properties:
+        available:
+          title: Available
+          type: boolean
+        ends_at:
+          format: date-time
+          title: Ends At
+          type: string
+        starts_at:
+          format: date-time
+          title: Starts At
+          type: string
+      required:
+      - starts_at
+      - ends_at
+      - available
+      title: AppointmentSlot
+      type: object
+    ConfirmActionRequest:
+      properties:
+        consent:
+          default: false
+          title: Consent
+          type: boolean
+        expected_version:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Expected Version
+        input:
+          additionalProperties: true
+          title: Input
+          type: object
+      title: ConfirmActionRequest
+      type: object
+    Conversation:
+      properties:
+        channel:
+          title: Channel
+          type: string
+        conversation_id:
+          title: Conversation Id
+          type: string
+        created_at:
+          format: date-time
+          title: Created At
+          type: string
+        status:
+          title: Status
+          type: string
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+      required:
+      - conversation_id
+      - channel
+      - status
+      - created_at
+      title: Conversation
+      type: object
+    ConversationCreate:
+      properties:
+        channel:
+          default: web
+          enum:
+          - web
+          - whatsapp
+          - voice
+          - admin
+          title: Channel
+          type: string
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+      title: ConversationCreate
+      type: object
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          title: Detail
+          type: array
+      title: HTTPValidationError
+      type: object
+    HoldCreate:
+      properties:
+        branch_id:
+          title: Branch Id
+          type: integer
+        ends_at:
+          format: date-time
+          title: Ends At
+          type: string
+        module_code:
+          title: Module Code
+          type: string
+        service_name:
+          title: Service Name
+          type: string
+        starts_at:
+          format: date-time
+          title: Starts At
+          type: string
+      required:
+      - branch_id
+      - module_code
+      - service_name
+      - starts_at
+      - ends_at
+      title: HoldCreate
+      type: object
+    LiveResponse:
+      properties:
+        status:
+          const: alive
+          default: alive
+          title: Status
+          type: string
+      title: LiveResponse
+      type: object
+    LoginRequest:
+      properties:
+        email:
+          title: Email
+          type: string
+        password:
+          title: Password
+          type: string
+      required:
+      - email
+      - password
+      title: LoginRequest
+      type: object
+    LoginResponse:
+      properties:
+        profile:
+          $ref: '#/components/schemas/UserProfile'
+        tokens:
+          $ref: '#/components/schemas/TokenPair'
+      required:
+      - tokens
+      - profile
+      title: LoginResponse
+      type: object
+    MessageCreate:
+      properties:
+        content:
+          minLength: 1
+          title: Content
+          type: string
+      required:
+      - content
+      title: MessageCreate
+      type: object
+    ProblemDetail:
+      properties:
+        code:
+          title: Code
+          type: string
+        detail:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Detail
+        errors:
+          items:
+            additionalProperties: true
+            type: object
+          title: Errors
+          type: array
+        retryable:
+          default: false
+          title: Retryable
+          type: boolean
+        status:
+          title: Status
+          type: integer
+        title:
+          title: Title
+          type: string
+        trace_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Trace Id
+        type:
+          default: about:blank
+          title: Type
+          type: string
+      required:
+      - title
+      - status
+      - code
+      title: ProblemDetail
+      type: object
+    ReadyResponse:
+      properties:
+        checks:
+          additionalProperties:
+            type: string
+          title: Checks
+          type: object
+        status:
+          enum:
+          - ready
+          - not_ready
+          title: Status
+          type: string
+      required:
+      - status
+      - checks
+      title: ReadyResponse
+      type: object
+    RunAccepted:
+      description: Respuesta 202 al postear un mensaje.
+      properties:
+        created_at:
+          format: date-time
+          title: Created At
+          type: string
+        events_url:
+          title: Events Url
+          type: string
+        run_id:
+          title: Run Id
+          type: string
+        status:
+          enum:
+          - running
+          - completed
+          - failed
+          - requires_action
+          title: Status
+          type: string
+        trace_id:
+          title: Trace Id
+          type: string
+      required:
+      - run_id
+      - trace_id
+      - status
+      - events_url
+      - created_at
+      title: RunAccepted
+      type: object
+    RunResult:
+      description: Snapshot de un run (§9.11).
+      properties:
+        answer:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Answer
+        available_actions:
+          items:
+            additionalProperties: true
+            type: object
+          title: Available Actions
+          type: array
+        created_at:
+          format: date-time
+          title: Created At
+          type: string
+        domain:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Domain
+        metrics:
+          additionalProperties: true
+          title: Metrics
+          type: object
+        run_id:
+          title: Run Id
+          type: string
+        sources:
+          items:
+            additionalProperties: true
+            type: object
+          title: Sources
+          type: array
+        status:
+          enum:
+          - running
+          - completed
+          - failed
+          - requires_action
+          title: Status
+          type: string
+        trace_id:
+          title: Trace Id
+          type: string
+        warnings:
+          items:
+            type: string
+          title: Warnings
+          type: array
+      required:
+      - run_id
+      - trace_id
+      - status
+      - created_at
+      title: RunResult
+      type: object
+    TokenPair:
+      properties:
+        access_token:
+          title: Access Token
+          type: string
+        refresh_token:
+          title: Refresh Token
+          type: string
+        token_type:
+          default: bearer
+          title: Token Type
+          type: string
+      required:
+      - access_token
+      - refresh_token
+      title: TokenPair
+      type: object
+    UserProfile:
+      properties:
+        auth_user_id:
+          title: Auth User Id
+          type: string
+        email:
+          title: Email
+          type: string
+        name:
+          title: Name
+          type: string
+        permissions:
+          items:
+            type: string
+          title: Permissions
+          type: array
+        role:
+          title: Role
+          type: string
+        tenant_id:
+          title: Tenant Id
+          type: string
+        user_id:
+          title: User Id
+          type: string
+      required:
+      - user_id
+      - auth_user_id
+      - tenant_id
+      - email
+      - name
+      - role
+      - permissions
+      title: UserProfile
+      type: object
+    ValidationError:
+      properties:
+        ctx:
+          title: Context
+          type: object
+        input:
+          title: Input
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          title: Location
+          type: array
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+      type: object
+  securitySchemes:
+    HTTPBearer:
+      scheme: bearer
+      type: http
+info:
+  description: 'API del backend (Dani). Convenciones: JSON snake_case, UTC, IDs opacos
+    (`conv_`, `run_`, `act_`, `apt_`), dinero en unidades menores. Los errores usan
+    **Problem Details** (`type/code/status/retryable`); el frontend nunca parsea texto.
+    Toda respuesta propaga `X-Trace-Id`. Auth = Supabase Auth (JWT bearer validado
+    por JWKS).'
+  summary: Gateway HTTP/SSE/webhooks del asistente institucional nexo-ai.
+  title: nexo-ai API
+  version: 0.1.0
+openapi: 3.1.0
+paths:
+  /api/v1/actions/{action_id}/confirm:
+    post:
+      operationId: confirm_action_api_v1_actions__action_id__confirm_post
+      parameters:
+      - in: path
+        name: action_id
+        required: true
+        schema:
+          title: Action Id
+          type: string
+      - in: header
+        name: Idempotency-Key
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Idempotency-Key
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmActionRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResult'
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Error de validación (VALIDATION_ERROR)
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Permiso denegado (PERMISSION_DENIED)
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Conflicto (APPOINTMENT_CONFLICT / VERSION_CONFLICT)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Confirmación requerida (ACTION_CONFIRMATION_REQUIRED)
+      security:
+      - HTTPBearer: []
+      summary: Confirmar acción (idempotente)
+      tags:
+      - actions
+  /api/v1/appointments/availability:
+    get:
+      operationId: availability_api_v1_appointments_availability_get
+      parameters:
+      - in: query
+        name: branch_id
+        required: true
+        schema:
+          title: Branch Id
+          type: integer
+      - in: query
+        name: module_code
+        required: true
+        schema:
+          title: Module Code
+          type: string
+      - in: query
+        name: date
+        required: true
+        schema:
+          format: date
+          title: Date
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/AppointmentSlot'
+                title: Response Availability Api V1 Appointments Availability Get
+                type: array
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Permiso denegado (PERMISSION_DENIED)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - HTTPBearer: []
+      summary: Disponibilidad de citas
+      tags:
+      - appointments
+  /api/v1/appointments/holds:
+    post:
+      operationId: create_hold_api_v1_appointments_holds_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HoldCreate'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentHold'
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Permiso denegado (PERMISSION_DENIED)
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Recurso no encontrado (RESOURCE_NOT_FOUND)
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Conflicto (APPOINTMENT_CONFLICT / VERSION_CONFLICT)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - HTTPBearer: []
+      summary: Crear hold de cita (409 si solapa)
+      tags:
+      - appointments
+  /api/v1/auth/login:
+    post:
+      operationId: login_api_v1_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Permiso denegado (PERMISSION_DENIED)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Login vía Supabase Auth
+      tags:
+      - auth
+  /api/v1/conversations:
+    post:
+      operationId: create_conversation_api_v1_conversations_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConversationCreate'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - HTTPBearer: []
+      summary: Crear conversación
+      tags:
+      - conversations
+  /api/v1/conversations/{conversation_id}/messages:
+    post:
+      operationId: post_message_api_v1_conversations__conversation_id__messages_post
+      parameters:
+      - in: path
+        name: conversation_id
+        required: true
+        schema:
+          title: Conversation Id
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageCreate'
+        required: true
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunAccepted'
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Recurso no encontrado (RESOURCE_NOT_FOUND)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - HTTPBearer: []
+      summary: Postear mensaje y ejecutar un run
+      tags:
+      - conversations
+  /api/v1/runs/{run_id}:
+    get:
+      operationId: get_run_api_v1_runs__run_id__get
+      parameters:
+      - in: path
+        name: run_id
+        required: true
+        schema:
+          title: Run Id
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunResult'
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Recurso no encontrado (RESOURCE_NOT_FOUND)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - HTTPBearer: []
+      summary: Snapshot de un run
+      tags:
+      - runs
+  /api/v1/runs/{run_id}/events:
+    get:
+      operationId: run_events_api_v1_runs__run_id__events_get
+      parameters:
+      - in: path
+        name: run_id
+        required: true
+        schema:
+          title: Run Id
+          type: string
+      - in: query
+        name: access_token
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Access Token
+      - in: header
+        name: Last-Event-ID
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Last-Event-Id
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+            text/event-stream: {}
+          description: Stream de RunEvent (text/event-stream), reanudable por Last-Event-ID.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Recurso no encontrado (RESOURCE_NOT_FOUND)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Stream SSE de eventos del run
+      tags:
+      - runs
+  /api/v1/users/me:
+    get:
+      operationId: users_me_api_v1_users_me_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Permiso denegado (PERMISSION_DENIED)
+      security:
+      - HTTPBearer: []
+      summary: Perfil del usuario actual
+      tags:
+      - auth
+  /health/live:
+    get:
+      operationId: live_health_live_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveResponse'
+          description: Successful Response
+      summary: Live
+      tags:
+      - health
+  /health/ready:
+    get:
+      operationId: ready_health_ready_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadyResponse'
+          description: Successful Response
+      summary: Ready
+      tags:
+      - health
+  /webhooks/twilio/status:
+    post:
+      operationId: status_webhooks_twilio_status_post
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Permiso denegado (PERMISSION_DENIED)
+      summary: Callback de estado de entrega
+      tags:
+      - webhooks
+  /webhooks/twilio/whatsapp:
+    post:
+      operationId: whatsapp_webhooks_twilio_whatsapp_post
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Permiso denegado (PERMISSION_DENIED)
+      summary: Webhook WhatsApp entrante
+      tags:
+      - webhooks
+tags:
+- description: Login y perfil.
+  name: auth
+- description: Conversaciones, mensajes y disparo de runs.
+  name: conversations
+- description: Snapshot de runs y stream SSE de eventos.
+  name: runs
+- description: Confirmación de acciones con idempotencia.
+  name: actions
+- description: Disponibilidad y holds de citas.
+  name: appointments
+- description: Webhooks firmados de Twilio (WhatsApp).
+  name: webhooks
+- description: Liveness y readiness.
+  name: health
