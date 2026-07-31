@@ -40,13 +40,23 @@ const STATUS_META: Record<ConversationStatus, { label: string; tone: Tone }> = {
 export default function VoiceAgent() {
   const [status, setStatus] = useState<ConversationStatus>("idle");
   const [caption, setCaption] = useState<Caption | null>(null);
+  const [micMuted, setMicMuted] = useState(false);
   const sessionRef = useRef<Awaited<ReturnType<typeof Conversation.startSession>> | null>(null);
   const startTimeRef = useRef(0);
   const idCounterRef = useRef(0);
+  // onModeChange puede dispararse antes de que startSession resuelva, cuando
+  // sessionRef todavía es null. Guardamos la intención y la aplicamos al conectar.
+  const desiredMuteRef = useRef(false);
 
   const showCaption = useCallback((text: string, source: "user" | "ai") => {
     idCounterRef.current += 1;
     setCaption({ id: idCounterRef.current, text, source });
+  }, []);
+
+  const applyMute = useCallback((shouldMute: boolean) => {
+    desiredMuteRef.current = shouldMute;
+    sessionRef.current?.setMicMuted(shouldMute);
+    setMicMuted(shouldMute);
   }, []);
 
   const handleStart = useCallback(async () => {
@@ -65,8 +75,10 @@ export default function VoiceAgent() {
 
       log("Iniciando sesión...");
       startTimeRef.current = performance.now();
+      desiredMuteRef.current = false;
+      setMicMuted(false);
 
-      sessionRef.current = await Conversation.startSession({
+      const session = await Conversation.startSession({
         agentId: AGENT_ID,
         // WebRTC (LiveKit) conecta más rápido y con menor latencia que websocket (el default del SDK).
         connectionType: "webrtc",
@@ -80,6 +92,8 @@ export default function VoiceAgent() {
         onDisconnect: () => {
           log("Desconectado del agente.");
           sessionRef.current = null;
+          desiredMuteRef.current = false;
+          setMicMuted(false);
           setStatus("idle");
         },
 
@@ -88,8 +102,11 @@ export default function VoiceAgent() {
           setStatus("error");
         },
 
+        // Silenciamos el micrófono mientras la agente habla para que su propia voz
+        // (o un ruido nuestro) no la interrumpa, y lo reactivamos al terminar.
         onModeChange: ({ mode }) => {
           log("Cambio de modo:", mode);
+          applyMute(mode === "speaking");
         },
 
         onStatusChange: ({ status: sdkStatus }) => {
@@ -102,11 +119,17 @@ export default function VoiceAgent() {
           showCaption(message, source);
         },
       });
+
+      sessionRef.current = session;
+      // Si la agente ya empezó a hablar mientras conectábamos, el mute quedó pendiente.
+      if (desiredMuteRef.current) {
+        session.setMicMuted(true);
+      }
     } catch (error) {
       logError("No se pudo iniciar la sesión:", error);
       setStatus("error");
     }
-  }, [showCaption]);
+  }, [applyMute, showCaption]);
 
   const handleStop = useCallback(async () => {
     if (sessionRef.current) {
@@ -115,6 +138,8 @@ export default function VoiceAgent() {
       sessionRef.current = null;
       log("Sesión finalizada.");
     }
+    desiredMuteRef.current = false;
+    setMicMuted(false);
     setStatus("idle");
   }, []);
 
@@ -160,9 +185,17 @@ export default function VoiceAgent() {
       </section>
 
       <footer className="flex flex-col items-center gap-4 px-6 pb-10">
-        <StatusBadge tone={STATUS_META[status].tone} pulse={isConnecting}>
-          {STATUS_META[status].label}
-        </StatusBadge>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <StatusBadge tone={STATUS_META[status].tone} pulse={isConnecting}>
+            {STATUS_META[status].label}
+          </StatusBadge>
+
+          {isConnected ? (
+            <StatusBadge tone={micMuted ? "warning" : "success"} pulse={micMuted}>
+              {micMuted ? "Micrófono en silencio" : "Micrófono activo"}
+            </StatusBadge>
+          ) : null}
+        </div>
 
         <button
           type="button"
