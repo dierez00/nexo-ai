@@ -1,0 +1,50 @@
+skill_id: skill_sal_navegacion
+version: 1.0.0
+title: Navegación administrativa de servicios de salud
+domain: salud
+owner: diego
+objective: Localizar unidades, servicios, requisitos y horarios sin consejo clínico.
+steps:
+  - step_id: clasificar
+    agent: classifier
+    objective: Separar la necesidad administrativa de cualquier solicitud clínica.
+    deadline_ms: 3000
+  - step_id: localizar
+    agent: domain_navigator
+    objective: Consultar unidades y servicios por municipio y afiliación.
+    depends_on: [clasificar]
+    deadline_ms: 6000
+  - step_id: verificar
+    agent: verifier
+    objective: Verificar que sólo haya hechos administrativos y fuentes activas.
+    depends_on: [localizar]
+    deadline_ms: 5000
+  - step_id: redactar
+    agent: writer
+    objective: Explicar límites y ruta institucional sin diagnóstico ni tratamiento.
+    depends_on: [verificar]
+    deadline_ms: 5000
+allowed_sources: [src_sal_directorio, src_sal_servicios]
+allowed_tools:
+  - salud.localizar_unidad_salud
+  - salud.consultar_servicios
+  - salud.consultar_requisitos
+  - salud.buscar_horarios
+reusable_inputs: [municipio, afiliacion]
+question_conditions:
+  - Faltan municipio y afiliación y no se puede localizar una unidad.
+budgets:
+  deadline_ms: 15000
+  max_cost_usd: 0.12
+  max_questions: 1
+  max_concurrency: 2
+success_criteria:
+  - La respuesta sólo contiene navegación administrativa.
+  - Unidad, servicio, requisitos y horario provienen de tools o fuentes activas.
+  - Una solicitud clínica se rechaza de forma segura.
+escalation_policy: Si la persona pide diagnóstico o tratamiento, explica el límite y no infiere.
+prompt_refs:
+  - nexo_agents/prompts/classifier.v1.md
+  - nexo_agents/prompts/navigator_salud.v1.md
+schema_refs: [contracts://classification.v1, contracts://verified_facts.v1]
+a2ui_components: [Checklist, StatusBanner, SourceList, List]

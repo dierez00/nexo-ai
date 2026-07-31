@@ -1,0 +1,45 @@
+skill_id: skill_gan_movilizacion
+version: 1.0.0
+title: Validación documental de movilización
+domain: ganaderia
+owner: diego
+objective: Verificar requisitos y alertas sin emitir una autorización.
+steps:
+  - step_id: clasificar
+    agent: classifier
+    objective: Identificar el traslado y sus referencias.
+    deadline_ms: 3000
+  - step_id: consultar
+    agent: domain_navigator
+    objective: Consultar alertas y validar requisitos con código.
+    depends_on: [clasificar]
+    deadline_ms: 6000
+  - step_id: verificar
+    agent: verifier
+    objective: Verificar reglas contra fuente activa.
+    depends_on: [consultar]
+    deadline_ms: 5000
+  - step_id: redactar
+    agent: writer
+    objective: Reportar validación documental sin autorizar.
+    depends_on: [verificar]
+    deadline_ms: 5000
+allowed_sources: [src_gan_movilizacion]
+allowed_tools: [ganaderia.validar_movilizacion, ganaderia.consultar_alertas]
+reusable_inputs: [animal_ref, origen, destino]
+question_conditions:
+  - Faltan origen o destino de la movilización.
+budgets:
+  deadline_ms: 15000
+  max_cost_usd: 0.12
+  max_questions: 1
+  max_concurrency: 2
+success_criteria:
+  - La validación proviene de código y las reglas de fuente activa.
+  - La respuesta no se presenta como autorización oficial.
+escalation_policy: Si hay alertas o datos faltantes, bloquea la ruta y explica el motivo.
+prompt_refs:
+  - nexo_agents/prompts/classifier.v1.md
+  - nexo_agents/prompts/navigator_ganaderia.v1.md
+schema_refs: [contracts://classification.v1, contracts://verified_facts.v1]
+a2ui_components: [Checklist, StatusBanner, SourceList]

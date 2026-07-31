@@ -1,0 +1,19 @@
+version: rules-registro-civil-2026-07-30
+rules:
+  - rule_id: rc_copia
+    when_any: [copia, certificada]
+    outcome: copia
+    question_required: false
+  - rule_id: rc_aclaracion
+    when_any: [ortografia, captura, transcripcion]
+    outcome: aclaracion
+    question_required: false
+  - rule_id: rc_correccion
+    when_any: [dato, apellido, fecha]
+    outcome: correccion
+    question_required: false
+  - rule_id: rc_ambiguo
+    when_any: [error, cambiar]
+    outcome: no_determinado
+    question_required: true
+    question: ¿Es un error de captura o necesitas cambiar un dato de fondo?

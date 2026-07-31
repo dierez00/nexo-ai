@@ -1,0 +1,7 @@
+{
+  "animal_ref": "animal_demo_0001",
+  "especie": "bovino",
+  "estado_registro": "activo_sintetico",
+  "is_synthetic": true,
+  "authorized_roles": ["producer", "operator"]
+}

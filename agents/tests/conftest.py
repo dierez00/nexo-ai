@@ -22,7 +22,7 @@ from nexo_orchestration.testing import (
     Scenario,
     SequentialIdFactory,
 )
-from nexo_rag.corpus.cli import MVP_DOMAINS, repository_root
+from nexo_rag.corpus.cli import CORE_DOMAINS, MVP_DOMAINS, repository_root
 from nexo_rag.testing import LoadedCorpus, load_corpus
 
 VALID_AT = date(2026, 7, 30)
@@ -36,6 +36,11 @@ def root() -> Path:
 @pytest.fixture(scope="session")
 def manifests(root: Path) -> dict[Domain, DomainManifest]:
     return load_domains(root, MVP_DOMAINS)
+
+
+@pytest.fixture(scope="session")
+def core_manifests(root: Path) -> dict[Domain, DomainManifest]:
+    return load_domains(root, CORE_DOMAINS)
 
 
 @pytest.fixture(scope="module")

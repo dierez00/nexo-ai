@@ -17,7 +17,7 @@ from nexo_agents.skills import (
     validate_skill,
 )
 from nexo_contracts import AgentName, Domain, SkillManifest
-from nexo_rag.corpus.cli import MVP_DOMAINS
+from nexo_rag.corpus.cli import CORE_DOMAINS
 
 pytestmark = pytest.mark.unit
 
@@ -30,13 +30,29 @@ def veh_skill(root: Path) -> SkillManifest:
 # --- DIE-F1-110: existen y son coherentes -----------------------------------
 
 
-@pytest.mark.parametrize("domain", MVP_DOMAINS, ids=lambda d: d.value)
-def test_every_mvp_domain_has_valid_skills(root: Path, manifests, domain: Domain) -> None:
-    results = validate_domain_skills(root, manifests[domain])
+@pytest.mark.parametrize("domain", CORE_DOMAINS, ids=lambda d: d.value)
+def test_every_core_domain_has_valid_skills(root: Path, core_manifests, domain: Domain) -> None:
+    results = validate_domain_skills(root, core_manifests[domain], check_a2ui=True)
 
     assert results, f"{domain.value} no declara ninguna skill"
     for result in results:
         assert result.is_valid, f"{result.skill_id}: {result.problems}"
+
+
+@pytest.mark.parametrize("domain", CORE_DOMAINS, ids=lambda d: d.value)
+def test_every_core_skill_declares_budgets_retries_and_safe_fallback(
+    root: Path, domain: Domain
+) -> None:
+    skills = load_domain_skills(root, domain)
+
+    assert skills
+    for skill in skills.values():
+        assert skill.budgets.max_questions <= 1
+        assert skill.budgets.deadline_ms > 0
+        assert skill.escalation_policy
+        assert skill.success_criteria
+        assert all(step.deadline_ms > 0 for step in skill.steps)
+        assert all(step.max_attempts <= 2 for step in skill.steps)
 
 
 def test_both_official_journeys_have_a_skill(root: Path) -> None:

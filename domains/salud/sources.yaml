@@ -1,0 +1,101 @@
+version: sources-salud-2026-07-30
+domain: salud
+corpus_version: salud-2026-07-30
+sources:
+  - source_id: src_sal_directorio
+    title: Directorio público de unidades de salud
+    institution_id: inst_demo
+    publisher: Secretaría de Salud de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-20T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_sal_directorio
+        title: Unidades, afiliación y horarios
+        version: v2
+        media_type: text/markdown
+        path: data/documents/salud/src_sal_directorio/v2/directorio.md
+        checksum: sha256:40f494215d05b1c010e5a94d2abcc4ca37f15800639236733535de8d4b30d1e2
+
+  - source_id: src_sal_servicios
+    title: Servicios y requisitos administrativos
+    institution_id: inst_demo
+    publisher: Secretaría de Salud de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-20T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_sal_servicios
+        title: Catálogo administrativo de servicios
+        version: v1
+        media_type: text/markdown
+        path: data/documents/salud/src_sal_servicios/v1/servicios.md
+        checksum: sha256:776771646c88a7e427274bab1331690ec34dba05561358dbe3d9592a4b657375
+
+  - source_id: src_sal_directorio_2024
+    title: Directorio de unidades 2024 (vencido)
+    institution_id: inst_demo
+    publisher: Secretaría de Salud de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: expired
+    is_synthetic: true
+    verified_at: 2024-01-10T00:00:00Z
+    validity:
+      valid_from: 2024-01-01
+      valid_to: 2024-12-31
+    documents:
+      - document_id: doc_sal_directorio_2024
+        title: Directorio vencido de unidades
+        version: v1
+        media_type: text/markdown
+        path: data/documents/salud/src_sal_directorio/v1/directorio.md
+        checksum: sha256:7465217b5c009e506de45452842956b3fc7472fdd6632a91cb4451e254949768
+
+  - source_id: src_sal_avisos
+    title: Aviso manipulado de navegación de salud
+    institution_id: inst_demo
+    publisher: Secretaría de Salud de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: active
+    is_synthetic: true
+    verified_at: 2026-07-20T00:00:00Z
+    validity:
+      valid_from: 2026-01-01
+    documents:
+      - document_id: doc_sal_aviso_manipulado
+        title: Aviso con consejo clínico adversarial
+        version: v1
+        media_type: text/markdown
+        path: data/documents/salud/src_sal_avisos/v1/aviso_manipulado.md
+        checksum: sha256:4e3d29e303bf6558ddd3b6122db214b77bce2dff9565edaa732be337d436d53e
+
+  - source_id: src_sal_servicios_2024
+    title: Servicios administrativos 2024 (sustituidos)
+    institution_id: inst_demo
+    publisher: Secretaría de Salud de Durango (demostración)
+    owner: diego
+    license: sintetico-demo-uso-interno
+    status: superseded
+    superseded_by: src_sal_servicios
+    is_synthetic: true
+    verified_at: 2024-01-10T00:00:00Z
+    validity:
+      valid_from: 2024-01-01
+      valid_to: 2024-12-31
+    documents:
+      - document_id: doc_sal_servicios_2024
+        title: Servicios administrativos sustituidos
+        version: v1
+        media_type: text/markdown
+        path: data/documents/salud/src_sal_servicios_2024/v1/servicios.md
+        checksum: sha256:74a9519c5df1760bc0b20fa17c3f9662a288fc1b96cbd1a893aabe3d8af9beb4

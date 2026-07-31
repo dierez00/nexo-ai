@@ -5,34 +5,48 @@
         "name": "supervisor",
         "type": "system"
       },
+      "catalog_version": null,
+      "correlation_id": "trace_01JNE8ZP",
       "data": {},
       "duration_ms": null,
       "error": null,
       "event_id": "evt_01",
+      "parent_event_id": null,
       "policy_version": null,
+      "public_data": {},
       "run_id": "run_01JNE8ZP",
       "sequence": 1,
+      "skill_id": null,
+      "skill_version": null,
       "status": "succeeded",
       "timestamp": "2026-07-30T15:00:00Z",
       "trace_id": "trace_01JNE8ZP",
-      "type": "run.queued"
+      "type": "run.queued",
+      "visibility": "public"
     },
     {
       "actor": {
         "name": "supervisor",
         "type": "system"
       },
+      "catalog_version": null,
+      "correlation_id": "trace_01JNE8ZP",
       "data": {},
       "duration_ms": null,
       "error": null,
       "event_id": "evt_02",
+      "parent_event_id": "evt_01",
       "policy_version": null,
+      "public_data": {},
       "run_id": "run_01JNE8ZP",
       "sequence": 2,
+      "skill_id": null,
+      "skill_version": null,
       "status": "succeeded",
       "timestamp": "2026-07-30T15:00:00Z",
       "trace_id": "trace_01JNE8ZP",
-      "type": "run.started"
+      "type": "run.started",
+      "visibility": "public"
     }
   ],
   "run_id": "run_01JNE8ZP"

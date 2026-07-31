@@ -1,0 +1,20 @@
+{
+  "case_id": "cap_rc_01",
+  "catalog_version": "core-catalog-2026-07-30",
+  "domain": "registro_civil",
+  "procedure": "corregir_acta",
+  "skill_id": "skill_rc_correccion",
+  "max_questions": 1,
+  "required_sources": ["src_rc_tramites"],
+  "required_tools": [
+    "registro_civil.clasificar_tipo_correccion",
+    "registro_civil.localizar_oficialia",
+    "registro_civil.consultar_disponibilidad"
+  ],
+  "required_a2ui_components": [
+    "Checklist",
+    "SourceList",
+    "SlotPicker",
+    "ConfirmButton"
+  ]
+}

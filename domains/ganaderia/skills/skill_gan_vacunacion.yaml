@@ -1,0 +1,57 @@
+skill_id: skill_gan_vacunacion
+version: 1.0.0
+title: Registro confirmado de vacunación
+domain: ganaderia
+owner: diego
+objective: Verificar el animal y registrar una vacuna sólo tras confirmación.
+steps:
+  - step_id: clasificar
+    agent: classifier
+    objective: Identificar registro de vacuna.
+    deadline_ms: 3000
+  - step_id: consultar
+    agent: domain_navigator
+    objective: Verificar el expediente y el historial.
+    depends_on: [clasificar]
+    deadline_ms: 6000
+  - step_id: verificar
+    agent: verifier
+    objective: Verificar los datos administrativos antes de escribir.
+    depends_on: [consultar]
+    deadline_ms: 5000
+  - step_id: registrar
+    agent: transactional
+    objective: Registrar con confirmación e idempotencia.
+    depends_on: [verificar]
+    deadline_ms: 5000
+  - step_id: redactar
+    agent: writer
+    objective: Presentar el folio verificable.
+    depends_on: [verificar]
+    deadline_ms: 5000
+allowed_sources: [src_gan_expediente]
+allowed_tools:
+  - ganaderia.consultar_animal
+  - ganaderia.consultar_historial
+  - ganaderia.registrar_vacuna
+confirmation_required_for: [ganaderia.registrar_vacuna]
+reusable_inputs: [animal_ref, vacuna, fecha]
+question_conditions:
+  - Falta la referencia del animal o el nombre de la vacuna.
+budgets:
+  deadline_ms: 18000
+  max_cost_usd: 0.18
+  max_questions: 1
+  max_concurrency: 2
+success_criteria:
+  - La escritura exige confirmación e idempotency key.
+  - Repetir la confirmación no crea otro registro.
+escalation_policy: Si la escritura queda con outcome desconocido, no reintenta.
+prompt_refs:
+  - nexo_agents/prompts/classifier.v1.md
+  - nexo_agents/prompts/navigator_ganaderia.v1.md
+schema_refs:
+  - contracts://classification.v1
+  - contracts://verified_facts.v1
+  - contracts://action_request.v1
+a2ui_components: [Checklist, StatusBanner, SourceList, ConfirmButton]

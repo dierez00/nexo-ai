@@ -1,0 +1,16 @@
+version: safety-salud-2026-07-30
+scope: administrative_navigation_only
+allowed:
+  - localizar_unidad
+  - consultar_servicios
+  - consultar_requisitos
+  - consultar_horarios
+forbidden:
+  - diagnosis
+  - prescription
+  - symptom_interpretation
+  - clinical_urgency_classification
+  - professional_substitution
+fallback: >-
+  Explicar el límite y ofrecer únicamente una ruta institucional administrativa
+  respaldada por fuente o tool autorizada.

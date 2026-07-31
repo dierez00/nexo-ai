@@ -116,5 +116,5 @@ schema_refs:
 a2ui_components:
   - Checklist
   - StatusBanner
-  - SourceCitation
-  - ConfirmationSummary
+  - SourceList
+  - ConfirmButton
