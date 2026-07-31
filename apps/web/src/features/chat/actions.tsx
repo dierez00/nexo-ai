@@ -22,11 +22,16 @@ export function ConfirmCard({
   detalles,
   onConfirmar,
   onCancelar,
+  pending = false,
+  confirmLabel = "Confirmar reserva",
 }: {
   titulo: string;
   detalles: string[];
   onConfirmar: () => void;
   onCancelar?: () => void;
+  /** Bloquea ambos botones mientras la confirmación está en vuelo. */
+  pending?: boolean;
+  confirmLabel?: string;
 }) {
   return (
     <div className="rounded-xl border border-accent/40 bg-accent/8 p-4">
@@ -41,14 +46,16 @@ export function ConfirmCard({
       </ul>
       <div className="mt-4 flex flex-wrap gap-2">
         <button
+          disabled={pending}
           onClick={onConfirmar}
-          className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Confirmar reserva
+          {pending ? "Enviando…" : confirmLabel}
         </button>
         <button
+          disabled={pending}
           onClick={onCancelar}
-          className="rounded-full border border-border bg-card px-5 py-2 text-sm font-semibold transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="rounded-full border border-border bg-card px-5 py-2 text-sm font-semibold transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
         >
           Cancelar
         </button>
