@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Request, status
 
-from nexo_api.api.deps import get_current_user, get_orchestrator, get_run_task_manager
+from nexo_api.api.deps import (
+    enforce_rate_limit,
+    get_current_user,
+    get_orchestrator,
+    get_run_task_manager,
+)
 from nexo_api.core.errors import problem_responses
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.schemas.conversation import Conversation, ConversationCreate, MessageCreate
@@ -36,13 +41,13 @@ async def create_conversation(
     response_model=RunAccepted,
     status_code=status.HTTP_202_ACCEPTED,
     summary="Postear mensaje y ejecutar un run",
-    responses=problem_responses(401, 404),
+    responses=problem_responses(401, 404, 429),
 )
 async def post_message(
     conversation_id: str,
     body: MessageCreate,
     request: Request,
-    user: UserProfile = Depends(get_current_user),
+    user: UserProfile = Depends(enforce_rate_limit),
     orchestrator: Orchestrator = Depends(get_orchestrator),
     task_manager: RunTaskManager = Depends(get_run_task_manager),
 ) -> RunAccepted:

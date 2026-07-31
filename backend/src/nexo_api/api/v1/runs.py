@@ -9,7 +9,7 @@ from nexo_api.api.deps import get_current_user, get_current_user_sse
 from nexo_api.core.errors import problem_responses
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.services.runs import service as runs_service
-from nexo_contracts import RunResult
+from nexo_contracts import RunEvent, RunResult
 
 router = APIRouter(prefix="/api/v1", tags=["runs"])
 
@@ -25,6 +25,19 @@ async def get_run(
     user: UserProfile = Depends(get_current_user),
 ) -> RunResult:
     return await runs_service.get_run(user, run_id)
+
+
+@router.get(
+    "/runs/{run_id}/events/list",
+    response_model=list[RunEvent],
+    summary="Lista de eventos del run (replay/timeline, no-SSE)",
+    responses=problem_responses(401, 404),
+)
+async def run_events_list(
+    run_id: str,
+    user: UserProfile = Depends(get_current_user),
+) -> list[RunEvent]:
+    return await runs_service.list_events(user, run_id)
 
 
 def _parse_last_event_id(raw: str | None) -> int:

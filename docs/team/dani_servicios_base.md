@@ -23,7 +23,15 @@ FastAPI, auth/RBAC, perfiles, conversaciones, runs, SSE, citas, confirmaciones, 
 
 ## 5. Tareas Core
 
-Catálogo/admin básico, webhooks robustos, perfiles completos, métricas API, pipeline events, rate limiting y documentación de arranque.
+- [x] Catálogo/admin básico. *(`GET /api/v1/admin/catalog` operativo por tenant + `GET /admin/config` con la config canónica vía loader de `nexo_orchestration`)*
+- [x] Webhooks robustos. *(fallback 2xx ante fallo de orquestación; tracking de entrega por `MessageSid` + log estructurado)*
+- [x] Perfiles completos. *(lectura enriquecida: institution/branch/is_owner/preferences. PATCH de preferencias queda **fuera de alcance**)*
+- [x] Métricas API. *(`GET /api/v1/admin/metrics` → `MetricSet` tenant-scoped por ventana; rol admin)*
+- [x] Pipeline events. *(`GET /runs/{id}/events/list` replay + emisión JSONL; `RunEvent` canónico con `correlation_id`)*
+- [x] Rate limiting. *(token bucket in-app por tenant/usuario → 429 RATE_LIMITED en escrituras. **Limitación**: estado no compartido entre réplicas; multi-réplica requeriría estado compartido, fuera de alcance)*
+- [x] Documentación de arranque. *(`scripts/run.{sh,ps1}` de una línea + runbook en `docs/runbooks/arranque.md`)*
+
+Admin gated por `require_role("admin")`. Contratos canónicos (`nexo_contracts`) adoptados; OpenAPI regenerado sin drift.
 
 ## Estado operativo actualizado (2026-07-30)
 

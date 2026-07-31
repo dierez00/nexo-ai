@@ -195,6 +195,57 @@ components:
       - cancelled
       title: ActionStatus
       type: string
+    ActorType:
+      description: Quién origina un evento.
+      enum:
+      - supervisor
+      - agent
+      - tool
+      - model
+      - retriever
+      - system
+      - user
+      title: ActorType
+      type: string
+    AdminCatalog:
+      properties:
+        modules:
+          items:
+            $ref: '#/components/schemas/ModuleEntry'
+          title: Modules
+          type: array
+        permissions:
+          items:
+            $ref: '#/components/schemas/PermissionEntry'
+          title: Permissions
+          type: array
+        roles:
+          items:
+            $ref: '#/components/schemas/RoleEntry'
+          title: Roles
+          type: array
+      required:
+      - modules
+      - roles
+      - permissions
+      title: AdminCatalog
+      type: object
+    AgentName:
+      description: Agentes de la matriz §13. El catálogo cerrado impide delegar a
+        un agente inexistente.
+      enum:
+      - classifier
+      - supervisor
+      - domain_navigator
+      - verifier
+      - estimator
+      - transactional
+      - writer
+      - signal_analyst
+      - judge
+      - prompt_assistant
+      title: AgentName
+      type: string
     AppointmentHold:
       properties:
         appointment_id:
@@ -253,6 +304,109 @@ components:
       - ends_at
       - available
       title: AppointmentSlot
+      type: object
+    Branch:
+      properties:
+        branch_id:
+          title: Branch Id
+          type: string
+        code:
+          title: Code
+          type: string
+        name:
+          title: Name
+          type: string
+      required:
+      - branch_id
+      - code
+      - name
+      title: Branch
+      type: object
+    Budgets:
+      additionalProperties: false
+      description: 'Presupuestos del run (`DIE-F0-034`).
+
+
+        Se aplican en el supervisor y en cada nodo: antes de invocar un modelo o una
+
+        tool se comprueba lo que queda, no después.'
+      properties:
+        deadline_ms:
+          default: 20000
+          maximum: 3600000.0
+          minimum: 0.0
+          title: Deadline Ms
+          type: integer
+        max_attempts_per_agent:
+          default: 2
+          maximum: 5.0
+          minimum: 1.0
+          title: Max Attempts Per Agent
+          type: integer
+        max_concurrency:
+          default: 2
+          maximum: 10.0
+          minimum: 1.0
+          title: Max Concurrency
+          type: integer
+        max_cost_usd:
+          default: 0.2
+          maximum: 100.0
+          minimum: 0.0
+          title: Max Cost Usd
+          type: number
+        max_tokens:
+          default: 200000
+          minimum: 0.0
+          title: Max Tokens
+          type: integer
+      title: Budgets
+      type: object
+    CatalogEntry:
+      additionalProperties: false
+      properties:
+        audience:
+          maxLength: 40
+          title: Audience
+          type: string
+        catalog_id:
+          maxLength: 200
+          title: Catalog Id
+          type: string
+        path:
+          maxLength: 300
+          title: Path
+          type: string
+        version:
+          pattern: ^\d+\.\d+\.\d+$
+          title: Version
+          type: string
+      required:
+      - catalog_id
+      - version
+      - audience
+      - path
+      title: CatalogEntry
+      type: object
+    CatalogsConfig:
+      additionalProperties: false
+      description: '`config/catalogs.yaml`: catálogos A2UI negociables.'
+      properties:
+        catalogs:
+          items:
+            $ref: '#/components/schemas/CatalogEntry'
+          maxItems: 20
+          minItems: 1
+          title: Catalogs
+          type: array
+        version:
+          pattern: ^[a-z0-9][a-z0-9._-]{2,39}$
+          title: Version
+          type: string
+      required:
+      - version
+      - catalogs
+      title: CatalogsConfig
       type: object
     Channel:
       enum:
@@ -440,6 +594,19 @@ components:
           title: Title
       title: ConversationCreate
       type: object
+    CountByStatus:
+      properties:
+        by_status:
+          additionalProperties:
+            type: integer
+          title: By Status
+          type: object
+        total:
+          default: 0
+          title: Total
+          type: integer
+      title: CountByStatus
+      type: object
     CreateSurface:
       additionalProperties: false
       properties:
@@ -600,6 +767,103 @@ components:
       - derived_from
       title: EstimateStep
       type: object
+    EventActor:
+      additionalProperties: false
+      description: Quién produjo el evento.
+      properties:
+        name:
+          maxLength: 120
+          title: Name
+          type: string
+        type:
+          $ref: '#/components/schemas/ActorType'
+      required:
+      - type
+      - name
+      title: EventActor
+      type: object
+    EventStatus:
+      enum:
+      - started
+      - succeeded
+      - failed
+      - denied
+      - skipped
+      title: EventStatus
+      type: string
+    EventType:
+      description: 'Familias mínimas de eventos (§5.8).
+
+
+        El nombre es `dominio.acción` y es estable: el workflow viewer, el replay
+        y
+
+        las evaluaciones dependen de él.'
+      enum:
+      - run.queued
+      - run.planning
+      - run.started
+      - run.waiting_confirmation
+      - run.resumed
+      - run.partial
+      - run.completed
+      - run.failed
+      - run.cancelled
+      - classification.started
+      - classification.completed
+      - classification.failed
+      - plan.created
+      - plan.updated
+      - agent.started
+      - agent.completed
+      - agent.retried
+      - agent.failed
+      - rag.started
+      - rag.completed
+      - rag.filtered
+      - rag.failed
+      - tool.requested
+      - tool.authorized
+      - tool.denied
+      - tool.started
+      - tool.completed
+      - tool.replayed
+      - tool.failed
+      - model.selected
+      - model.fallback
+      - model.completed
+      - model.failed
+      - verification.completed
+      - contradiction.detected
+      - contradiction.resolved
+      - contradiction.unresolved
+      - checkpoint.saved
+      - checkpoint.restored
+      - a2ui.generated
+      - a2ui.validated
+      - a2ui.validation_failed
+      - a2ui.fallback
+      - evaluation.started
+      - evaluation.completed
+      - evaluation.failed
+      - prompt.drafted
+      - prompt.validated
+      - prompt.approved
+      - prompt.rejected
+      - prompt.published
+      - corpus.drafted
+      - corpus.validated
+      - corpus.activated
+      - corpus.rolled_back
+      title: EventType
+      type: string
+    EventVisibility:
+      description: Quién puede consumir el payload detallado de un evento.
+      enum:
+      - public
+      - restricted
+      title: EventVisibility
+      type: string
     FactCategory:
       description: Naturaleza de un hecho. Determina si su citación es obligatoria.
       enum:
@@ -695,6 +959,23 @@ components:
       - ends_at
       title: HoldCreate
       type: object
+    Institution:
+      properties:
+        name:
+          title: Name
+          type: string
+        slug:
+          title: Slug
+          type: string
+        tenant_id:
+          title: Tenant Id
+          type: string
+      required:
+      - tenant_id
+      - name
+      - slug
+      title: Institution
+      type: object
     JsonValue: {}
     LiveResponse:
       properties:
@@ -739,6 +1020,239 @@ components:
       - content
       title: MessageCreate
       type: object
+    MetricSet:
+      properties:
+        actions:
+          $ref: '#/components/schemas/CountByStatus'
+        appointments:
+          $ref: '#/components/schemas/CountByStatus'
+        conversations_total:
+          default: 0
+          title: Conversations Total
+          type: integer
+        generated_at:
+          format: date-time
+          title: Generated At
+          type: string
+        runs:
+          $ref: '#/components/schemas/RunMetricsSummary'
+        window:
+          $ref: '#/components/schemas/MetricWindow'
+      required:
+      - window
+      - runs
+      - actions
+      - appointments
+      - generated_at
+      title: MetricSet
+      type: object
+    MetricWindow:
+      properties:
+        end:
+          format: date-time
+          title: End
+          type: string
+        start:
+          format: date-time
+          title: Start
+          type: string
+      required:
+      - start
+      - end
+      title: MetricWindow
+      type: object
+    ModelAliasConfig:
+      additionalProperties: false
+      description: Un alias lógico resuelto a un proveedor. Los agentes solo conocen
+        el alias.
+      properties:
+        alias:
+          description: Alias lógico como 'high_accuracy' o 'structured_small'.
+          pattern: ^[a-z][a-z0-9_]{2,40}$
+          title: Alias
+          type: string
+        capabilities:
+          $ref: '#/components/schemas/ModelCapabilities'
+        enabled:
+          default: true
+          title: Enabled
+          type: boolean
+        provider_ref:
+          $ref: '#/components/schemas/ProviderRef'
+      required:
+      - alias
+      - provider_ref
+      - capabilities
+      title: ModelAliasConfig
+      type: object
+    ModelCapabilities:
+      additionalProperties: false
+      description: Lo que un modelo puede hacer, en términos que el router entiende.
+      properties:
+        allows_sensitive_data:
+          default: false
+          description: Si la política de datos permite enviarle contenido sensible.
+          title: Allows Sensitive Data
+          type: boolean
+        cost_per_1k_input_usd:
+          minimum: 0.0
+          title: Cost Per 1K Input Usd
+          type: number
+        cost_per_1k_output_usd:
+          minimum: 0.0
+          title: Cost Per 1K Output Usd
+          type: number
+        max_context_tokens:
+          maximum: 10000000.0
+          minimum: 1.0
+          title: Max Context Tokens
+          type: integer
+        max_output_tokens:
+          maximum: 1000000.0
+          minimum: 1.0
+          title: Max Output Tokens
+          type: integer
+        supports_structured_output:
+          default: false
+          title: Supports Structured Output
+          type: boolean
+        supports_vision:
+          default: false
+          title: Supports Vision
+          type: boolean
+      required:
+      - max_context_tokens
+      - max_output_tokens
+      - cost_per_1k_input_usd
+      - cost_per_1k_output_usd
+      title: ModelCapabilities
+      type: object
+    ModelPolicy:
+      additionalProperties: false
+      description: Política de selección para un tipo de tarea (§4.4 de la arquitectura).
+      properties:
+        allows_sensitive_data:
+          default: false
+          title: Allows Sensitive Data
+          type: boolean
+        default_alias:
+          description: Alias lógico como 'high_accuracy' o 'structured_small'.
+          pattern: ^[a-z][a-z0-9_]{2,40}$
+          title: Default Alias
+          type: string
+        escalation_alias:
+          anyOf:
+          - description: Alias lógico como 'high_accuracy' o 'structured_small'.
+            pattern: ^[a-z][a-z0-9_]{2,40}$
+            type: string
+          - type: 'null'
+          title: Escalation Alias
+        fallback_alias:
+          anyOf:
+          - description: Alias lógico como 'high_accuracy' o 'structured_small'.
+            pattern: ^[a-z][a-z0-9_]{2,40}$
+            type: string
+          - type: 'null'
+          title: Fallback Alias
+        max_attempts:
+          default: 2
+          maximum: 5.0
+          minimum: 1.0
+          title: Max Attempts
+          type: integer
+        min_accuracy_class:
+          $ref: '#/components/schemas/RiskLevel'
+          default: low
+          description: Clase mínima de precisión; una tarea crítica no baja de aquí.
+        policy_version:
+          maxLength: 40
+          title: Policy Version
+          type: string
+        task_kind:
+          $ref: '#/components/schemas/ModelTaskKind'
+      required:
+      - task_kind
+      - default_alias
+      - policy_version
+      title: ModelPolicy
+      type: object
+    ModelRouterConfig:
+      additionalProperties: false
+      description: '`config/model_router.yaml` (`DIE-F0-031`).'
+      properties:
+        aliases:
+          items:
+            $ref: '#/components/schemas/ModelAliasConfig'
+          maxItems: 50
+          minItems: 1
+          title: Aliases
+          type: array
+        allowed_providers:
+          items:
+            pattern: ^[a-z][a-z0-9_]{1,62}$
+            type: string
+          maxItems: 20
+          minItems: 1
+          title: Allowed Providers
+          type: array
+        offline_alias:
+          description: Alias del perfil offline; la demo sin red debe poder resolverlo.
+          pattern: ^[a-z][a-z0-9_]{2,40}$
+          title: Offline Alias
+          type: string
+        policies:
+          items:
+            $ref: '#/components/schemas/ModelPolicy'
+          maxItems: 30
+          minItems: 1
+          title: Policies
+          type: array
+        version:
+          pattern: ^[a-z0-9][a-z0-9._-]{2,39}$
+          title: Version
+          type: string
+      required:
+      - version
+      - allowed_providers
+      - aliases
+      - policies
+      - offline_alias
+      title: ModelRouterConfig
+      type: object
+    ModelTaskKind:
+      description: Tipo de tarea que consume el router para elegir política (`DIE-F3-001`).
+      enum:
+      - classification
+      - extraction
+      - navigation
+      - supervision
+      - verification
+      - drafting
+      - vision
+      - judge
+      title: ModelTaskKind
+      type: string
+    ModuleEntry:
+      properties:
+        code:
+          title: Code
+          type: string
+        enabled:
+          title: Enabled
+          type: boolean
+        is_core:
+          title: Is Core
+          type: boolean
+        name:
+          title: Name
+          type: string
+      required:
+      - code
+      - name
+      - is_core
+      - enabled
+      title: ModuleEntry
+      type: object
     Money:
       additionalProperties: false
       description: 'Monto en unidades menores más moneda (§2.3).
@@ -762,6 +1276,28 @@ components:
       - amount_minor
       - currency
       title: Money
+      type: object
+    NexoConfig:
+      additionalProperties: false
+      description: Configuración completa validada al arranque (`DIE-F0-036`).
+      properties:
+        catalogs:
+          $ref: '#/components/schemas/CatalogsConfig'
+        model_router:
+          $ref: '#/components/schemas/ModelRouterConfig'
+        permissions:
+          $ref: '#/components/schemas/PermissionsConfig'
+        policies:
+          $ref: '#/components/schemas/PoliciesConfig'
+        tool_registry:
+          $ref: '#/components/schemas/ToolRegistryConfig'
+      required:
+      - model_router
+      - tool_registry
+      - permissions
+      - catalogs
+      - policies
+      title: NexoConfig
       type: object
     NormalizedError:
       additionalProperties: false
@@ -808,6 +1344,29 @@ components:
       - retryable
       title: NormalizedError
       type: object
+    OperationPolicy:
+      additionalProperties: false
+      description: Timeout y reintentos de una operación con nombre.
+      properties:
+        mode:
+          $ref: '#/components/schemas/ToolMode'
+          default: read
+        operation:
+          pattern: ^[a-z][a-z0-9_]{1,62}$
+          title: Operation
+          type: string
+        retry:
+          $ref: '#/components/schemas/RetryPolicy'
+        timeout_ms:
+          default: 5000
+          maximum: 3600000.0
+          minimum: 0.0
+          title: Timeout Ms
+          type: integer
+      required:
+      - operation
+      title: OperationPolicy
+      type: object
     Outcome:
       description: 'Certeza sobre el efecto de una operación.
 
@@ -821,6 +1380,112 @@ components:
       - unknown
       title: Outcome
       type: string
+    PermissionEntry:
+      properties:
+        code:
+          title: Code
+          type: string
+        module_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Module Code
+      required:
+      - code
+      title: PermissionEntry
+      type: object
+    PermissionRule:
+      additionalProperties: false
+      description: Una celda de la matriz institución × rol × dominio × tool × operación.
+      properties:
+        allow:
+          default: false
+          title: Allow
+          type: boolean
+        domain:
+          $ref: '#/components/schemas/Domain'
+        institution_id:
+          maxLength: 70
+          title: Institution Id
+          type: string
+        operations:
+          items:
+            $ref: '#/components/schemas/ToolMode'
+          maxItems: 3
+          minItems: 1
+          title: Operations
+          type: array
+        role:
+          maxLength: 40
+          title: Role
+          type: string
+        tool:
+          anyOf:
+          - description: Nombre `dominio.verbo_objeto`, por ejemplo 'vehiculos.reservar_cita'.
+            maxLength: 95
+            type: string
+          - type: 'null'
+          description: Nulo aplica a todas las tools del dominio.
+          title: Tool
+      required:
+      - institution_id
+      - role
+      - domain
+      - operations
+      title: PermissionRule
+      type: object
+    PermissionsConfig:
+      additionalProperties: false
+      description: '`config/permissions.yaml`. Deniega por defecto.'
+      properties:
+        default_allow:
+          default: false
+          description: 'Debe permanecer en falso: sin regla explícita, no hay permiso.'
+          title: Default Allow
+          type: boolean
+        rules:
+          items:
+            $ref: '#/components/schemas/PermissionRule'
+          maxItems: 500
+          title: Rules
+          type: array
+        version:
+          pattern: ^[a-z0-9][a-z0-9._-]{2,39}$
+          title: Version
+          type: string
+      required:
+      - version
+      title: PermissionsConfig
+      type: object
+    PoliciesConfig:
+      additionalProperties: false
+      description: '`config/policies.yaml`: presupuestos, timeouts, reintentos y desenlaces.'
+      properties:
+        agent_budgets:
+          additionalProperties:
+            $ref: '#/components/schemas/Budgets'
+          propertyNames:
+            $ref: '#/components/schemas/AgentName'
+          title: Agent Budgets
+          type: object
+        operations:
+          items:
+            $ref: '#/components/schemas/OperationPolicy'
+          maxItems: 100
+          title: Operations
+          type: array
+        outcomes:
+          $ref: '#/components/schemas/RunOutcomePolicy'
+        run_budgets:
+          $ref: '#/components/schemas/Budgets'
+        version:
+          pattern: ^[a-z0-9][a-z0-9._-]{2,39}$
+          title: Version
+          type: string
+      required:
+      - version
+      title: PoliciesConfig
+      type: object
     ProblemDetail:
       properties:
         code:
@@ -862,6 +1527,40 @@ components:
       - code
       title: ProblemDetail
       type: object
+    ProviderRef:
+      additionalProperties: false
+      description: Apunta a un proveedor y un modelo concretos, sin transportar credenciales.
+      properties:
+        api_key_ref:
+          anyOf:
+          - description: Referencia a un secreto resuelto fuera del repositorio (`DIE-F0-033`).
+            maxLength: 300
+            pattern: ^secret://[a-z0-9_\-./]+$
+            type: string
+          - type: 'null'
+          description: Referencia al secreto. Nunca el valor (`DIE-F0-033`).
+          title: Api Key Ref
+        base_url_ref:
+          anyOf:
+          - description: Referencia a un secreto resuelto fuera del repositorio (`DIE-F0-033`).
+            maxLength: 300
+            pattern: ^secret://[a-z0-9_\-./]+$
+            type: string
+          - type: 'null'
+          title: Base Url Ref
+        model:
+          maxLength: 200
+          title: Model
+          type: string
+        provider:
+          pattern: ^[a-z][a-z0-9_]{1,62}$
+          title: Provider
+          type: string
+      required:
+      - provider
+      - model
+      title: ProviderRef
+      type: object
     ReadyResponse:
       properties:
         checks:
@@ -879,6 +1578,48 @@ components:
       - status
       - checks
       title: ReadyResponse
+      type: object
+    RetryPolicy:
+      additionalProperties: false
+      description: Política de reintento por operación (`DIE-F0-035`).
+      properties:
+        max_attempts:
+          default: 1
+          maximum: 5.0
+          minimum: 1.0
+          title: Max Attempts
+          type: integer
+        retry_on:
+          items:
+            $ref: '#/components/schemas/ErrorCode'
+          maxItems: 10
+          title: Retry On
+          type: array
+      title: RetryPolicy
+      type: object
+    RiskLevel:
+      enum:
+      - low
+      - medium
+      - high
+      title: RiskLevel
+      type: string
+    RoleEntry:
+      properties:
+        code:
+          title: Code
+          type: string
+        is_system:
+          title: Is System
+          type: boolean
+        name:
+          title: Name
+          type: string
+      required:
+      - code
+      - name
+      - is_system
+      title: RoleEntry
       type: object
     RunAccepted:
       description: Acuse inmediato de un run que se ejecuta en segundo plano.
@@ -905,6 +1646,120 @@ components:
       - events_url
       - created_at
       title: RunAccepted
+      type: object
+    RunEvent:
+      additionalProperties: false
+      description: 'Evento inmutable de la traza de un run (§5.8).
+
+
+        `data` es un payload minimizado y seguro: nunca transporta prompts
+
+        completos, secretos ni PII directa (lo hace cumplir `SafePayload`).'
+      properties:
+        actor:
+          $ref: '#/components/schemas/EventActor'
+        catalog_version:
+          anyOf:
+          - maxLength: 80
+            type: string
+          - type: 'null'
+          description: Snapshot del catálogo central usado para decidir este run (`DIE-F2-008`).
+          title: Catalog Version
+        correlation_id:
+          maxLength: 120
+          title: Correlation Id
+          type: string
+        data:
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          title: Data
+          type: object
+        duration_ms:
+          anyOf:
+          - maximum: 3600000.0
+            minimum: 0.0
+            type: integer
+          - type: 'null'
+          title: Duration Ms
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/NormalizedError'
+          - type: 'null'
+        event_id:
+          maxLength: 67
+          minLength: 5
+          title: Event Id
+          type: string
+        parent_event_id:
+          anyOf:
+          - maxLength: 67
+            minLength: 5
+            type: string
+          - type: 'null'
+          title: Parent Event Id
+        policy_version:
+          anyOf:
+          - maxLength: 40
+            type: string
+          - type: 'null'
+          description: Versión de políticas vigente, propagada a evaluaciones (`DIE-F0-037`).
+          title: Policy Version
+        public_data:
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          description: Proyección minimizada para workflow público; `data` queda para
+            auditoría.
+          title: Public Data
+          type: object
+        run_id:
+          maxLength: 67
+          minLength: 5
+          title: Run Id
+          type: string
+        sequence:
+          description: Posición 1-indexada dentro del run.
+          minimum: 1.0
+          title: Sequence
+          type: integer
+        skill_id:
+          anyOf:
+          - maxLength: 80
+            type: string
+          - type: 'null'
+          title: Skill Id
+        skill_version:
+          anyOf:
+          - maxLength: 40
+            type: string
+          - type: 'null'
+          title: Skill Version
+        status:
+          $ref: '#/components/schemas/EventStatus'
+        timestamp:
+          format: date-time
+          title: Timestamp
+          type: string
+        trace_id:
+          maxLength: 69
+          minLength: 7
+          title: Trace Id
+          type: string
+        type:
+          $ref: '#/components/schemas/EventType'
+        visibility:
+          $ref: '#/components/schemas/EventVisibility'
+          default: public
+      required:
+      - event_id
+      - trace_id
+      - run_id
+      - sequence
+      - type
+      - timestamp
+      - actor
+      - status
+      - correlation_id
+      title: RunEvent
       type: object
     RunMetrics:
       additionalProperties: false
@@ -959,6 +1814,62 @@ components:
           title: Total Output Tokens
           type: integer
       title: RunMetrics
+      type: object
+    RunMetricsSummary:
+      properties:
+        avg_latency_ms:
+          default: 0.0
+          title: Avg Latency Ms
+          type: number
+        by_domain:
+          additionalProperties:
+            type: integer
+          title: By Domain
+          type: object
+        by_status:
+          additionalProperties:
+            type: integer
+          title: By Status
+          type: object
+        total:
+          default: 0
+          title: Total
+          type: integer
+        total_cost_usd:
+          default: 0.0
+          title: Total Cost Usd
+          type: number
+      title: RunMetricsSummary
+      type: object
+    RunOutcomePolicy:
+      additionalProperties: false
+      description: 'Qué detiene el run, qué produce `partial` y qué admite fallback
+        (`DIE-F0-010`).
+
+
+        Codificarlo aquí, y no solo en prosa, permite que el grafo consulte la regla
+
+        en vez de que cada nodo improvise su propia interpretación.'
+      properties:
+        fallback_on:
+          items:
+            $ref: '#/components/schemas/ErrorCode'
+          maxItems: 20
+          title: Fallback On
+          type: array
+        halt_on:
+          items:
+            $ref: '#/components/schemas/ErrorCode'
+          maxItems: 20
+          title: Halt On
+          type: array
+        partial_on:
+          items:
+            $ref: '#/components/schemas/ErrorCode'
+          maxItems: 20
+          title: Partial On
+          type: array
+      title: RunOutcomePolicy
       type: object
     RunResult:
       additionalProperties: false
@@ -1219,6 +2130,67 @@ components:
       - error
       title: ToolError
       type: object
+    ToolMode:
+      description: Modo de una tool. Solo `WRITE` puede producir efectos externos.
+      enum:
+      - read
+      - write
+      - compute
+      title: ToolMode
+      type: string
+    ToolRegistryConfig:
+      additionalProperties: false
+      description: '`config/tool_registry.yaml`.'
+      properties:
+        tools:
+          items:
+            $ref: '#/components/schemas/ToolRegistryEntry'
+          maxItems: 200
+          title: Tools
+          type: array
+        version:
+          pattern: ^[a-z0-9][a-z0-9._-]{2,39}$
+          title: Version
+          type: string
+      required:
+      - version
+      title: ToolRegistryConfig
+      type: object
+    ToolRegistryEntry:
+      additionalProperties: false
+      description: Una tool registrada, siempre con versión explícita (`DIE-F0-032`).
+      properties:
+        domain:
+          $ref: '#/components/schemas/Domain'
+        enabled:
+          default: false
+          title: Enabled
+          type: boolean
+        institution_id:
+          anyOf:
+          - maxLength: 70
+            type: string
+          - type: 'null'
+          description: Nulo significa disponible para toda institución.
+          title: Institution Id
+        mode:
+          $ref: '#/components/schemas/ToolMode'
+          default: read
+        name:
+          description: Nombre `dominio.verbo_objeto`, por ejemplo 'vehiculos.reservar_cita'.
+          maxLength: 95
+          title: Name
+          type: string
+        version:
+          pattern: ^\d+\.\d+\.\d+$
+          title: Version
+          type: string
+      required:
+      - name
+      - version
+      - domain
+      title: ToolRegistryEntry
+      type: object
     ToolResult:
       additionalProperties: false
       description: Resultado de una invocación (§5.4).
@@ -1319,9 +2291,21 @@ components:
         auth_user_id:
           title: Auth User Id
           type: string
+        branch:
+          anyOf:
+          - $ref: '#/components/schemas/Branch'
+          - type: 'null'
         email:
           title: Email
           type: string
+        institution:
+          anyOf:
+          - $ref: '#/components/schemas/Institution'
+          - type: 'null'
+        is_owner:
+          default: false
+          title: Is Owner
+          type: boolean
         name:
           title: Name
           type: string
@@ -1330,6 +2314,10 @@ components:
             type: string
           title: Permissions
           type: array
+        preferences:
+          additionalProperties: true
+          title: Preferences
+          type: object
         role:
           title: Role
           type: string
@@ -1572,11 +2560,123 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
           description: Confirmación requerida (ACTION_CONFIRMATION_REQUIRED)
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Límite excedido (RATE_LIMITED / BUDGET_EXCEEDED)
       security:
       - HTTPBearer: []
       summary: Confirmar acción (idempotente)
       tags:
       - actions
+  /api/v1/admin/catalog:
+    get:
+      operationId: catalog_api_v1_admin_catalog_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminCatalog'
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Permiso denegado (PERMISSION_DENIED)
+      security:
+      - HTTPBearer: []
+      summary: Catálogo operativo (módulos/roles/permisos del tenant)
+      tags:
+      - admin
+  /api/v1/admin/config:
+    get:
+      operationId: config_api_v1_admin_config_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NexoConfig'
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Permiso denegado (PERMISSION_DENIED)
+      security:
+      - HTTPBearer: []
+      summary: Config canónica del sistema (catalogs/tools/policies/permissions)
+      tags:
+      - admin
+  /api/v1/admin/metrics:
+    get:
+      operationId: metrics_api_v1_admin_metrics_get
+      parameters:
+      - in: query
+        name: from
+        required: false
+        schema:
+          anyOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+          title: From
+      - in: query
+        name: to
+        required: false
+        schema:
+          anyOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+          title: To
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricSet'
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Permiso denegado (PERMISSION_DENIED)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - HTTPBearer: []
+      summary: Métricas operativas del tenant
+      tags:
+      - admin
   /api/v1/appointments/availability:
     get:
       operationId: availability_api_v1_appointments_availability_get
@@ -1688,6 +2788,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
           description: Validation Error
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Límite excedido (RATE_LIMITED / BUDGET_EXCEEDED)
       security:
       - HTTPBearer: []
       summary: Crear hold de cita (409 si solapa)
@@ -1804,6 +2910,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
           description: Validation Error
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Límite excedido (RATE_LIMITED / BUDGET_EXCEEDED)
       security:
       - HTTPBearer: []
       summary: Postear mensaje y ejecutar un run
@@ -1901,6 +3013,49 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
           description: Validation Error
       summary: Stream SSE de eventos del run
+      tags:
+      - runs
+  /api/v1/runs/{run_id}/events/list:
+    get:
+      operationId: run_events_list_api_v1_runs__run_id__events_list_get
+      parameters:
+      - in: path
+        name: run_id
+        required: true
+        schema:
+          title: Run Id
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/RunEvent'
+                title: Response Run Events List Api V1 Runs  Run Id  Events List Get
+                type: array
+          description: Successful Response
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Autenticación requerida (AUTHENTICATION_REQUIRED)
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+          description: Recurso no encontrado (RESOURCE_NOT_FOUND)
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - HTTPBearer: []
+      summary: Lista de eventos del run (replay/timeline, no-SSE)
       tags:
       - runs
   /api/v1/users/me:
@@ -2003,6 +3158,8 @@ tags:
   name: actions
 - description: Disponibilidad y holds de citas.
   name: appointments
+- description: Métricas, catálogo y config (rol admin).
+  name: admin
 - description: Webhooks firmados de Twilio (WhatsApp).
   name: webhooks
 - description: Liveness y readiness.

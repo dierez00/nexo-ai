@@ -74,6 +74,10 @@ def to_contract(row: RowMapping, run_id: str) -> RunEvent:
         timestamp=row["created_at"],
         actor=EventActor(type=ActorType(str(row["actor_type"])), name=str(row["actor_name"])),
         status=EventStatus(str(row["event_status"])),
+        # La tabla aún no persiste correlation_id; la convención canónica es
+        # correlation_id = trace_id (persistir los campos extendidos requiere
+        # una migración de Daher: TODO paridad total de RunEvent).
+        correlation_id=str(row["trace_id"]),
         duration_ms=row["duration_ms"],
         data=load_json(row["payload"]) or {},
         error=NormalizedError.model_validate(error) if error else None,

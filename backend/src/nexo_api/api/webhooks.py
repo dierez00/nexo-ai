@@ -46,6 +46,9 @@ async def whatsapp(
 
 @router.post("/status", summary="Callback de estado de entrega", responses=problem_responses(403))
 async def status(request: Request) -> Response:
-    await _read_and_validate(request)
-    # Actualiza estado de entrega; NO re-ejecuta agentes.
+    params = await _read_and_validate(request)
+    # Registra la entrega; NO re-ejecuta agentes.
+    await channels_service.handle_status_callback(
+        params.get("MessageSid", ""), params.get("MessageStatus", "")
+    )
     return Response(status_code=204)

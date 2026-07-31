@@ -151,6 +151,7 @@ async def post_message(
                     timestamp=datetime.now(UTC),
                     actor=EventActor(type=ActorType.SYSTEM, name="backend"),
                     status=EventStatus.FAILED,
+                    correlation_id=trace_id,
                     data={"reason": type(exc).__name__},
                     error=error,
                 )
@@ -197,6 +198,15 @@ async def get_run_for_stream(user: UserProfile, run_id_wire: str) -> tuple[int, 
     if row is None:
         raise ProblemException(code="RESOURCE_NOT_FOUND", title="Run no encontrado")
     return run_id, RunStatus(row["status"])
+
+
+async def list_events(user: UserProfile, run_id_wire: str) -> list[RunEvent]:
+    """Lista completa de eventos del run (replay/timeline, no-SSE)."""
+    run_id = _decode(ids.RUN, run_id_wire, "Run")
+    row = await runs_repo.get(int(user.tenant_id), run_id)
+    if row is None:
+        raise ProblemException(code="RESOURCE_NOT_FOUND", title="Run no encontrado")
+    return list(await PostgresEventSink().read(run_id_wire, after=0))
 
 
 async def event_stream(
