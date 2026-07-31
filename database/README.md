@@ -1,5 +1,12 @@
 # Base de datos
 
+> ⚠️ **Fuente de verdad: `supabase/migrations/`.** Los archivos `.sql` dentro de esta carpeta
+> (`database/20260504094442_initial_schema.sql`, `database/seeds/seed_demo.sql`) son copias
+> desactualizadas de borradores tempranos: no son idempotentes (sin `if not exists`/`if exists`)
+> y el seed solo cubre 3 de las 7 secciones del seed real. Nunca se aplican; se conservan solo
+> como referencia histórica. Cualquier cambio de esquema o seed debe hacerse únicamente en
+> `supabase/migrations/`.
+
 ## Objetivo
 
 Definir persistencia relacional/vectorial, migraciones Supabase, seeds y garantías de integridad multi-tenant RLS.
