@@ -22,5 +22,6 @@ Responsable: equipo; Dani/Diego revisan fronteras runtime y Daher persistencia.
 
 Dependencias permitidas: contratos, ADR y diagramas del sistema; el runtime no depende de esta carpeta.
 - [database_schema.md](./database_schema.md): Esquema completo de la base de datos (PostgreSQL/Supabase), migraciones, RLS, índices, funciones RPC y diagrama ERD.
+- [institutional_adapters_inventory.md](./institutional_adapters_inventory.md): Inventario de todos los adapters/dobles falsos actuales (tools mock institucionales y proveedores de infraestructura) y qué comportamiento simula cada uno.
 
 Ejemplos: `overview.md`, `database_schema.md`, `security.md`. Crear solo cuando el detalle no quepa en `Nexo_IA_Arquitectura_y_Plan.md`. Terminado cuando coincide con código, contratos y despliegue.
