@@ -210,6 +210,28 @@ async def test_the_run_interrupts_before_registering_the_request(runtime) -> Non
     assert result.available_actions[0].tool_name == "ayuntamiento.registrar_solicitud"
 
 
+async def test_the_surface_grows_across_stages_reusing_the_mvp_pipeline(runtime) -> None:
+    """Mismo grafo que `CAP-VEH-01`: verify/estimate/build_a2ui aportan cada
+    uno su etapa al mismo `surface_id`, sin duplicar lógica por dominio."""
+    result = await runtime.graph.invoke(citizen_request(MESSAGE))
+
+    assert result.surface is not None
+    surface_ids = {message.surface_id for message in result.surface.messages}
+    assert surface_ids == {result.surface.surface_id}
+    update_pairs = sum(
+        1 for message in result.surface.messages if message.update_data_model is not None
+    )
+    assert update_pairs >= 3
+
+    events = await runtime.events.read(RUN_ID)
+    stages = {
+        event.data.get("stage")
+        for event in events
+        if event.type.value == "a2ui.generated" and isinstance(event.data, dict)
+    }
+    assert {"verify", "estimate", "build_a2ui"} <= stages
+
+
 async def test_confirming_returns_a_verifiable_folio(runtime) -> None:
     await runtime.graph.invoke(citizen_request(MESSAGE))
     result = await runtime.graph.resume(RUN_ID, confirmed=True)
