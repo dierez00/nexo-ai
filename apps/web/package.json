@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "check:catalog": "node scripts/check-catalog-drift.mjs"
   },
   "dependencies": {
     "@elevenlabs/client": "^0.9.0",

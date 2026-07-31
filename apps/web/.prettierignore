@@ -5,3 +5,9 @@ build
 package-lock.json
 next-env.d.ts
 *.tsbuildinfo
+
+# Copia byte a byte del catálogo que publica a2ui/. Reformatearla la
+# desincroniza del original y `npm run check:catalog` falla.
+src/features/a2ui/citizen-v1.catalog.json
+# Fixtures generados por a2ui/scripts/export_fixtures.py.
+public/fixtures/
