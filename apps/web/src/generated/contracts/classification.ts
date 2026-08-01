@@ -221,6 +221,10 @@ export type MissingInformation =
       string
     ];
 /**
+ * Tipo de solicitud: un trámite de dominio o una consulta sobre las capacidades publicadas del asistente.
+ */
+export type RequestKind = "procedure" | "capabilities";
+/**
  * Urgencia **operativa** de una solicitud, no clínica ni jurídica.
  *
  * Describe cuánto aprieta el plazo del trámite, y nada más. En salud (Fase 2)
@@ -250,6 +254,7 @@ export interface Classification {
   is_out_of_scope?: IsOutOfScope;
   location?: Location;
   missing_information?: MissingInformation;
+  request_kind?: RequestKind;
   urgency?: OperationalUrgency;
 }
 /**

@@ -22,7 +22,7 @@ citaciones, ni tools propuestas, ni texto de respuesta.
 
 from __future__ import annotations
 
-from typing import Annotated, Self
+from typing import Annotated, Literal, Self
 
 from pydantic import Field, model_validator
 
@@ -79,6 +79,13 @@ class Classification(NexoModel):
         description="Qué haría falta preguntar; el navegador decide si se pregunta.",
     )
     confidence: Confidence = 0.0
+    request_kind: Literal["procedure", "capabilities"] = Field(
+        default="procedure",
+        description=(
+            "Tipo de solicitud: un trámite de dominio o una consulta sobre las "
+            "capacidades publicadas del asistente."
+        ),
+    )
     is_ambiguous: bool = Field(
         default=False,
         description="Hay dos lecturas materialmente distintas de la solicitud.",
@@ -105,10 +112,23 @@ class Classification(NexoModel):
         Devolver cero intenciones sin decir nada más es la forma silenciosa de
         no clasificar: el run continuaría sin dominio y sin explicación.
         """
-        if not self.intents and not (self.is_out_of_scope or self.is_ambiguous):
+        if not self.intents and not (
+            self.is_out_of_scope or self.is_ambiguous or self.request_kind == "capabilities"
+        ):
             raise ValueError(
                 "la clasificación no detectó intenciones y tampoco se declara fuera de "
                 "alcance ni ambigua; un run sin dominio necesita un motivo"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _capabilities_query_has_no_domain(self) -> Self:
+        if self.request_kind == "capabilities" and (
+            self.intents or self.is_out_of_scope or self.is_ambiguous
+        ):
+            raise ValueError(
+                "una consulta de capacidades no puede declarar intenciones, ambigüedad "
+                "ni estar fuera de alcance"
             )
         return self
 

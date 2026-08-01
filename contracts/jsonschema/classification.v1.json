@@ -161,6 +161,16 @@
       "title": "Missing Information",
       "type": "array"
     },
+    "request_kind": {
+      "default": "procedure",
+      "description": "Tipo de solicitud: un trámite de dominio o una consulta sobre las capacidades publicadas del asistente.",
+      "enum": [
+        "procedure",
+        "capabilities"
+      ],
+      "title": "Request Kind",
+      "type": "string"
+    },
     "urgency": {
       "$ref": "#/$defs/OperationalUrgency",
       "default": "routine"
