@@ -29,11 +29,11 @@ La especificación técnica detallada, diccionario de datos, funciones RPC, índ
 
 `snake_case`, IDs opacos, `timestamptz`, dinero en minor units, `tenant_id`, RLS dinámico por tenant, migraciones expand/contract y seeds idempotentes.
 
-## Dependencias y responsable
+## Dependencias y mantenimiento
 
-PostgreSQL/pgvector/Supabase Auth y contratos de persistencia. Responsable: Daher.
+PostgreSQL/pgvector/Supabase Auth y contratos de persistencia. Las migraciones
+deben ser idempotentes, auditables y compatibles con aislamiento multi-tenant.
 
 ## Terminado
 
 Migrar desde cero y actualizar funciona (`npx supabase db reset`); dos reservas concurrentes no se solapan (`btree_gist`); seeds no duplican y RLS aisla tenants estrictamente.
-

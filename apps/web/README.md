@@ -94,9 +94,10 @@ Acceso directo a PostgreSQL, secretos, prompts, autorización real ni ejecución
 - Estados loading/empty/error/partial explícitos.
 - Accesibilidad con teclado, labels y contraste como baseline.
 
-## Dependencias y responsables
+## Dependencias y mantenimiento
 
-Depende de `contracts` y la API. Cris es responsable; Dani apoya auth/API y Diego A2UI/eventos.
+Depende de `contracts` y la API. Las rutas deben conservar el contrato público,
+la accesibilidad y el fallback seguro de A2UI.
 
 ## Archivos y tareas iniciales
 

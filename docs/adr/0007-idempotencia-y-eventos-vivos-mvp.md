@@ -2,7 +2,7 @@
 
 - **Estado:** accepted
 - **Fecha:** 2026-07-30
-- **Decisores:** Dani, Daher y Diego
+- **Estado:** accepted
 
 ## Decisión
 
@@ -24,5 +24,5 @@ esa secuencia para replay por `Last-Event-ID`, polling de 500 ms y keepalive de
 - Una caída de proceso puede convertir una reserva en `unknown`; un operador
   debe reconciliarla. No se promete ejecución durable hasta introducir cola y
   workers separados.
-- Daher mantiene la migración y los índices; Diego integra el `EventSinkPort`
-  del grafo real; Dani mantiene la frontera HTTP, SSE y el run manager.
+- Las migraciones e índices, el `EventSinkPort` del grafo y la frontera HTTP/SSE
+  deben conservar el mismo contrato y secuencia de eventos.

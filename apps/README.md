@@ -18,7 +18,7 @@ Reglas de agentes, SQL, prompts, secretos y adapters institucionales.
 - Consumir backend exclusivamente mediante contratos públicos.
 - No importar paquetes Python ni conocer tablas.
 
-Responsable principal: Cris. Ejemplos futuros: `web/package.json`, `web/app/(portal)` y `web/app/admin`.
+Ejemplos: `web/package.json`, `web/src/app/portal` y `web/src/app/admin`.
 
 ## Tareas y definición de terminado
 

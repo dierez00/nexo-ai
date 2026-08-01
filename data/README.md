@@ -16,7 +16,8 @@ PII real, credenciales, vector stores generados, dumps de producción ni materia
 
 Marcar `synthetic: true`; separar fuente original de output generado; nombres por dominio/caso/versión.
 
-Responsables: Daher para mocks y Diego para corpus; Cris para assets visuales.
+Los mocks, corpus y assets deben conservar procedencia, versión, checksum y
+ausencia de secretos o PII real.
 
 ## Dependencias, ejemplos, tareas y terminado
 

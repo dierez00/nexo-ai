@@ -18,7 +18,8 @@ Estado serializable; nodos idempotentes; fan-out explícito; merge determinista;
 
 ## Dependencias y responsable
 
-Depende de `contracts`, `agents` e interfaces RAG/MCP/observabilidad. Responsable: Diego.
+Depende de `contracts`, `agents` e interfaces RAG/MCP/observabilidad. Los
+checkpoints y eventos deben ser serializables, ordenados y reanudables.
 
 ## Ejemplos y tareas
 

@@ -1,7 +1,8 @@
 # Convenciones transversales de Nexo IA
 
 > **Tareas:** `DIE-F0-007`, `DIE-F0-008`, `DIE-F0-009`, `DIE-F0-010`.
-> **Fecha:** 2026-07-30. **Mantiene:** Diego. **Aprueban:** Dani, Daher, Cris.
+> **Fecha:** 2026-07-30. **Estado:** vigente. La revisión corresponde a las
+> fronteras y contratos afectados.
 >
 > Este documento es la referencia normativa. Cuando una convención está
 > verificada por código o pruebas, se indica dónde: una regla que solo vive en

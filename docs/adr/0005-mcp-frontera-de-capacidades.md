@@ -2,8 +2,8 @@
 
 - **Estado:** accepted
 - **Fecha:** 2026-07-30
-- **Decisor:** Diego
-- **Revisan:** Dani (adapters, red y auditoría), Daher (idempotencia y citas)
+- **Estado:** accepted
+- **Revisión:** adapters, red, auditoría, idempotencia y citas
 - **Tarea:** `DIE-F0-005`
 
 ## Contexto

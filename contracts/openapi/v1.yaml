@@ -54,7 +54,7 @@ components:
 
         mantener el modelo cerrado, y la (de)serialización hace la conversión: los
 
-        fixtures que consume el renderer de Cris salen con la forma del protocolo,
+        fixtures que consume el renderer salen con la forma del protocolo,
 
         sin traducción implícita a cargo del consumidor (`DIE-F0-019`).'
       properties:
@@ -2681,7 +2681,7 @@ components:
       scheme: bearer
       type: http
 info:
-  description: 'API del backend (Dani). Convenciones: JSON snake_case, UTC, IDs opacos
+  description: 'API del backend. Convenciones: JSON snake_case, UTC, IDs opacos
     (`conv_`, `run_`, `act_`, `apt_`), dinero en unidades menores. Los errores usan
     **Problem Details** (`type/code/status/retryable`); el frontend nunca parsea texto.
     Toda respuesta propaga `X-Trace-Id`. Auth = Supabase Auth (JWT bearer validado

@@ -16,9 +16,10 @@ Secretos, lógica de aplicación o recursos manuales no documentados.
 
 Imágenes fijadas, inmutables y non-root; health/readiness; configuración por entorno; storage explícitamente persistente o efímero.
 
-## Dependencias y responsable
+## Dependencias y mantenimiento
 
-Depende de entrypoints públicos y variables documentadas. Responsable: Dani.
+Depende de entrypoints públicos y variables documentadas. Cada entorno debe
+mantener healthchecks, persistencia explícita y procedimientos de recuperación.
 
 ## Ejemplos y tareas
 

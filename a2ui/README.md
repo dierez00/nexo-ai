@@ -16,11 +16,10 @@ HTML/JavaScript generado, consultas DB, autorización ni ejecución directa de a
 
 `catalogId` inmutable por versión; allowlist de componentes; datos separados de estructura; `actionId` opaco; validación servidor y cliente.
 
-## Dependencias y responsables
+## Dependencias y mantenimiento
 
 Depende de `contracts`. El renderer y su contrato citizen v1 se consideran
-cerrados; Diego es responsable de conectarlos al flujo y conservar la
-compatibilidad.
+cerrados; el flujo debe conservar la compatibilidad del catálogo y sus fixtures.
 
 ## Ejemplos y tareas
 

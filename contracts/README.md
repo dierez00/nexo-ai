@@ -16,9 +16,10 @@ Lógica de negocio, secretos, tipos duplicados manualmente ni fixtures incompati
 
 Wire format `snake_case`, UTC, IDs opacos, montos en minor units y cambios incompatibles mediante versión nueva. Pydantic/OpenAPI será la fuente del cliente TypeScript generado.
 
-## Dependencias y responsables
+## Dependencias y mantenimiento
 
-No depende de lógica. Dani custodia; Cris, Daher y Diego aprueban sus fronteras.
+No depende de lógica de negocio. Los cambios incompatibles requieren nueva
+versión, artefactos derivados actualizados y pruebas de consumidores.
 
 ## Ejemplos y tareas
 

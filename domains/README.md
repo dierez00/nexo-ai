@@ -16,9 +16,10 @@ Credenciales, framework del supervisor, adapters ni PII real.
 
 Slug estable; tool prefix propio; estructura equivalente; `domain.yaml` y fuentes versionadas. Las excepciones deben documentarse.
 
-## Dependencias y responsable
+## Dependencias y mantenimiento
 
-Solo APIs públicas de agentes, RAG, MCP y contratos. Responsable: Diego; Daher valida seeds y metadata.
+Solo APIs públicas de agentes, RAG, MCP y contratos. Cada dominio debe conservar
+manifest, fuentes versionadas, skills, tools permitidas y pruebas reproducibles.
 
 ## Tareas
 

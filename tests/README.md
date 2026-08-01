@@ -16,9 +16,10 @@ Unit tests privados de un módulo ni dependencia obligatoria de proveedores real
 
 Arrange/Act/Assert; reloj/IDs controlables; datos sintéticos; tags `unit`, `integration`, `contract`, `e2e`, `eval`.
 
-## Dependencias y responsables
+## Dependencias y mantenimiento
 
-Solo interfaces públicas, Compose de test y mocks. Cada dueño mantiene sus escenarios; Dani coordina CI.
+Solo interfaces públicas, Compose de test y mocks. Cada suite debe declarar si
+es offline, contractual, E2E o de integración y evitar datos reales.
 
 ## Ejemplos y tareas
 

@@ -2,8 +2,8 @@
 
 - **Estado:** accepted
 - **Fecha:** 2026-07-30
-- **Decisor:** Diego
-- **Revisan:** Daher (schema, índices y migraciones)
+- **Estado:** accepted
+- **Revisión:** schema, índices y migraciones de persistencia
 - **Tarea:** `DIE-F0-004`
 
 ## Contexto

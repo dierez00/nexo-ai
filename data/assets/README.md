@@ -10,7 +10,7 @@ No incluir PII, logos sin permiso ni binarios generados que puedan reconstruirse
 
 Convención: nombre descriptivo, formato optimizado y alternativa accesible cuando se renderice.
 
-Responsable: Cris.
+Los assets deben incluir licencia o procedencia y mantenerse libres de PII.
 
 Dependencias permitidas: `apps/web` y documentación pueden leerlos; ningún backend debe tratarlos como storage operativo. Ejemplos: `demo-license.pdf` e `images/portal-placeholder.webp`.
 

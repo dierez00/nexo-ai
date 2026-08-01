@@ -16,7 +16,8 @@ No dar asesoría legal/fiscal ni inventar permisos, dependencias o costos.
 
 Representar dependencias como IDs estables; calcular totales en código. Depende del RAG municipal, estimador y tools de citas/solicitud.
 
-Responsable: Diego; Daher apoya catálogo relacional y Dani acciones.
+Las acciones, fuentes y catálogo relacional deben evolucionar mediante contratos
+versionados y pruebas E2E.
 
 ## Tareas iniciales
 
