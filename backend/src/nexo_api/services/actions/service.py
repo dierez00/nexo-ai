@@ -7,6 +7,7 @@ from nexo_api.core.errors import ProblemException
 from nexo_api.repositories import idempotency as idempotency_repo
 from nexo_api.repositories import pending_actions
 from nexo_api.repositories import runs as runs_repo
+from nexo_api.repositories import tenants as tenants_repo
 from nexo_api.schemas.action import ConfirmActionRequest
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.services import idempotency
@@ -53,9 +54,6 @@ async def confirm_action(
             title="Permiso insuficiente",
             detail=f"Se requiere el permiso '{pending.required_permission}'.",
         )
-    if pending.status is not ActionStatus.PENDING_CONFIRMATION:
-        raise ProblemException(code="VERSION_CONFLICT", title="La acción ya fue confirmada")
-
     # La acción debe pertenecer a un run real del tenant y a esta persona: sin
     # esto, conocer un action_id bastaría para confirmar la escritura de otro.
     context = await pending_actions.owner_context(tenant_id, action_id)
@@ -71,7 +69,7 @@ async def confirm_action(
     trace_id = str(context["trace_id"])
     identity = ToolPermissionContext(
         user_id=ids.encode(ids.USER, int(user.user_id)),
-        institution_id=ids.encode(ids.INSTITUTION, int(user.tenant_id)),
+        institution_id=await tenants_repo.institution_ref(tenant_id),
         roles=[user.role],
         permissions=user.permissions,
     )
@@ -87,6 +85,20 @@ async def confirm_action(
         result = ActionResult.model_validate(idempotency_repo.response_body(record))
         return result.model_copy(update={"idempotency_replayed": True})
 
+    # El control de «ya se confirmó» va **después** de reclamar la clave, no
+    # antes: un doble clic reenvía la misma `Idempotency-Key` y debe recibir el
+    # resultado guardado, no un conflicto. Lo que se rechaza aquí es lo otro —
+    # una clave nueva sobre una acción que ya se ejecutó—, que sí sería una
+    # segunda escritura.
+    if pending.status is not ActionStatus.PENDING_CONFIRMATION:
+        await idempotency_repo.complete(
+            int(record["id"]),
+            status="failed",
+            response_status=409,
+            response_body={"code": "VERSION_CONFLICT", "title": "La acción ya fue confirmada"},
+        )
+        raise ProblemException(code="VERSION_CONFLICT", title="La acción ya fue confirmada")
+
     confirmed = pending.model_copy(
         update={
             "consent": True,
@@ -95,7 +107,13 @@ async def confirm_action(
         }
     )
     try:
-        result = await executor.execute(confirmed, identity=identity, trace_id=trace_id)
+        result = await executor.execute(
+            confirmed,
+            identity=identity,
+            trace_id=trace_id,
+            tenant_id=tenant_id,
+            user_id=None if user.is_public else int(user.user_id),
+        )
     except Exception as exc:  # noqa: BLE001 - efecto externo indeterminado
         await idempotency_repo.complete(
             int(record["id"]),

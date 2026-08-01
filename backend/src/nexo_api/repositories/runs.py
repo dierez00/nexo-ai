@@ -102,9 +102,9 @@ async def list_by_tenant(
     sql = text(f"""
         select {_LIST_COLS} from public.runs
         where tenant_id = :tenant_id
-          and (:conversation_id::bigint is null or conversation_id = :conversation_id)
-          and (:domain::text is null or domain = :domain)
-          and (:status::text is null or status = :status)
+          and (cast(:conversation_id as bigint) is null or conversation_id = :conversation_id)
+          and (cast(:domain as text) is null or domain = :domain)
+          and (cast(:status as text) is null or status = :status)
         order by id desc
         limit :limit
     """)

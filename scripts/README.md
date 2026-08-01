@@ -16,7 +16,8 @@ Lógica reusable, secretos ni acciones destructivas sin objetivo/confirmación e
 
 Idempotentes, fail-fast, ejecutables desde la raíz y compatibles con CI.
 
-Responsable: Dani; Diego mantiene ingesta/evals.
+Los scripts deben ser reproducibles, documentar sus entradas y salidas y
+mantener separadas las operaciones offline de las que requieren servicios externos.
 
 ## Ejemplos y tareas
 

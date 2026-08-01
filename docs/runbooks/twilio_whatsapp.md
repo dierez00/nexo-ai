@@ -1,6 +1,6 @@
 # Twilio WhatsApp Sandbox
 
-Guía operativa de la integración actual de Twilio. Responsable: Dani.
+Guía operativa de la integración actual de Twilio.
 
 ## Alcance actual
 

@@ -265,7 +265,7 @@ sin red, sin base de datos y sin credenciales**, en menos de cinco segundos. Enc
 de tener una sola integración viva — entre ellos uno en el guardado de estado que
 habría roto exactamente el flujo central de la demo, y que solo se manifestaba al
 reanudar una conversación tras una confirmación. Está documentado en
-[`docs/team/fase0_hallazgos.md`](./team/fase0_hallazgos.md).
+[notas de implementación de Fase 0](roadmap/implementation-notes/phase-0-findings.md).
 
 ---
 

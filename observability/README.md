@@ -16,9 +16,10 @@ Payloads sensibles completos, tokens ni métricas numéricas inventadas por LLM.
 
 Propagar `trace_id`, `run_id`, `span_id`; eventos append-only y secuenciados; atributos de baja cardinalidad; masking antes de exportar.
 
-## Dependencias y responsables
+## Dependencias y mantenimiento
 
-Depende de `contracts/events` y despliegue. Dani es responsable; Daher apoya auditoría/queries.
+Depende de `contracts/events` y despliegue. Los eventos deben conservar
+correlación, visibilidad, minimización de PII y capacidad de replay.
 
 ## Ejemplos y tareas
 

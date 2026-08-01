@@ -16,9 +16,10 @@ Servidor HTTP, conexiones DB, secretos, componentes UI ni acceso libre a RAG/too
 
 Un agente por módulo; entrada/salida tipadas; autoverificación; timeout, presupuesto, sources y tool allowlist declarados. El redactor solo acepta `VerifiedFacts`.
 
-## Dependencias y responsable
+## Dependencias y mantenimiento
 
-Depende de `contracts`; RAG/MCP se inyectan desde orquestación. Responsable: Diego.
+Depende de `contracts`; RAG y MCP se inyectan desde orquestación. Los cambios
+deben conservar salidas tipadas y pruebas de contrato.
 
 ## Ejemplos y tareas
 

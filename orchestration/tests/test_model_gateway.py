@@ -25,6 +25,7 @@ from nexo_contracts.config import (
     ModelPolicy,
     ModelRouterConfig,
     ProviderRef,
+    RetryPolicy,
     RunOutcomePolicy,
 )
 from nexo_orchestration.models import (
@@ -114,6 +115,8 @@ def _gateway(
     adapters: dict[str, FakeChatAdapter],
     *,
     outcomes: RunOutcomePolicy | None = None,
+    retry: RetryPolicy | None = None,
+    sleep: object | None = None,
     fill: bool = True,
 ) -> ModelGateway:
     """Gateway con adapters para todo alias habilitado.
@@ -128,12 +131,17 @@ def _gateway(
             provider = entry.provider_ref.provider
             if entry.enabled and provider not in resolved:
                 resolved[provider] = FakeChatAdapter(provider=provider)
+    kwargs = {}
+    if sleep is not None:
+        kwargs["sleep"] = sleep
     return ModelGateway(
         router=router,
         outcomes=outcomes or RunOutcomePolicy(),
         adapters=resolved,
         clock=FrozenClock(),
         ids=SequentialIdFactory(),
+        retry=retry or RetryPolicy(),
+        **kwargs,  # type: ignore[arg-type]
     )
 
 
@@ -363,6 +371,81 @@ async def test_a_non_fallbackable_error_stops_immediately() -> None:
         await gateway.invoke(_request(), _context(), Classification)
 
     assert fake.call_count() == 0
+
+
+async def test_transient_error_retries_same_alias_and_records_both_attempts() -> None:
+    adapter = FakeChatAdapter(
+        {
+            PURPOSE: [
+                Scenario(behavior=FakeBehavior.RATE_LIMIT),
+                _ok(),
+            ]
+        },
+        provider="vendor_a",
+    )
+    gateway = _gateway(
+        _router(escalation_enabled=False),
+        {"vendor_a": adapter},
+        outcomes=RunOutcomePolicy(fallback_on=[]),
+        retry=RetryPolicy(max_attempts=2, retry_on=[ErrorCode.RATE_LIMITED]),
+    )
+
+    outcome = await gateway.invoke(_request(), _context(), Classification)
+
+    assert adapter.call_count() == 2
+    assert [item.attempt for item in outcome.invocations] == [1, 2]
+    assert [item.decision.selected_alias for item in outcome.invocations] == [
+        "structured_small",
+        "structured_small",
+    ]
+    assert outcome.invocations[0].error is not None
+    assert outcome.invocations[1].error is None
+
+
+async def test_retry_after_is_honored_only_when_it_fits_in_deadline() -> None:
+    delays: list[float] = []
+
+    async def record_sleep(seconds: float) -> None:
+        delays.append(seconds)
+
+    adapter = FakeChatAdapter(
+        {
+            PURPOSE: [
+                Scenario(behavior=FakeBehavior.RATE_LIMIT, retry_after_ms=50),
+                _ok(),
+            ]
+        },
+        provider="vendor_a",
+    )
+    gateway = _gateway(
+        _router(escalation_enabled=False),
+        {"vendor_a": adapter},
+        outcomes=RunOutcomePolicy(fallback_on=[]),
+        retry=RetryPolicy(max_attempts=2, retry_on=[ErrorCode.RATE_LIMITED]),
+        sleep=record_sleep,
+    )
+
+    await gateway.invoke(_request(deadline_ms=100), _context(), Classification)
+
+    assert delays == [0.05]
+
+    no_time = FakeChatAdapter(
+        {PURPOSE: Scenario(behavior=FakeBehavior.RATE_LIMIT, retry_after_ms=100)},
+        provider="vendor_a",
+    )
+    gateway = _gateway(
+        _router(escalation_enabled=False),
+        {"vendor_a": no_time},
+        outcomes=RunOutcomePolicy(fallback_on=[]),
+        retry=RetryPolicy(max_attempts=2, retry_on=[ErrorCode.RATE_LIMITED]),
+        sleep=record_sleep,
+    )
+
+    with pytest.raises(ModelPortError) as caught:
+        await gateway.invoke(_request(deadline_ms=100), _context(), Classification)
+
+    assert len(caught.value.invocations) == 1
+    assert no_time.call_count() == 1
 
 
 # --- DIE-F1-004: telemetría --------------------------------------------------

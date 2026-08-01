@@ -41,7 +41,14 @@ class RealOrchestrator:
             policies=self._assembly.policies,
             valid_at=self._assembly.valid_at,
         )
-        result = await graph.invoke(request)
+        # El backend construye RunRequest sin exponer presupuestos al cliente.
+        # Aplicar aquí el perfil cargado evita que el default del contrato (20 s)
+        # contradiga, por ejemplo, el presupuesto mayor que Gemini necesita al
+        # sumar inferencia y persistencia remota de la traza.
+        effective_request = request.model_copy(
+            update={"budgets": self._assembly.policies.run_budgets}
+        )
+        result = await graph.invoke(effective_request)
 
         if result.status is RunStatus.WAITING_CONFIRMATION:
             state = await checkpoints.load(request.run_id)

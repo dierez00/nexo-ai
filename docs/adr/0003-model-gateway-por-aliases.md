@@ -2,8 +2,8 @@
 
 - **Estado:** accepted
 - **Fecha:** 2026-07-30
-- **Decisor:** Diego
-- **Revisan:** Dani (adapters y telemetría)
+- **Estado:** accepted
+- **Revisión:** adapters, telemetría y compatibilidad de configuración
 - **Tarea:** `DIE-F0-003`
 
 ## Contexto

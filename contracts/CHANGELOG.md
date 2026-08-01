@@ -33,9 +33,8 @@ consumidores migren.
    modelo y artefacto publicado.
 4. Añade la entrada correspondiente a este changelog, clasificada como aditiva o
    incompatible.
-5. Aprueban los dueños de las fronteras afectadas: Dani (API, eventos, acciones),
-   Daher (persistencia, RAG, checkpoints), Cris (A2UI, eventos de workflow) y
-   Diego (agentes, orquestación, RAG, MCP).
+5. Revisan las fronteras afectadas: API, eventos, acciones, persistencia, RAG,
+   checkpoints, A2UI, workflow, agentes, orquestación y MCP.
 
 Un cambio incompatible sin aprobación de todos los consumidores afectados no se
 mezcla.

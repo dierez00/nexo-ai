@@ -17,7 +17,8 @@ ha otorgado acceso a ningún sistema. Todo el comportamiento institucional
 simulado. La simulación **no vive** en `integrations/src/nexo_integrations/`
 —ese paquete solo contiene stubs vacíos— sino directamente dentro de las
 tools de MCP (`mcp/src/nexo_mcp/tools/definitions.py`). Esta desviación
-respecto al límite documentado en `Nexo_IA_Arquitectura_y_Plan.md` §3.4
+respecto al límite documentado en
+`technical-architecture.md` y los contratos de `integrations/`.
 ("`integrations` adapta proveedores... `mcp` ejecuta capacidades") es la
 brecha principal a resolver cuando se aborden los puntos 3 y 4 del checklist.
 

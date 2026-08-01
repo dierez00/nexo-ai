@@ -16,7 +16,7 @@ No resolver disputas jurídicas ni modificar actas reales.
 
 Preguntar únicamente el dato que diferencie procedimientos igualmente probables. Depende de RAG y tools autorizadas de registro civil.
 
-Responsable: Diego.
+Las skills y fuentes deben mantenerse alineadas con los contratos del dominio.
 
 ## Tareas iniciales
 

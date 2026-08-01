@@ -16,9 +16,10 @@ Tools, secretos, respuestas finales ni documentos sin procedencia.
 
 Todo documento registra `source_id`, dominio, versión, vigencia, estado, responsable y checksum. La ingesta es idempotente y conserva el texto original.
 
-## Dependencias y responsable
+## Dependencias y mantenimiento
 
-Consume repositorios y `data/documents`; expone contratos, no detalles de pgvector. Diego es responsable; Daher apoya schema e índices.
+Consume repositorios y `data/documents`; expone contratos, no detalles de
+pgvector. Los cambios de schema e índices deben mantener paridad con el corpus.
 
 ## Ejemplos y tareas
 
@@ -42,4 +43,4 @@ chunking Markdown, BM25, embeddings, fusión híbrida, filtros de vigencia y
 suficiencia de evidencia. El baseline semántico versionado obtiene
 recall@5/citation precision **1.000/1.000** sobre los 15 casos sintéticos del
 MVP; los límites de esa medición están en
-[`docs/team/fase1_hallazgos.md`](../docs/team/fase1_hallazgos.md).
+[notas de implementación de Fase 1](../docs/roadmap/implementation-notes/phase-1-findings.md).

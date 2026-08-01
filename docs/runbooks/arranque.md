@@ -1,7 +1,7 @@
 # Runbook — Arranque del backend nexo-ai
 
 Guía operativa para levantar, verificar, desplegar y hacer rollback del backend
-(API FastAPI). Responsable: Dani. Última fase cubierta: MVP (Partes 0–7).
+(API FastAPI). Última fase cubierta: MVP (Partes 0–7).
 
 ---
 
@@ -173,7 +173,8 @@ docker build -f infrastructure/docker/Dockerfile -t nexo-api .
 1. Railway → Deployments → seleccionar el deployment previo sano → **Redeploy**.
    (o `git revert <commit>` + push si el problema es de código.)
 2. Confirmar `/health/ready` verde.
-3. Si el problema es de datos/migración: coordinar con Daher (owner de migraciones);
+3. Si el problema es de datos/migración: revisar el historial de migraciones y
+   el runbook de persistencia;
    el backend no aplica migraciones destructivas.
 
 ---

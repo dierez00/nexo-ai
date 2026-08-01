@@ -16,9 +16,10 @@ Documentos RAG, prompts de respuesta, secretos ni ejecución arbitraria.
 
 Tool `dominio.verbo_objeto`; metadata de modo, riesgo, roles, timeout y reintentos. Toda escritura requiere confirmación, `idempotency_key` e identificador verificable.
 
-## Dependencias y responsable
+## Dependencias y mantenimiento
 
-Depende de `contracts`, `integrations`, auditoría y policies de `config`. Responsable: Diego; Dani apoya adapters y red.
+Depende de `contracts`, `integrations`, auditoría y policies de `config`. Toda
+tool debe declarar schema, permisos, timeout, idempotencia y resultado auditable.
 
 ## Ejemplos y tareas
 

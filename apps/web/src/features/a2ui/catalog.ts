@@ -8,6 +8,7 @@
  */
 
 import catalogJson from "./citizen-v1.catalog.json";
+import adminCatalogJson from "./admin-v1.catalog.json";
 
 type CatalogComponent = {
   name: string;
@@ -27,33 +28,66 @@ type CatalogJson = {
 };
 
 const catalog = catalogJson as CatalogJson;
+const adminCatalog = adminCatalogJson as CatalogJson;
 
 export const CITIZEN_CATALOG_ID = catalog.catalog_id;
+export const ADMIN_CATALOG_ID = adminCatalog.catalog_id;
 export const CATALOG_VERSION = catalog.version;
 
-export const ALLOWED_TONES: ReadonlySet<string> = new Set(catalog.allowed_tones);
+export type CatalogRuntime = {
+  catalogId: string;
+  version: string;
+  audience: string;
+  componentNames: ReadonlySet<string>;
+  allowedProperties: ReadonlyMap<string, ReadonlySet<string>>;
+  allowedTones: ReadonlySet<string>;
+  componentsByName: ReadonlyMap<string, CatalogComponent>;
+};
 
-const byName = new Map(catalog.components.map((component) => [component.name, component]));
+function buildRuntime(source: CatalogJson): CatalogRuntime {
+  const componentsByName = new Map(source.components.map((component) => [component.name, component]));
+  return {
+    catalogId: source.catalog_id,
+    version: source.version,
+    audience: source.audience,
+    componentNames: new Set(componentsByName.keys()),
+    allowedProperties: new Map(
+      Object.entries(source.allowed_properties).map(([name, properties]) => [
+        name,
+        new Set(properties),
+      ]),
+    ),
+    allowedTones: new Set(source.allowed_tones),
+    componentsByName,
+  };
+}
 
-export const COMPONENT_NAMES: ReadonlySet<string> = new Set(byName.keys());
+const runtimes = [buildRuntime(catalog), buildRuntime(adminCatalog)] as const;
+const byCatalogId = new Map(runtimes.map((runtime) => [runtime.catalogId, runtime]));
+const citizenRuntime = byCatalogId.get(CITIZEN_CATALOG_ID)!;
 
-export const ALLOWED_PROPERTIES: ReadonlyMap<string, ReadonlySet<string>> = new Map(
-  Object.entries(catalog.allowed_properties).map(([name, properties]) => [
-    name,
-    new Set(properties),
-  ]),
+export const ALLOWED_TONES: ReadonlySet<string> = new Set(
+  runtimes.flatMap((runtime) => [...runtime.allowedTones]),
 );
 
+export const COMPONENT_NAMES: ReadonlySet<string> = citizenRuntime.componentNames;
+export const ALLOWED_PROPERTIES: ReadonlyMap<string, ReadonlySet<string>> =
+  citizenRuntime.allowedProperties;
+
+export function getCatalog(catalogId: string): CatalogRuntime | undefined {
+  return byCatalogId.get(catalogId);
+}
+
 export function findComponent(name: string): CatalogComponent | undefined {
-  return byName.get(name);
+  return citizenRuntime.componentsByName.get(name);
 }
 
-export function allowsChildren(name: string): boolean {
-  return byName.get(name)?.allows_children ?? false;
+export function allowsChildren(name: string, runtime: CatalogRuntime = citizenRuntime): boolean {
+  return runtime.componentsByName.get(name)?.allows_children ?? false;
 }
 
-export function isInteractive(name: string): boolean {
-  return byName.get(name)?.is_interactive ?? false;
+export function isInteractive(name: string, runtime: CatalogRuntime = citizenRuntime): boolean {
+  return runtime.componentsByName.get(name)?.is_interactive ?? false;
 }
 
 /** Tonos del catálogo mapeados a los del design system. */

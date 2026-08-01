@@ -16,7 +16,8 @@ No diagnosticar, prescribir, interpretar síntomas como diagnóstico ni sustitui
 
 Lenguaje prudente, escalamiento explícito y fuentes visibles. Depende de RAG de servicios y tools de ubicación.
 
-Responsable: Diego; Dani revisa fallbacks/mensajes de seguridad.
+El dominio requiere revisión de fuentes, fallbacks y mensajes de seguridad
+antes de activar nuevas capacidades.
 
 ## Tareas iniciales
 

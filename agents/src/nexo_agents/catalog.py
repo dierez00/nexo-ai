@@ -342,6 +342,24 @@ class CentralCatalog:
     def domain(self, domain: Domain) -> DomainManifest | None:
         return self.manifests.get(domain)
 
+    def capabilities_answer(self) -> str:
+        """Describe el alcance ciudadano desde los manifests activos."""
+        lines = ["Puedo ayudarte con estos trámites:"]
+        for domain in Domain:
+            manifest = self.manifests.get(domain)
+            if manifest is None:
+                continue
+            procedures = ", ".join(intent.title for intent in manifest.intents)
+            lines.append(f"- {manifest.title}: {procedures}.")
+        lines.extend(
+            [
+                "",
+                "También puedo explicarte requisitos, consultar la información disponible "
+                "y guiarte paso a paso. Dime qué trámite necesitas.",
+            ]
+        )
+        return "\n".join(lines)
+
     def select_skill(self, domain: Domain, intent_slugs: tuple[str, ...]) -> tuple[str, str] | None:
         manifest = self.manifests.get(domain)
         if manifest is None:

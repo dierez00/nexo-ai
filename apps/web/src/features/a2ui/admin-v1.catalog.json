@@ -1,0 +1,98 @@
+{
+  "allowed_properties": {
+    "Card": [
+      "title",
+      "tone"
+    ],
+    "ChartPanel": [
+      "chartType",
+      "data",
+      "description",
+      "series",
+      "title",
+      "xKey",
+      "yKey"
+    ],
+    "Column": [
+      "align",
+      "gap"
+    ],
+    "DataTable": [
+      "caption",
+      "columns",
+      "rows",
+      "title"
+    ],
+    "MetricCard": [
+      "caption",
+      "delta",
+      "label",
+      "tone",
+      "value"
+    ],
+    "StatusBanner": [
+      "message",
+      "title",
+      "tone"
+    ],
+    "Text": [
+      "text",
+      "variant"
+    ]
+  },
+  "allowed_tones": [
+    "danger",
+    "info",
+    "neutral",
+    "success",
+    "warning"
+  ],
+  "audience": "admin",
+  "catalog_id": "urn:nexo-ia:a2ui:catalog:admin:v1",
+  "components": [
+    {
+      "allows_children": true,
+      "is_interactive": false,
+      "name": "Column",
+      "schema_ref": "contracts://a2ui/citizen/v1/Column.v1"
+    },
+    {
+      "allows_children": true,
+      "is_interactive": false,
+      "name": "Card",
+      "schema_ref": "contracts://a2ui/citizen/v1/Card.v1"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": false,
+      "name": "Text",
+      "schema_ref": "contracts://a2ui/citizen/v1/Text.v1"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": false,
+      "name": "StatusBanner",
+      "schema_ref": "contracts://a2ui/citizen/v1/StatusBanner.v1"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": false,
+      "name": "MetricCard",
+      "schema_ref": "contracts://a2ui/citizen/v1/MetricCard.v1"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": false,
+      "name": "ChartPanel",
+      "schema_ref": "contracts://a2ui/citizen/v1/ChartPanel.v1"
+    },
+    {
+      "allows_children": false,
+      "is_interactive": false,
+      "name": "DataTable",
+      "schema_ref": "contracts://a2ui/citizen/v1/DataTable.v1"
+    }
+  ],
+  "title": "Catálogo administrativo de Nexo IA",
+  "version": "1.0.0"
+}

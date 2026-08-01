@@ -16,7 +16,8 @@ No incluir multas, costos ni procesos no respaldados. No usar placas o identidad
 
 Dos intenciones deben conservarse separadas. Depende del RAG `vehiculos`, tools vehiculares, citas y contratos. Los cálculos monetarios son deterministas.
 
-Responsable: Diego; Dani apoya citas/adapters y Daher fixtures.
+Las citas, adapters y fixtures deben permanecer alineados con el contrato del
+dominio y sus escenarios reproducibles.
 
 ## Tareas iniciales
 

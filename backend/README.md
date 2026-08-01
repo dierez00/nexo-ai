@@ -16,9 +16,11 @@ Prompts de dominio, SQL desde routers, render UI ni SDKs externos fuera de `inte
 
 Routers delgados, casos de uso explícitos, UTC, IDs opacos, Pydantic en fronteras y errores Problem Details. Toda escritura exige permiso, consentimiento e idempotencia.
 
-## Dependencias y responsable
+## Dependencias y mantenimiento
 
-Puede depender de `contracts`, `orchestration`, repositorios, `integrations` y `observability`. Responsable: Dani.
+Puede depender de `contracts`, `orchestration`, repositorios, `integrations` y
+`observability`. Los routers deben permanecer delgados y las escrituras deben
+conservar permisos, consentimiento e idempotencia.
 
 ## Ejemplos y tareas
 

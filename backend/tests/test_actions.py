@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from nexo_api.api.deps import get_action_executor, get_current_user
 from nexo_api.main import create_app
 from nexo_api.schemas.auth import UserProfile
+from nexo_api.services.actions import FakeActionExecutor
 
 from nexo_contracts import (
     ActionRequest,
@@ -58,6 +59,7 @@ RESULT = ActionResult(
 def _client(user: UserProfile) -> TestClient:
     app = create_app()
     app.dependency_overrides[get_current_user] = lambda: user
+    app.dependency_overrides[get_action_executor] = FakeActionExecutor
     return TestClient(app)
 
 

@@ -16,9 +16,10 @@ Reglas de negocio, autorización o secretos versionados.
 
 Protocol/ABC por adapter; timeout; errores normalizados; mock equivalente; firma y deduplicación de webhooks; circuit breaker cuando aplique.
 
-## Dependencias y responsables
+## Dependencias y mantenimiento
 
-SDKs externos y `contracts`. Dani es responsable; Diego apoya modelos y MCP.
+Depende de SDKs externos y `contracts`. Los proveedores deben permanecer detrás
+de adapters sustituibles y no filtrar secretos al resto del sistema.
 
 ## Ejemplos y tareas
 

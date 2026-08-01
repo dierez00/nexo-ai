@@ -16,9 +16,10 @@ API keys, passwords, tokens, URLs privadas ni valores exclusivos de producción.
 
 Todo archivo tiene schema/versión; overrides mediante variables; configuración inválida detiene el arranque con error accionable.
 
-## Dependencias y responsables
+## Dependencias y mantenimiento
 
-`contracts` define schemas. Dani y Diego comparten responsabilidad.
+`contracts` define schemas. Toda modificación debe actualizar versión, ejemplo,
+validación de arranque y documentación de defaults seguros.
 
 ## Ejemplos y tareas
 

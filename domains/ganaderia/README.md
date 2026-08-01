@@ -16,7 +16,7 @@ No diagnosticar, sustituir veterinarios ni generar alertas sin una regla/fuente 
 
 Toda escritura conserva animal, actor, regla, confirmación y folio. Depende de RAG sanitario, historial y MCP.
 
-Responsable: Diego; Daher apoya consistencia del historial.
+Las fuentes y el historial deben conservar consistencia, vigencia y trazabilidad.
 
 ## Tareas iniciales
 

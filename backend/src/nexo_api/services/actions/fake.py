@@ -26,8 +26,11 @@ class FakeActionExecutor:
         *,
         identity: ToolPermissionContext | None = None,
         trace_id: str | None = None,
+        tenant_id: int | None = None,
+        user_id: int | None = None,
     ) -> ActionResult:
-        del identity, trace_id  # el doble no revalida permisos ni correlaciona
+        # El doble no revalida permisos, no correlaciona y no persiste la cita.
+        del identity, trace_id, tenant_id, user_id
         folio = f"FOLIO-{uuid4().hex[:8].upper()}"
         # Un cuerpo hex crudo produce con frecuencia inaceptable una secuencia de
         # 10+ dígitos, que `nexo_contracts.ids` rechaza como posible PII (mismo

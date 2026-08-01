@@ -39,6 +39,17 @@ def test_skill_selection_is_versioned() -> None:
     )
 
 
+def test_capabilities_answer_is_derived_from_all_active_manifests() -> None:
+    catalog = _catalog()
+
+    answer = catalog.capabilities_answer()
+
+    for manifest in catalog.manifests.values():
+        assert manifest.title in answer
+        for intent in manifest.intents:
+            assert intent.title in answer
+
+
 def test_catalog_lifecycle_cannot_skip_review() -> None:
     snapshot = _catalog().snapshot.model_copy(update={"lifecycle": CatalogLifecycle.DRAFT})
 

@@ -7,6 +7,7 @@ import json
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
 
+from nexo_observability.logging import get_logger
 from sqlalchemy import RowMapping
 
 from nexo_api.core import ids
@@ -14,10 +15,12 @@ from nexo_api.core.errors import ProblemException
 from nexo_api.repositories import conversations as conv_repo
 from nexo_api.repositories import messages as msg_repo
 from nexo_api.repositories import runs as runs_repo
+from nexo_api.repositories import tenants as tenants_repo
 from nexo_api.repositories._base import load_json
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.schemas.conversation import MessageCreate
 from nexo_api.schemas.run import RunAccepted, RunSummary
+from nexo_api.schemas.voice import VoicePendingAction, VoiceTurnRequest, VoiceTurnResponse
 from nexo_api.services.actions.pending_sink import PostgresPendingActionSink
 from nexo_api.services.orchestration.port import Orchestrator
 from nexo_api.services.runs.event_sink import PostgresEventSink
@@ -38,6 +41,8 @@ from nexo_contracts import (
     RunResult,
     RunStatus,
 )
+
+log = get_logger(__name__)
 
 
 def _public_event(event: RunEvent) -> dict[str, str] | None:
@@ -66,10 +71,16 @@ def _decode(prefix: str, wire_id: str, label: str) -> int:
         ) from exc
 
 
-def _identity(user: UserProfile) -> Identity:
+async def _identity(user: UserProfile) -> Identity:
+    """Identidad que viaja al grafo.
+
+    `institution_id` es el namespace del corpus y de la matriz de permisos, no el
+    id de fila del tenant: el retriever filtra por él y la autorización de tools
+    lo empareja con las reglas de `permissions.yaml`.
+    """
     return Identity(
         user_id=ids.encode(ids.USER, int(user.user_id)),
-        institution_id=ids.encode(ids.INSTITUTION, int(user.tenant_id)),
+        institution_id=await tenants_repo.institution_ref(int(user.tenant_id)),
         roles=[user.role],
         permissions=user.permissions,
     )
@@ -140,6 +151,9 @@ async def post_message(
     run_row = await runs_repo.create(tenant_id, conv_id, trace_id, status=RunStatus.QUEUED.value)
     run_id = int(run_row["id"])
     run_id_wire = ids.encode(ids.RUN, run_id)
+    # Se resuelve antes de soltar la tarea en segundo plano: si el tenant no está
+    # configurado, el error debe salir en el 202, no perderse dentro del run.
+    identity = await _identity(user)
 
     async def _background() -> None:
         try:
@@ -148,7 +162,7 @@ async def post_message(
                 conv_id,
                 body.content,
                 str(conversation["channel"]),
-                _identity(user),
+                identity,
                 trace_id,
                 orchestrator,
                 run_row,
@@ -156,6 +170,15 @@ async def post_message(
             if result.answer:
                 await msg_repo.create(conv_id, "assistant", result.answer)
         except Exception as exc:  # noqa: BLE001 - el fallo debe ser observable por SSE
+            # El evento que ve el cliente solo lleva el tipo de excepción, que no
+            # basta para diagnosticar nada. La traza completa va al log del
+            # servidor, que es donde puede contener detalle sin exponerlo.
+            log.exception(
+                "runs.background_failed",
+                run_id=run_id_wire,
+                trace_id=trace_id,
+                error=type(exc).__name__,
+            )
             sink = PostgresEventSink()
             sequence = await sink.last_sequence(run_id_wire) + 1
             error = NormalizedError.from_code(ErrorCode.PROVIDER_ERROR, "Falló el orquestador")
@@ -235,6 +258,7 @@ async def voice_turn(
     run_row = await runs_repo.create(tenant_id, conv_id, trace_id, status=RunStatus.QUEUED.value)
     run_id = int(run_row["id"])
     run_id_wire = ids.encode(ids.RUN, run_id)
+    identity = await _identity(user)
 
     try:
         result = await asyncio.wait_for(
@@ -243,7 +267,7 @@ async def voice_turn(
                 conv_id,
                 body.user_message,
                 Channel.VOICE.value,
-                _identity(user),
+                identity,
                 trace_id,
                 orchestrator,
                 run_row,
@@ -288,9 +312,23 @@ async def get_run(user: UserProfile, run_id_wire: str) -> RunResult:
     if row is None:
         raise ProblemException(code="RESOURCE_NOT_FOUND", title="Run no encontrado")
     metadata = load_json(row["metadata"]) or {}
-    if metadata:
-        return RunResult.model_validate(metadata)
-    return RunResult(run_id=run_id_wire, trace_id=row["trace_id"], status=RunStatus(row["status"]))
+    if not metadata:
+        return RunResult(
+            run_id=run_id_wire, trace_id=row["trace_id"], status=RunStatus(row["status"])
+        )
+
+    snapshot = RunResult.model_validate(metadata)
+    current = RunStatus(row["status"])
+    if current is snapshot.status:
+        return snapshot
+    # El snapshot se congela cuando el grafo termina su pasada; confirmar la
+    # acción después cierra el run tocando solo la columna. Devolver el snapshot
+    # tal cual dejaba al cliente viendo `waiting_confirmation` con su acción ya
+    # ejecutada, y volviendo a ofrecer el botón de confirmar.
+    resolved = snapshot.model_copy(update={"status": current})
+    if current in TERMINAL_RUN_STATUSES:
+        resolved = resolved.model_copy(update={"available_actions": []})
+    return resolved
 
 
 async def get_run_for_stream(user: UserProfile, run_id_wire: str) -> tuple[int, RunStatus]:

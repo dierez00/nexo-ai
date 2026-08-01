@@ -16,10 +16,9 @@
  */
 
 import {
-  ALLOWED_PROPERTIES,
-  CITIZEN_CATALOG_ID,
-  COMPONENT_NAMES,
+  type CatalogRuntime,
   allowsChildren,
+  getCatalog,
   isInteractive,
 } from "./catalog";
 import { isValidPointer } from "./pointer";
@@ -131,7 +130,11 @@ function r_safe(key: string): string {
   return `'${key.replace(/[^A-Za-z0-9_.-]/g, "")}'`;
 }
 
-function validateComponent(component: WireComponent, errors: ValidationError[]): void {
+function validateComponent(
+  component: WireComponent,
+  errors: ValidationError[],
+  catalog: CatalogRuntime,
+): void {
   const id = component.id;
 
   if (typeof id !== "string" || !/^[a-z][a-z0-9-]{0,62}$/.test(id)) {
@@ -139,7 +142,7 @@ function validateComponent(component: WireComponent, errors: ValidationError[]):
     return;
   }
 
-  if (!COMPONENT_NAMES.has(component.component)) {
+  if (!catalog.componentNames.has(component.component)) {
     errors.push({
       componentId: id,
       rule: "component_not_in_catalog",
@@ -149,7 +152,7 @@ function validateComponent(component: WireComponent, errors: ValidationError[]):
   }
 
   const children = component.children ?? [];
-  if (children.length > 0 && !allowsChildren(component.component)) {
+  if (children.length > 0 && !allowsChildren(component.component, catalog)) {
     errors.push({
       componentId: id,
       rule: "children_not_allowed",
@@ -157,7 +160,7 @@ function validateComponent(component: WireComponent, errors: ValidationError[]):
     });
   }
 
-  if (component.actionId != null && !isInteractive(component.component)) {
+  if (component.actionId != null && !isInteractive(component.component, catalog)) {
     errors.push({
       componentId: id,
       rule: "action_on_non_interactive_component",
@@ -165,7 +168,7 @@ function validateComponent(component: WireComponent, errors: ValidationError[]):
     });
   }
 
-  const allowed = ALLOWED_PROPERTIES.get(component.component) ?? new Set<string>();
+  const allowed = catalog.allowedProperties.get(component.component) ?? new Set<string>();
   for (const [key, value] of Object.entries(component)) {
     if (STRUCTURAL_KEYS.has(key)) continue;
 
@@ -220,7 +223,7 @@ export function validateMessage(message: unknown, index: number): ValidationErro
 
 /** Valida el catálogo declarado al abrir la superficie. */
 export function validateCatalog(catalogId: unknown): ValidationError[] {
-  if (catalogId !== CITIZEN_CATALOG_ID) {
+  if (typeof catalogId !== "string" || !getCatalog(catalogId)) {
     return [
       {
         rule: "unknown_catalog",
@@ -238,6 +241,7 @@ export function validateCatalog(catalogId: unknown): ValidationError[] {
 export function validateTree(
   components: WireComponent[],
   declaredActions: ReadonlySet<string>,
+  catalog: CatalogRuntime,
 ): ValidationError[] {
   const errors: ValidationError[] = [];
 
@@ -256,7 +260,7 @@ export function validateTree(
       });
     }
     seen.add(component.id);
-    validateComponent(component, errors);
+    validateComponent(component, errors, catalog);
   }
 
   if (!seen.has(ROOT_ID)) {

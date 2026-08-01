@@ -22,6 +22,20 @@ Para renovar una licencia tipo A se requiere presentar, en original y copia:
 Si la licencia anterior se extravió, se sustituye el punto 3 por una
 declaración de extravío firmada ante el módulo de atención.
 
+## Primera emisión de licencia tipo A
+
+Para tramitar por primera vez una licencia de conducir tipo A se requiere
+presentar, en original y copia:
+
+1. Identificación oficial vigente con fotografía.
+2. Comprobante de domicilio con antigüedad no mayor a tres meses.
+3. CURP.
+4. Constancia de aprobación del examen de manejo.
+5. Comprobante de pago de derechos del ejercicio en curso.
+
+La primera emisión se realiza de forma presencial y solo se atiende en módulos
+que declaren disponibilidad para primeras emisiones.
+
 ## Examen médico
 
 Las personas mayores de 65 años deben presentar además un certificado médico

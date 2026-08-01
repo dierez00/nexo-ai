@@ -8,7 +8,8 @@ No contiene tokens, teléfonos reales ni respuestas copiadas de producción. Los
 
 Convención: `proveedor/capacidad/escenario.v1.json`; IDs y datos claramente sintéticos.
 
-Responsable: Daher; Dani mantiene Twilio/adapters y Diego tools/modelos.
+Los mocks deben reflejar los contratos públicos y declarar qué comportamiento
+simulan; los adapters de proveedores se prueban con fixtures versionados.
 
 Dependencias permitidas: `integrations`, `tests`, MCP y modelos falsos consumen los fixtures. Ejemplos: `twilio/inbound_text.v1.json` y `appointments/conflict.v1.json`.
 

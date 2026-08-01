@@ -1,108 +1,162 @@
 # Nexo IA
 
-## Objetivo
+Plataforma modular para asistentes institucionales que ayuda a las personas a
+encontrar información, entender trámites y ejecutar acciones autorizadas desde
+web, mensajería y voz. El sistema combina conocimiento documental versionado,
+orquestación de agentes, herramientas con permisos y superficies de interfaz
+declarativas.
 
-Hub omnicanal de asistentes e integración institucional. El repositorio contiene
-un núcleo de contratos/orquestación de las Fases 0 y 1, ejecutable offline, y
-una API FastAPI MVP con auth, conversaciones, citas, acciones idempotentes,
-webhooks Twilio y SSE. Las aplicaciones web e integraciones externas avanzan
-en módulos separados.
+## Qué resuelve
 
-## Documentos principales
+Nexo IA convierte una solicitud en lenguaje natural en un recorrido verificable:
+clasifica el dominio y la intención, recupera fuentes vigentes, valida los
+hechos, calcula pasos o requisitos, solicita confirmación cuando corresponde y
+devuelve una respuesta trazable. Las acciones de escritura son idempotentes,
+requieren autorización y pueden ejecutarse contra adaptadores mock o sistemas
+externos.
 
-- [`Nexo_IA_Propuesta_Completa.md`](./Nexo_IA_Propuesta_Completa.md): problema, alcance y rúbrica.
-- [`Nexo_IA_Arquitectura_y_Plan.md`](./Nexo_IA_Arquitectura_y_Plan.md): arquitectura, contratos, fases, pruebas y despliegue.
-- [`docs/team/`](./docs/team/): división de trabajo para Cris, Dani, Daher y Diego.
+El MVP incluye recorridos reproducibles para vehículos y apertura de empresas.
+El catálogo también contiene registro civil, salud y ganadería para la
+expansión Core. Los datos institucionales incluidos en el repositorio son
+sintéticos o de demostración; no representan una integración productiva.
 
-## Alcance acordado
+## Estado actual
 
-- MVP: vehículos y apertura de empresas de extremo a extremo, con transacciones mock, WhatsApp Twilio Sandbox y una sola app web con `/portal` y `/admin`.
-- Core: cinco dominios, workflow, dashboard y catálogo.
-- Pro: voz, MCP Mapper, model router y A2UI dinámico.
-- Extremo: paralelismo, mini-RAGs, LLM-as-judge y personalización avanzada.
+| Área | Estado |
+| --- | --- |
+| Contratos, JSON Schema y eventos versionados | Implementado |
+| API FastAPI, autenticación, conversaciones, SSE, citas y acciones | Implementado |
+| Portal web y consola administrativa Next.js | Implementado |
+| Orquestación, agentes, RAG híbrido, MCP y A2UI | Implementado con dobles reproducibles |
+| Integraciones institucionales | Mock; adaptadores preparados |
+| Worker durable y ejecución distribuida | Pendiente |
+| MCP Mapper, router de modelos productivo y formularios A2UI dinámicos | Roadmap Pro |
+| Paralelismo avanzado, mini-RAGs y evaluación LLM-as-judge | Roadmap Extremo |
 
-## Estado de ejecución
+## Arquitectura
 
-Implementado: `docker compose up --build api`, healthchecks, CI, logging JSONL,
-OpenAPI, runbook, login proxy Supabase Auth, JWT por JWKS y chat web con SSE
-autenticado. El streaming SSE del MVP se ejecuta en proceso; un reinicio cancela
-runs activos. Worker/cola durable y adapters institucionales reales siguen
-pendientes.
+```mermaid
+flowchart TD
+    CHANNELS[Web / WhatsApp / voz] --> API[API FastAPI<br/>autenticación y sesiones]
+    API --> CONTEXT[Contexto y permisos]
+    CONTEXT --> CLASSIFIER[Clasificación]
+    CLASSIFIER --> ORCHESTRATION[Supervisor y workflow]
 
-### Setup Supabase cloud
+    ORCHESTRATION --> RAG[RAG híbrido<br/>corpus versionado]
+    ORCHESTRATION --> MCP[MCP<br/>tools autorizadas]
 
-1. Aplica todas las migraciones en `supabase/migrations/` al proyecto cloud.
-2. En Supabase Dashboard → Project Settings → API, copia:
-   - Project URL → `SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_URL`.
-   - Publishable key → `SUPABASE_PUBLISHABLE_KEY`.
-   - Secret key → `SUPABASE_SECRET_KEY` solo en backend.
-3. Define `SUPABASE_JWKS_URL=https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json`.
-4. En Project Settings → Database → Connect, copia el connection string. Para el
-   backend persistente usa direct connection si tu entorno soporta IPv6; si no,
-   usa session pooler. Adáptalo a SQLAlchemy async:
-   `postgresql+asyncpg://usuario:password@host:puerto/postgres`.
-5. En el backend local configura `WEB_ORIGIN=http://localhost:3000` y en
-   `apps/web/.env.local` configura `NEXT_PUBLIC_NEXO_API_URL=http://localhost:8000`.
-6. Antes de invitar un usuario, crea el invite de negocio para que el trigger
-   genere `public.users` cuando acepte la invitación:
+    RAG --> VERIFY[Verificación de hechos]
+    MCP --> VERIFY
+    VERIFY --> ESTIMATE[Estimación determinista]
+    ESTIMATE --> CONFIRM{¿Requiere escritura?}
+    CONFIRM -->|No| PRESENT[Construcción A2UI<br/>y redacción]
+    CONFIRM -->|Sí| ACTION[Confirmación<br/>idempotencia y auditoría]
+    ACTION --> PRESENT
 
-```sql
-insert into public.invites (tenant_id, email, role_id, branch_id)
-select t.id, 'TU_EMAIL_ADMIN', r.id, b.id
-from public.tenants t
-join public.roles r on r.code = 'admin' and r.tenant_id is null
-left join public.branches b on b.tenant_id = t.id and b.code = 'MOD-CENTRO'
-where t.slug = 'gobierno-demo';
+    PRESENT --> RESPONSE[Respuesta multicanal]
+    ORCHESTRATION --> EVENTS[Eventos, trazas y checkpoints]
+    ACTION --> EVENTS
 ```
 
-7. En Authentication → Users → Add user → Send invitation, invita ese email,
-   acepta el enlace, define contraseña y entra en `/login`.
+El repositorio usa un monolito modular: los paquetes se separan por frontera
+de capacidad y se conectan mediante contratos tipados. PostgreSQL concentra la
+persistencia operativa, auditoría y vectores cuando se habilita el perfil de
+base de datos local.
 
-### Núcleo Python (Fases 0 y 1 — `implementadas`)
+## Tecnologías
 
-Existe un workspace Python con contratos tipados, puertos, dobles de prueba,
-configuración validada y un grafo mínimo verificable. Corre **sin red, sin base
-de datos y sin credenciales**.
+- Python 3.12, `uv`, Pydantic, FastAPI y SQLAlchemy.
+- Next.js, React, TypeScript y Tailwind CSS.
+- PostgreSQL, pgvector, Supabase Auth y migraciones SQL.
+- LangGraph para estado, checkpoints y workflows.
+- Retrieval híbrido léxico-semántico y corpus documental versionado.
+- MCP para catálogo, autorización y ejecución de herramientas.
+- A2UI v0.9.1 con catálogos cerrados, validación y fallback seguro.
+- Docker Compose, Railway, logging JSONL y contratos preparados para OpenTelemetry.
 
-```sh
-python3 -m venv .venv
-.venv/bin/python -m pip install -e ./contracts -e ./rag -e ./mcp \
-  -e ./orchestration -e ./agents -e ./a2ui
-.venv/bin/python -m pip install pytest pytest-asyncio ruff
+## Estructura del repositorio
+
+| Ruta | Contenido |
+| --- | --- |
+| `backend/` | API HTTP, SSE, autenticación, citas, acciones y webhooks |
+| `apps/web/` | Portal ciudadano, administración y renderer A2UI |
+| `contracts/` | Modelos, eventos, OpenAPI, JSON Schema y ejemplos |
+| `orchestration/` | Grafo, estado, checkpoints, puertos y eventos |
+| `agents/` | Clasificador, navegadores, verificador, estimador, transaccional y redactor |
+| `rag/` | Ingesta, chunking, embeddings, retrieval y evaluación |
+| `mcp/` | Catálogo, permisos, ejecución y herramientas |
+| `a2ui/` | Builders, validadores, catálogos y fallbacks |
+| `domains/` | Manifiestos, fuentes, skills y fixtures por dominio |
+| `database/`, `supabase/` | Esquema, migraciones y seeds |
+| `integrations/` | Adaptadores de proveedores y sistemas externos |
+| `data/` | Corpus sintético, mocks y assets de demostración |
+| `evaluations/`, `tests/` | Evaluaciones, pruebas unitarias, contract, integración y E2E |
+| `docs/` | Producto, arquitectura, ADRs, onboarding, runbooks y roadmap |
+
+## Rutas web
+
+`/` · `/login` · `/portal` · `/portal/chat` · `/portal/tramite` ·
+`/portal/citas` · `/portal/seguimiento` · `/admin` · `/admin/runs` ·
+`/admin/panel` · `/admin/workflow` · `/admin/catalogo` · `/admin/integraciones` ·
+`/admin/a2ui-lab` · `/agente-voz`.
+
+## API y canales
+
+- Health: `/health/live`, `/health/ready`.
+- Auth y usuarios: `/api/v1/auth/*`, `/api/v1/users/me`.
+- Conversaciones y runs: `/api/v1/conversations`, `/api/v1/runs/*` y SSE en
+  `/api/v1/runs/{run_id}/events`.
+- Acciones y citas: `/api/v1/actions/*`, `/api/v1/appointments/*`.
+- Voz y administración: `/api/v1/voice/turn`, `/api/v1/admin/*`.
+- Twilio: `/webhooks/twilio/whatsapp` y `/webhooks/twilio/status`.
+
+La especificación completa se publica en `contracts/openapi/` y en el OpenAPI
+generado por la API.
+
+## Inicio rápido
+
+Requisitos: Python 3.12, `uv`, Node.js/npm y Docker opcional para PostgreSQL.
+
+```bash
 uv sync --all-packages --frozen
 uv run pytest
+cd apps/web && npm install && npm run dev
 ```
 
-Regenerar los artefactos derivados de `contracts/` tras cambiar un modelo:
+Para el flujo local completo, variables de entorno, Supabase, Compose y seeds,
+consulta [la guía de desarrollo local](docs/getting-started/local-development.md).
+La colección para explorar la API está disponible en
+[Postman](<postman/Nexo IA API.postman_collection.json>).
 
-```sh
-.venv/bin/python -m nexo_contracts.export
-```
+## Documentación
 
-Alcance actual: contratos versionados, corpus y retrieval híbrido, agentes
-cerrados, server/tools MCP mock, grafo MVP reanudable con confirmación,
-estimación determinista y A2UI ciudadano con fallback. Los recorridos
-`CAP-VEH-01` y `CAP-EMP-01` se prueban de extremo a extremo sin credenciales.
-Ver [`docs/team/fase1_hallazgos.md`](./docs/team/fase1_hallazgos.md).
+- [Descripción del producto](docs/product/project-overview.md)
+- [Arquitectura técnica](docs/architecture/technical-architecture.md)
+- [Estado y roadmap](docs/roadmap/implementation-status.md)
+- [Roadmap por capacidades](docs/roadmap/README.md)
+- [Decisiones de arquitectura](docs/adr/README.md)
+- [Contratos y convenciones](docs/architecture/conventions.md)
+- [Runbook de arranque](docs/runbooks/arranque.md)
+- [Integración de WhatsApp](docs/runbooks/twilio_whatsapp.md)
+- [Colección Postman](<postman/Nexo IA API.postman_collection.json>)
+- [Evaluaciones](evaluations/README.md)
 
-## Convenciones
+## Principios de operación
 
-- Marcar capacidades como `planeada`, `mock` o `implementada`.
 - No versionar secretos ni PII real.
-- Cambiar contratos mediante revisión conjunta.
-- Mantener documentación y estado real sincronizados.
+- No presentar datos mock como integraciones institucionales reales.
+- Toda escritura requiere permiso, confirmación, idempotencia y auditoría.
+- Las afirmaciones críticas deben conservar fuente, vigencia y trazabilidad.
+- Los cambios incompatibles de contratos y catálogos requieren nueva versión.
 
-## Dependencias, ejemplos y tareas
+## Código abierto y licencia
 
-La raíz coordina el workspace Python. Requiere `uv >= 0.12`; en PowerShell usa
-`./scripts/lint.ps1` y `./scripts/test.ps1`. `docker-compose.yml` y
-`.env.example` están materializados; `run.sh` sigue pendiente.
+Nexo IA es un proyecto de código abierto distribuido bajo la [licencia MIT](LICENSE).
+Puedes usar, estudiar, modificar y redistribuir el software de acuerdo con sus
+condiciones.
 
-Responsable de instalación futura: Dani. Todo el equipo valida alcance y demo. La raíz se considera terminada cuando una persona nueva puede comprender y ejecutar el proyecto sin ayuda.
-
-## Skill de frontend
-
-Usa `$build-a2ui-frontend` para interfaces y futuros catálogos compatibles con
-A2UI v0.9.1. `citizen:v1` está congelado: cualquier evolución funcional publica
-`citizen:v2`. La skill versionada está en
-`.agents/skills/build-a2ui-frontend`.
+Antes de integrar un cambio, ejecuta las pruebas del área afectada, actualiza
+los contratos o la documentación correspondiente y verifica que no se
+introduzcan secretos ni datos personales. Los documentos y datos de
+demostración pueden tener condiciones adicionales de procedencia o licencia,
+que deben respetarse cuando se reutilicen fuera del repositorio.

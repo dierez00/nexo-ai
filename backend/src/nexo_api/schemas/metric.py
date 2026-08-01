@@ -32,3 +32,9 @@ class MetricSet(BaseModel):
     actions: CountByStatus
     appointments: CountByStatus
     generated_at: datetime
+
+
+class AdminChartRequest(BaseModel):
+    prompt: str = Field(min_length=1, max_length=500)
+    from_: datetime | None = Field(default=None, alias="from")
+    to: datetime | None = None

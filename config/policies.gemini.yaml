@@ -1,0 +1,85 @@
+# Políticas del perfil Gemini. No hay fallback de modelo: tras un reintento
+# transitorio agotado, el run termina como failed y conserva su traza.
+
+version: policies-gemini-2026-07-31-r3
+
+run_budgets:
+  # Incluye inferencia y persistencia secuencial de la traza en la base remota.
+  deadline_ms: 90000
+  max_cost_usd: 0.20
+  max_tokens: 200000
+  max_attempts_per_agent: 2
+  max_concurrency: 2
+
+agent_budgets:
+  classifier:
+    deadline_ms: 20000
+    max_cost_usd: 0.01
+    max_attempts_per_agent: 2
+  domain_navigator:
+    deadline_ms: 20000
+    max_cost_usd: 0.06
+    max_attempts_per_agent: 2
+  verifier:
+    deadline_ms: 6000
+    max_cost_usd: 0.08
+    max_attempts_per_agent: 2
+  estimator:
+    deadline_ms: 4000
+    max_cost_usd: 0.02
+    max_attempts_per_agent: 1
+  transactional:
+    deadline_ms: 5000
+    max_cost_usd: 0.01
+    max_attempts_per_agent: 1
+  writer:
+    deadline_ms: 20000
+    max_cost_usd: 0.03
+    max_attempts_per_agent: 2
+
+operations:
+  - operation: retrieval
+    mode: read
+    timeout_ms: 3000
+    retry:
+      max_attempts: 2
+      retry_on: [PROVIDER_ERROR]
+
+  - operation: tool_read
+    mode: read
+    timeout_ms: 5000
+    retry:
+      max_attempts: 2
+      retry_on: [TOOL_TIMEOUT, PROVIDER_ERROR]
+
+  - operation: tool_write
+    mode: write
+    timeout_ms: 5000
+    retry:
+      max_attempts: 1
+      retry_on: []
+
+  - operation: model_call
+    mode: read
+    timeout_ms: 20000
+    retry:
+      max_attempts: 2
+      retry_on: [RATE_LIMITED, MODEL_UNAVAILABLE, PROVIDER_ERROR]
+
+outcomes:
+  halt_on:
+    - CONFIGURATION_INVALID
+    - AUTHENTICATION_REQUIRED
+    - PERMISSION_DENIED
+    - CONTRACT_INVALID
+    - RUN_CANCELLED
+    - RATE_LIMITED
+    - PROVIDER_ERROR
+    - MODEL_UNAVAILABLE
+    - MODEL_OUTPUT_INVALID
+  partial_on:
+    - UNKNOWN_OUTCOME
+    - RUN_TIMEOUT
+    - BUDGET_EXCEEDED
+    - TOOL_TIMEOUT
+  fallback_on: []

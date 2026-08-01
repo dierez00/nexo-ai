@@ -334,3 +334,50 @@ def test_vehicle_estimator_keeps_renewal_cost_separate_from_debt() -> None:
 
     assert estimate.total_cost == Money(amount_minor=81400, currency="MXN")
     assert estimate.steps[0].missing_documents == ["Identificación oficial vigente"]
+
+
+def test_vehicle_estimator_calculates_first_time_license() -> None:
+    cost = VerifiedFact(
+        fact_id="fact_first_license_cost",
+        claim="La primera emisión de licencia tipo A cuesta 980.00 MXN.",
+        value=FactValue(money=Money(amount_minor=98000, currency="MXN")),
+        category=FactCategory.COST,
+        domain=Domain.VEHICULOS,
+        verification=VerificationStatus.ACCEPTED,
+        reason="citation_supports_claim",
+        confidence=0.95,
+        citations=[
+            CITATION.model_copy(
+                update={
+                    "source_id": "src_veh_tarifas",
+                    "fragment_id": "frag_veh_first_license_cost",
+                }
+            )
+        ],
+    )
+    requirements = cost.model_copy(
+        update={
+            "fact_id": "fact_first_license_docs",
+            "claim": "Para primera emisión se requiere identificación oficial, CURP y examen de manejo.",
+            "value": FactValue(
+                items=[
+                    "CURP",
+                    "Constancia de aprobación del examen de manejo",
+                    "Identificación oficial vigente con fotografía",
+                ]
+            ),
+            "category": FactCategory.REQUIREMENT,
+        }
+    )
+    facts = VerifiedFacts(
+        snapshot_id="fact_vehicle_first",
+        created_at=NOW,
+        facts=(cost, requirements),
+    )
+
+    estimate = VehicleEstimator().estimate(facts).estimate
+
+    assert estimate.steps[0].step_id == "primera_emision_licencia"
+    assert estimate.steps[0].title == "Tramitar licencia de conducir por primera vez"
+    assert estimate.total_cost == Money(amount_minor=98000, currency="MXN")
+    assert "CURP" in estimate.steps[0].missing_documents

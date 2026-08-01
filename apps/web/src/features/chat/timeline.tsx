@@ -1,23 +1,41 @@
 import { Rail, RailItem } from "@/components/nexo/rail";
 import { StatusBadge, type Tone } from "@/components/nexo/status-badge";
+import type { Phase, PhaseState } from "./run-phases";
 
-export function ChatTimeline({
-  eventos,
-}: {
-  eventos: { estado: string; detalle: string; tone: Tone; done?: boolean; active?: boolean }[];
-}) {
+const STATE_TONE: Record<PhaseState, Tone> = {
+  pendiente: "neutral",
+  en_curso: "info",
+  completado: "success",
+  fallido: "destructive",
+};
+
+const STATE_LABEL: Record<PhaseState, string> = {
+  pendiente: "Pendiente",
+  en_curso: "En curso",
+  completado: "Completado",
+  fallido: "Con error",
+};
+
+/** Línea de tiempo del run, en fases legibles y no en tipos de evento. */
+export function ChatTimeline({ fases }: { fases: Phase[] }) {
+  if (fases.length === 0) return null;
+
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Línea de tiempo
       </p>
       <Rail>
-        {eventos.map((e) => (
-          <RailItem key={e.estado} done={e.done} active={e.active}>
-            <p className="text-sm font-semibold">{e.estado}</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">{e.detalle}</p>
-            <StatusBadge tone={e.tone} className="mt-2">
-              {e.done ? "Completado" : e.active ? "En curso" : "Pendiente"}
+        {fases.map((fase) => (
+          <RailItem
+            key={fase.id}
+            done={fase.state === "completado"}
+            active={fase.state === "en_curso"}
+          >
+            <p className="text-sm font-semibold">{fase.label}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{fase.detail}</p>
+            <StatusBadge tone={STATE_TONE[fase.state]} className="mt-2">
+              {STATE_LABEL[fase.state]}
             </StatusBadge>
           </RailItem>
         ))}

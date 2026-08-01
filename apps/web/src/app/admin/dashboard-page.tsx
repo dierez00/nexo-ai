@@ -16,7 +16,13 @@ import { AdminShell } from "@/components/nexo/admin-shell";
 import { StatusBadge } from "@/components/nexo/status-badge";
 import { tendencia } from "@/lib/mock";
 import { cn } from "@/lib/utils";
-import { apiFetch, type AdminCatalog, type MetricSet, type NexoConfigSummary } from "@/lib/api/client";
+import {
+  apiFetch,
+  listRuns,
+  type AdminCatalog,
+  type MetricSet,
+  type NexoConfigSummary,
+} from "@/lib/api/client";
 
 const rangos = ["Hoy", "7 días", "30 días", "Trimestre"];
 
@@ -83,6 +89,10 @@ export function AdminDashboard() {
     queryKey: ["admin", "config"],
     queryFn: () => apiFetch<NexoConfigSummary>("/api/v1/admin/config"),
   });
+  const runsTrend = useQuery({
+    queryKey: ["admin", "runs", "trend"],
+    queryFn: () => listRuns({ limit: 100 }),
+  });
 
   const realMetricas = metrics.data
     ? [
@@ -126,7 +136,25 @@ export function AdminDashboard() {
     : dominios;
 
   const maxDominio = Math.max(1, ...realDominios.map((item) => item.total));
-  const usingFallback = Boolean(metrics.error || catalog.error || config.error);
+
+  const realTendencia = runsTrend.data?.length
+    ? Object.entries(
+        runsTrend.data.reduce<Record<string, { total: number; exitosos: number }>>((acc, run) => {
+          const dia = new Date(run.created_at).toLocaleDateString("es-MX", {
+            day: "2-digit",
+            month: "short",
+          });
+          acc[dia] ??= { total: 0, exitosos: 0 };
+          acc[dia].total += 1;
+          if (run.status === "succeeded" || run.status === "partial") acc[dia].exitosos += 1;
+          return acc;
+        }, {}),
+      )
+        .map(([dia, v]) => ({ dia, tramites: v.total, exito: Math.round((v.exitosos / v.total) * 100) }))
+        .reverse()
+    : tendencia;
+
+  const usingFallback = Boolean(metrics.error || catalog.error || config.error || runsTrend.error);
 
   return (
     <AdminShell
@@ -195,7 +223,7 @@ export function AdminDashboard() {
           </div>
           <div className="mt-5 h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={tendencia} margin={{ left: -20, right: 8, top: 8 }}>
+              <AreaChart data={realTendencia} margin={{ left: -20, right: 8, top: 8 }}>
                 <defs>
                   <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.35} />

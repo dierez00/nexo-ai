@@ -15,7 +15,7 @@ from datetime import UTC, datetime
 import pytest
 from nexo_api.services.orchestration import RealOrchestrator, build_graph_deps
 
-from nexo_contracts import ActionRequest, Channel, Identity, RunRequest, RunStatus
+from nexo_contracts import ActionRequest, Budgets, Channel, Identity, RunRequest, RunStatus
 from nexo_orchestration.testing import InMemoryEventSink
 
 pytestmark = pytest.mark.e2e
@@ -52,7 +52,7 @@ def _request() -> RunRequest:
 
 
 async def test_real_run_reaches_confirmation_and_persists_the_action() -> None:
-    assembly = await build_graph_deps()
+    assembly = await build_graph_deps(model_backend="offline")
     orchestrator = RealOrchestrator(assembly)
     sink = _CapturingSink()
 
@@ -67,3 +67,21 @@ async def test_real_run_reaches_confirmation_and_persists_the_action() -> None:
     action, tenant_id = sink.persisted[0]
     assert tenant_id == 1
     assert action.tool_name == "vehiculos.reservar_cita"
+
+
+async def test_real_orchestrator_applies_the_loaded_profile_budget() -> None:
+    assembly = await build_graph_deps(model_backend="offline")
+    orchestrator = RealOrchestrator(assembly)
+    request_with_contract_default_override = _request().model_copy(
+        update={"budgets": Budgets(deadline_ms=1)}
+    )
+
+    result = await orchestrator.run(
+        request_with_contract_default_override,
+        InMemoryEventSink(),
+        _CapturingSink(),
+        tenant_id=1,
+    )
+
+    assert result.status is RunStatus.WAITING_CONFIRMATION
+    assert assembly.policies.run_budgets.deadline_ms == 20_000

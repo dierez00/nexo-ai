@@ -301,11 +301,11 @@ class Estimator:
 
 @dataclass
 class VehicleEstimator:
-    """Ruta determinista de renovación para ``CAP-VEH-01``.
+    """Ruta determinista de trámites vehiculares de licencia tipo A.
 
     Vehículos no necesita un DAG de cuatro permisos, pero sí debe entregar el
-    costo de renovación y los documentos faltantes con trazabilidad. El adeudo
-    consultado es un costo distinto y nunca se suma como tarifa de licencia.
+    costo y los documentos faltantes con trazabilidad. El adeudo consultado es
+    un costo distinto y nunca se suma como tarifa de licencia.
     """
 
     def estimate(self, facts: VerifiedFacts) -> EstimationOutcome:
@@ -313,14 +313,18 @@ class VehicleEstimator:
             fact for fact in facts.facts if fact.verification is VerificationStatus.ACCEPTED
         ]
         requirements = [fact for fact in accepted if fact.category is FactCategory.REQUIREMENT]
-        renewal_costs = [
+        license_costs = [
             fact
             for fact in accepted
             if fact.category is FactCategory.COST
-            and any(term in fact.claim.casefold() for term in ("licencia", "renov"))
+            and "licencia" in fact.claim.casefold()
+            and any(
+                term in fact.claim.casefold()
+                for term in ("renov", "primera emision", "primera emisión")
+            )
             and fact.value.money is not None
         ]
-        backing = [*requirements, *renewal_costs]
+        backing = [*requirements, *license_costs]
         if not backing:
             return EstimationOutcome(
                 estimate=Estimate(domain=Domain.VEHICULOS),
@@ -329,19 +333,46 @@ class VehicleEstimator:
                     unsupported_claims=1,
                     notes=["vehicle_estimation_without_evidence"],
                 ),
-                warnings=("No hay evidencia verificada suficiente para calcular la renovación.",),
-                unsupported_steps=("renovar_licencia",),
+                warnings=("No hay evidencia verificada suficiente para calcular la licencia.",),
+                unsupported_steps=("licencia_conducir",),
             )
 
         documents = sorted({item for fact in requirements for item in (fact.value.items or [])})
-        cost = renewal_costs[0].value.money if renewal_costs else None
         derived_from = sorted({fact.fact_id for fact in backing})
+        first_time = any(
+            any(term in fact.claim.casefold() for term in ("primera emision", "primera emisión"))
+            for fact in backing
+        )
+        cost_candidates = [
+            fact
+            for fact in license_costs
+            if (
+                any(
+                    term in fact.claim.casefold()
+                    for term in ("primera emision", "primera emisión")
+                )
+                if first_time
+                else "renov" in fact.claim.casefold()
+            )
+        ]
+        selected_cost = (
+            cost_candidates[0]
+            if cost_candidates
+            else (license_costs[0] if license_costs else None)
+        )
+        cost = selected_cost.value.money if selected_cost is not None else None
+        step_id = "primera_emision_licencia" if first_time else "renovar_licencia"
+        title = (
+            "Tramitar licencia de conducir por primera vez"
+            if first_time
+            else "Renovar licencia de conducir"
+        )
         estimate = Estimate(
             domain=Domain.VEHICULOS,
             steps=[
                 EstimateStep(
-                    step_id="renovar_licencia",
-                    title="Renovar licencia de conducir",
+                    step_id=step_id,
+                    title=title,
                     cost=cost,
                     missing_documents=documents,
                     derived_from=derived_from,

@@ -14,13 +14,20 @@ WORKDIR /app
 # Copiar el workspace (los miembros se instalan desde su fuente)
 COPY pyproject.toml uv.lock ./
 COPY a2ui/ ./a2ui/
+COPY agents/ ./agents/
 COPY backend/ ./backend/
 COPY contracts/ ./contracts/
+COPY evaluations/ ./evaluations/
 COPY integrations/ ./integrations/
 COPY mcp/ ./mcp/
 COPY observability/ ./observability/
 COPY orchestration/ ./orchestration/
 COPY rag/ ./rag/
+
+# Configuración y corpus requeridos por ORCHESTRATOR_PROFILE=real.
+COPY config/ ./config/
+COPY domains/ ./domains/
+COPY data/ ./data/
 
 # Instalar dependencias del workspace sin las de desarrollo
 RUN uv sync --frozen --all-packages --no-dev

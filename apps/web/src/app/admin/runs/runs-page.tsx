@@ -1,41 +1,140 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Filter, Search, X } from "lucide-react";
 import { AdminShell } from "@/components/nexo/admin-shell";
-import { StatusBadge } from "@/components/nexo/status-badge";
+import { StatusBadge, type Tone } from "@/components/nexo/status-badge";
 import { Rail, RailItem } from "@/components/nexo/rail";
-import { runs } from "@/lib/mock";
+import { runs as mockRuns } from "@/lib/mock";
 import { cn } from "@/lib/utils";
+import { apiFetch, listRuns, type RunEvent, type RunResult, type RunSummary } from "@/lib/api/client";
 
-const filtros = ["Todos", "Completado", "En curso", "Error de herramienta", "Derivado a humano"];
+const ESTADOS: { value: RunResult["status"]; label: string; tone: Tone }[] = [
+  { value: "queued", label: "En cola", tone: "info" },
+  { value: "planning", label: "Planificando", tone: "info" },
+  { value: "running", label: "En curso", tone: "info" },
+  { value: "waiting_confirmation", label: "Esperando confirmación", tone: "warning" },
+  { value: "succeeded", label: "Completado", tone: "success" },
+  { value: "partial", label: "Completado (parcial)", tone: "warning" },
+  { value: "failed", label: "Error de herramienta", tone: "destructive" },
+  { value: "cancelled", label: "Cancelado", tone: "neutral" },
+];
+
+const filtros = ["Todos", ...ESTADOS.map((e) => e.label)];
+
+type Row = {
+  id: string;
+  trace: string;
+  fecha: string;
+  dominio: string;
+  estado: string;
+  tone: Tone;
+  latencia: string;
+  costo: string;
+};
+
+function formatMs(value: number) {
+  if (!value) return "—";
+  if (value < 1000) return `${Math.round(value)} ms`;
+  return `${(value / 1000).toFixed(1)} s`;
+}
+
+function toRow(r: RunSummary): Row {
+  const meta = ESTADOS.find((e) => e.value === r.status);
+  return {
+    id: r.run_id,
+    trace: r.trace_id,
+    fecha: new Date(r.created_at).toLocaleString("es-MX"),
+    dominio: r.domain ?? "—",
+    estado: meta?.label ?? r.status,
+    tone: meta?.tone ?? "neutral",
+    latencia: formatMs(r.latency_ms ?? 0),
+    costo: r.total_cost_usd != null ? `$${r.total_cost_usd.toFixed(4)}` : "—",
+  };
+}
+
+function toMockRow(r: (typeof mockRuns)[number]): Row {
+  return {
+    id: r.id,
+    trace: r.trace,
+    fecha: r.fecha,
+    dominio: r.dominio,
+    estado: r.estado,
+    tone: r.tone,
+    latencia: r.duracion,
+    costo: "—",
+  };
+}
+
+function eventDetail(event: RunEvent) {
+  const type = event.type.replaceAll(".", " ");
+  if (event.error?.message) return event.error.message;
+  if (event.public_data && Object.keys(event.public_data).length > 0) {
+    return JSON.stringify(event.public_data);
+  }
+  return type.charAt(0).toUpperCase() + type.slice(1);
+}
 
 export function RunsPage() {
   const [filtro, setFiltro] = useState("Todos");
+  const [q, setQ] = useState("");
   const [sel, setSel] = useState<string | null>(null);
   const [panel, setPanel] = useState(false);
 
-  const lista = filtro === "Todos" ? runs : runs.filter((r) => r.estado === filtro);
-  const run = runs.find((r) => r.id === sel) ?? null;
+  const filtroEstado = ESTADOS.find((e) => e.label === filtro)?.value;
+  const runsQuery = useQuery({
+    queryKey: ["admin", "runs", filtroEstado ?? "todos"],
+    queryFn: () => listRuns({ status: filtroEstado, limit: 50 }),
+  });
+
+  const usingFallback = Boolean(runsQuery.error);
+  const rows = usingFallback
+    ? mockRuns.map(toMockRow).filter((r) => filtro === "Todos" || r.estado === filtro)
+    : (runsQuery.data ?? []).map(toRow);
+
+  const needle = q.trim().toLowerCase();
+  const lista = needle
+    ? rows.filter((r) => r.trace.toLowerCase().includes(needle) || r.dominio.toLowerCase().includes(needle))
+    : rows;
+
+  const selRow = lista.find((r) => r.id === sel) ?? null;
+  const runDetail = useQuery({
+    queryKey: ["admin", "runs", sel],
+    queryFn: () => apiFetch<RunResult>(`/api/v1/runs/${sel}`),
+    enabled: Boolean(sel) && !usingFallback,
+  });
+  const runEvents = useQuery({
+    queryKey: ["admin", "runs", sel, "events"],
+    queryFn: () => apiFetch<RunEvent[]>(`/api/v1/runs/${sel}/events/list`),
+    enabled: Boolean(sel) && !usingFallback,
+  });
 
   return (
     <AdminShell
       title="Runs"
       subtitle={`${lista.length} ejecuciones en el rango seleccionado`}
       actions={
-        <button
-          onClick={() => setPanel(true)}
-          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-medium lg:hidden"
-        >
-          <Filter className="size-3.5" /> Filtros
-        </button>
+        <div className="flex items-center gap-2">
+          <StatusBadge tone={usingFallback ? "warning" : "success"}>
+            {usingFallback ? "Mostrando fallback" : "API conectada"}
+          </StatusBadge>
+          <button
+            onClick={() => setPanel(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-medium lg:hidden"
+          >
+            <Filter className="size-3.5" /> Filtros
+          </button>
+        </div>
       }
     >
       <div className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft lg:grid-cols-[minmax(0,1fr)_auto]">
         <label className="flex min-w-0 items-center gap-2 rounded-full border border-border bg-background px-4 py-2">
           <Search className="size-4 shrink-0 text-muted-foreground" />
           <input
-            placeholder="Buscar por trace id, folio o dominio"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar por trace id o dominio"
             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </label>
@@ -65,8 +164,8 @@ export function RunsPage() {
               <tr>
                 <th className="px-4 py-3 font-medium">Fecha</th>
                 <th className="px-4 py-3 font-medium">Dominio</th>
-                <th className="px-4 py-3 font-medium">Canal</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
+                <th className="px-4 py-3 font-medium">Latencia</th>
                 <th className="px-4 py-3 font-medium">Trace id</th>
               </tr>
             </thead>
@@ -82,13 +181,20 @@ export function RunsPage() {
                 >
                   <td className="mono whitespace-nowrap px-4 py-3 text-xs">{r.fecha}</td>
                   <td className="px-4 py-3">{r.dominio}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{r.canal}</td>
                   <td className="px-4 py-3">
                     <StatusBadge tone={r.tone}>{r.estado}</StatusBadge>
                   </td>
+                  <td className="mono px-4 py-3 text-xs text-muted-foreground">{r.latencia}</td>
                   <td className="mono px-4 py-3 text-xs text-muted-foreground">{r.trace}</td>
                 </tr>
               ))}
+              {lista.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    No hay ejecuciones para este filtro.
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </div>
@@ -108,7 +214,7 @@ export function RunsPage() {
                 <dl className="mt-3 space-y-1 text-xs">
                   {[
                     ["Fecha", r.fecha],
-                    ["Canal", r.canal],
+                    ["Latencia", r.latencia],
                     ["Trace id", r.trace],
                   ].map(([k, v]) => (
                     <div key={k} className="grid grid-cols-[88px_minmax(0,1fr)] gap-2">
@@ -123,14 +229,14 @@ export function RunsPage() {
         </ul>
 
         <aside className="rounded-2xl border border-border bg-card p-5 shadow-soft">
-          {run ? (
+          {selRow ? (
             <>
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                 <div className="min-w-0">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">
                     Detalle del run
                   </p>
-                  <p className="mono mt-1 truncate text-base font-semibold">{run.id}</p>
+                  <p className="mono mt-1 truncate text-base font-semibold">{selRow.id}</p>
                 </div>
                 <button
                   onClick={() => setSel(null)}
@@ -141,15 +247,14 @@ export function RunsPage() {
                 </button>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
-                <StatusBadge tone={run.tone}>{run.estado}</StatusBadge>
-                <StatusBadge tone="info">{run.canal}</StatusBadge>
+                <StatusBadge tone={selRow.tone}>{selRow.estado}</StatusBadge>
               </div>
               <dl className="mt-5 space-y-2 text-sm">
                 {[
-                  ["Dominio", run.dominio],
-                  ["Duración", run.duracion],
-                  ["Pasos ejecutados", String(run.pasos)],
-                  ["Trace id", run.trace],
+                  ["Dominio", selRow.dominio],
+                  ["Latencia", selRow.latencia],
+                  ["Costo", selRow.costo],
+                  ["Trace id", selRow.trace],
                 ].map(([k, v]) => (
                   <div key={k} className="grid grid-cols-[120px_minmax(0,1fr)] gap-3">
                     <dt className="text-muted-foreground">{k}</dt>
@@ -160,29 +265,33 @@ export function RunsPage() {
               <h3 className="mt-6 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Trazabilidad
               </h3>
-              <Rail className="mt-4">
-                <RailItem done>
-                  <p className="text-sm font-semibold">Estado</p>
-                  <p className="text-sm text-muted-foreground">
-                    Intención clasificada: {run.dominio.toLowerCase()}.
-                  </p>
-                </RailItem>
-                <RailItem done>
-                  <p className="text-sm font-semibold">Fuente</p>
-                  <p className="text-sm text-muted-foreground">
-                    Herramienta <span className="mono">consultar_requisitos</span> · 320 ms
-                  </p>
-                </RailItem>
-                <RailItem active>
-                  <p className="text-sm font-semibold">Siguiente acción</p>
-                  <p className="text-sm text-muted-foreground">
-                    Respuesta entregada con checklist y fuente citada.
-                  </p>
-                </RailItem>
-              </Rail>
-              <button className="mt-6 w-full rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">
-                Abrir traza completa
-              </button>
+              {usingFallback ? (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  Datos de ejemplo; conecta la API para ver la traza real de eventos.
+                </p>
+              ) : runEvents.data && runEvents.data.length > 0 ? (
+                <Rail className="mt-4">
+                  {runEvents.data.map((event, index) => (
+                    <RailItem
+                      key={event.event_id}
+                      done={index < runEvents.data!.length - 1}
+                      active={index === runEvents.data!.length - 1}
+                    >
+                      <p className="text-sm font-semibold">{event.type}</p>
+                      <p className="text-sm text-muted-foreground">{eventDetail(event)}</p>
+                    </RailItem>
+                  ))}
+                </Rail>
+              ) : (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  {runEvents.isLoading ? "Cargando eventos…" : "Sin eventos registrados."}
+                </p>
+              )}
+              {!usingFallback && runDetail.data?.answer ? (
+                <p className="mt-6 rounded-xl bg-muted/60 p-3 text-sm text-muted-foreground">
+                  {runDetail.data.answer}
+                </p>
+              ) : null}
             </>
           ) : (
             <div className="flex h-full min-h-56 flex-col items-center justify-center text-center">

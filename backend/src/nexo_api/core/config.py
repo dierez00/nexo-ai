@@ -77,7 +77,7 @@ class Settings(BaseSettings):
     # Modelos (aliases opcionales; se completan cuando haya proveedor)
     # ------------------------------------------------------------------
     openai_api_key: SecretStr = SecretStr("")
-    anthropic_api_key: SecretStr = SecretStr("")
+    gemini_api_key: SecretStr = SecretStr("")
     ollama_base_url: str = "http://localhost:11434"
 
     # ------------------------------------------------------------------

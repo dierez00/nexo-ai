@@ -48,6 +48,31 @@ OUTPUT_CONTRACT = "classification"
 # lo haya entendido», y el navegador debe tratarla como tal.
 FALLBACK_CONFIDENCE = 0.45
 
+_CAPABILITY_PHRASES = (
+    "que puedes hacer",
+    "que sabes hacer",
+    "en que me puedes ayudar",
+    "como me puedes ayudar",
+    "cuales son tus funciones",
+    "que funciones tienes",
+    "que tramites atiendes",
+    "que tramites puedes hacer",
+    "que servicios ofreces",
+    "que servicios tienes",
+    "mostrar ayuda",
+    "menu de ayuda",
+)
+
+
+def is_capabilities_query(message: str) -> bool:
+    """Detecta preguntas sobre el catálogo sin confundirlas con un trámite."""
+    from .keywords import normalize_for_match
+
+    normalized = normalize_for_match(message)
+    return normalized == " ayuda " or any(
+        f" {phrase} " in normalized for phrase in _CAPABILITY_PHRASES
+    )
+
 
 @dataclass(frozen=True)
 class ClassificationResult:
@@ -77,6 +102,7 @@ class Classifier:
     manifests: dict[Domain, DomainManifest]
     prompt: Prompt = field(default_factory=lambda: load_prompt("classifier", "v1"))
     alias: str = "structured_small"
+    deadline_ms: int = 3_000
 
     def __post_init__(self) -> None:
         self._by_slug: dict[str, tuple[Domain, str]] = {}
@@ -122,13 +148,17 @@ class Classifier:
             ),
             prompt_version=self.prompt.version,
             variables={"channel": request.channel.value},
-            deadline_ms=3000,
+            deadline_ms=self.deadline_ms,
         )
 
         try:
             outcome = await self.gateway.invoke(chat, context, Classification)
         except ModelPortError as exc:
-            return self._fallback(request, invocations=(), error=exc.error)
+            return self._fallback(
+                request,
+                invocations=tuple(exc.invocations),
+                error=exc.error,
+            )
 
         classification = outcome.value
         assert classification is not None  # `invoke` con contrato o devuelve valor o lanza

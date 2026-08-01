@@ -1,4 +1,4 @@
-"""Catálogo ciudadano v1: allowlist cerrada de componentes (`DIE-F1-100`).
+"""Catálogos A2UI v1: allowlists cerradas de componentes (`DIE-F1-100`).
 
 El catálogo se define **en código** y el JSON de `a2ui/catalogs/` se genera
 desde aquí, igual que los JSON Schema de `contracts`. Escribirlo a mano crearía
@@ -10,9 +10,8 @@ exige publicar `v2`. No es rigidez por gusto —es lo que permite que el rendere
 de Cris declare qué versión soporta y que el servidor no le mande nunca algo que
 no sabe dibujar.
 
-Esta es la instalación **mínima**: los diez componentes que los dos recorridos
-del MVP necesitan y ni uno más. Formularios, tablas y superficies
-administrativas son Fase 3.
+`citizen:v1` está congelado. `admin:v1` vive separado para que las superficies
+analíticas no amplíen por accidente lo que el portal ciudadano sabe dibujar.
 """
 
 from __future__ import annotations
@@ -34,11 +33,14 @@ from nexo_contracts import (
 
 CITIZEN_CATALOG_ID = "urn:nexo-ia:a2ui:catalog:citizen:v1"
 CITIZEN_CATALOG_VERSION = "1.0.0"
+ADMIN_CATALOG_ID = "urn:nexo-ia:a2ui:catalog:admin:v1"
+ADMIN_CATALOG_VERSION = "1.0.0"
 
 # Ruta relativa a la raíz del repositorio, la misma que declara
 # `config/catalogs.yaml`.
 CITIZEN_CATALOG_PATH = Path("a2ui/catalogs/citizen/v1/catalog.json")
 CITIZEN_FREEZE_PATH = Path("a2ui/catalogs/citizen/v1/freeze.json")
+ADMIN_CATALOG_PATH = Path("a2ui/catalogs/admin/v1/catalog.json")
 
 
 class FrozenCatalogManifest(NexoModel):
@@ -92,6 +94,22 @@ CITIZEN_CATALOG = CatalogDescriptor(
     ],
 )
 
+ADMIN_CATALOG = CatalogDescriptor(
+    catalog_id=ADMIN_CATALOG_ID,
+    version=ADMIN_CATALOG_VERSION,
+    title="Catálogo administrativo de Nexo IA",
+    audience="admin",
+    components=[
+        _component("Column", children=True),
+        _component("Card", children=True),
+        _component("Text"),
+        _component("StatusBanner"),
+        _component("MetricCard"),
+        _component("ChartPanel"),
+        _component("DataTable"),
+    ],
+)
+
 # Propiedades admitidas por componente. Cierra `TD-04` de Fase 0: el contrato
 # `A2UIComponent` absorbe cualquier propiedad desconocida porque qué admite cada
 # componente lo sabe el catálogo, no el modelo. Aquí está el catálogo.
@@ -108,18 +126,37 @@ ALLOWED_PROPERTIES: dict[str, frozenset[str]] = {
     "ConfirmButton": frozenset({"label", "description"}),
 }
 
+ADMIN_ALLOWED_PROPERTIES: dict[str, frozenset[str]] = {
+    "Column": frozenset({"align", "gap"}),
+    "Card": frozenset({"title", "tone"}),
+    "Text": frozenset({"text", "variant"}),
+    "StatusBanner": frozenset({"title", "message", "tone"}),
+    "MetricCard": frozenset({"label", "value", "delta", "tone", "caption"}),
+    "ChartPanel": frozenset(
+        {"title", "description", "chartType", "data", "xKey", "yKey", "series"}
+    ),
+    "DataTable": frozenset({"title", "columns", "rows", "caption"}),
+}
+
 # Tonos admitidos donde el componente los acepta. Un tono inventado no rompe
 # nada visualmente, pero un `tone: "success"` en una advertencia sí engaña.
 ALLOWED_TONES = frozenset({"neutral", "info", "success", "warning", "danger"})
 
 
+def _properties_for(catalog: CatalogDescriptor) -> dict[str, frozenset[str]]:
+    if catalog.catalog_id == ADMIN_CATALOG_ID:
+        return ADMIN_ALLOWED_PROPERTIES
+    return ALLOWED_PROPERTIES
+
+
 def render_catalog_json(catalog: CatalogDescriptor | None = None) -> str:
     """Artefacto que consume el renderer, con las propiedades permitidas."""
     descriptor = catalog or CITIZEN_CATALOG
+    allowed_properties = _properties_for(descriptor)
     payload = {
         **descriptor.model_dump(mode="json", by_alias=True),
         "allowed_properties": {
-            name: sorted(properties) for name, properties in sorted(ALLOWED_PROPERTIES.items())
+            name: sorted(properties) for name, properties in sorted(allowed_properties.items())
         },
         "allowed_tones": sorted(ALLOWED_TONES),
     }
@@ -131,10 +168,13 @@ def export_catalog(
     catalog: CatalogDescriptor | None = None,
 ) -> Path:
     """Escribe el catálogo, salvo que altere el citizen v1 congelado."""
-    path = root / CITIZEN_CATALOG_PATH
-    payload = render_catalog_json(catalog)
+    descriptor = catalog or CITIZEN_CATALOG
+    path = root / (
+        ADMIN_CATALOG_PATH if descriptor.catalog_id == ADMIN_CATALOG_ID else CITIZEN_CATALOG_PATH
+    )
+    payload = render_catalog_json(descriptor)
     freeze_path = root / CITIZEN_FREEZE_PATH
-    if freeze_path.exists():
+    if descriptor.catalog_id == CITIZEN_CATALOG_ID and freeze_path.exists():
         manifest = load_freeze_manifest(root)
         expected = manifest.artifacts.get(CITIZEN_CATALOG_PATH.as_posix())
         actual = _sha256(payload.encode())

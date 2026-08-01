@@ -6,7 +6,12 @@ from typing import Any
 
 import pytest
 
-from nexo_agents.classifier import PURPOSE, Classifier, classify_by_keywords
+from nexo_agents.classifier import (
+    PURPOSE,
+    Classifier,
+    classify_by_keywords,
+    is_capabilities_query,
+)
 from nexo_agents.domain_manifest import DomainManifest
 from nexo_contracts import (
     Classification,
@@ -75,6 +80,16 @@ def test_the_fallback_resolves_the_business_case(manifests) -> None:
     assert classification.primary_domain is Domain.AYUNTAMIENTO_EMPRESAS
 
 
+def test_the_fallback_resolves_first_time_license_with_typo(manifests) -> None:
+    classification = classify_by_keywords(
+        "que necesito para tramitar por primera vez mi licensia de conducir",
+        manifests,
+    )
+
+    assert classification.intent_slugs() == ("primera_emision_licencia",)
+    assert classification.primary_domain is Domain.VEHICULOS
+
+
 def test_the_fallback_declares_out_of_scope_instead_of_guessing(manifests) -> None:
     """`DIE-F1-035`: no inventar dominio es preferible a acertar por azar."""
     classification = classify_by_keywords("cómo tramito mi pasaporte", manifests)
@@ -86,6 +101,25 @@ def test_the_fallback_declares_out_of_scope_instead_of_guessing(manifests) -> No
 def test_keyword_matching_respects_word_boundaries(manifests) -> None:
     """«debo» no debe dispararse dentro de otra palabra."""
     assert classify_by_keywords("adebolizar el proceso", manifests).is_out_of_scope is True
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "¿Qué sabes hacer?",
+        "Que puedes hacer",
+        "¿En qué me puedes ayudar?",
+        "Cuáles son tus funciones",
+        "¿Qué trámites atiendes?",
+        "ayuda",
+    ],
+)
+def test_capability_queries_are_detected_without_a_model(message: str) -> None:
+    assert is_capabilities_query(message) is True
+
+
+def test_a_concrete_request_is_not_mistaken_for_a_capability_query() -> None:
+    assert is_capabilities_query("Ayúdame a renovar mi licencia") is False
 
 
 # --- DIE-F1-034: el fallback cubre cada modo de fallo del modelo -------------
@@ -235,6 +269,24 @@ def test_a_classification_that_commits_to_nothing_is_rejected() -> None:
     """Cero intenciones sin motivo dejaría el run sin dominio y sin explicación."""
     with pytest.raises(ValueError, match="necesita un motivo"):
         Classification(entities={})
+
+
+def test_a_capabilities_classification_needs_no_domain() -> None:
+    classification = Classification(entities={}, request_kind="capabilities", confidence=1.0)
+
+    assert classification.primary_domain is None
+    assert classification.is_out_of_scope is False
+
+
+def test_a_capabilities_classification_cannot_claim_a_domain_intent() -> None:
+    with pytest.raises(ValueError, match="consulta de capacidades"):
+        Classification(
+            entities={},
+            request_kind="capabilities",
+            intents=[
+                DetectedIntent(intent="renovar_licencia", domain=Domain.VEHICULOS, confidence=0.9)
+            ],
+        )
 
 
 def test_out_of_scope_and_intents_cannot_both_be_true() -> None:

@@ -2,8 +2,8 @@
 
 - **Estado:** accepted
 - **Fecha:** 2026-07-30
-- **Decisor:** Diego
-- **Revisan:** Dani (ejecución y API), Daher (persistencia de checkpoints)
+- **Estado:** accepted
+- **Revisión:** fronteras de ejecución, API y persistencia de checkpoints
 - **Tarea:** `DIE-F0-002`
 
 ## Contexto
@@ -36,7 +36,7 @@ Se usa **LangGraph** como motor del grafo, desde Fase 0, con tres restricciones:
    que un objeto vivo falla en validación.
 3. **Los checkpoints usan un puerto propio** (`CheckpointStorePort`), no el
    checkpointer del framework. Lo que se persiste es `RunState`, que es lo que
-   Daher almacenará en PostgreSQL.
+   La persistencia se almacenará en PostgreSQL.
 
 Política de checkpoints:
 

@@ -12,7 +12,7 @@ members = [
     "backend",
     "integrations",
     "observability",
-    # Núcleo inteligente (Diego). `contracts` va primero por ser la raíz de
+    # Núcleo inteligente. `contracts` va primero por ser la raíz de
     # dependencias: ningún otro paquete puede compilarse sin él.
     "contracts",
     "orchestration",

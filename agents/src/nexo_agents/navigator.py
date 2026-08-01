@@ -284,6 +284,7 @@ class DomainNavigator:
                 proposed_tools=(),
                 self_check=SelfCheckResult(schema_valid=False),
                 warnings=tuple(warnings),
+                invocations=tuple(exc.invocations),
                 status=TaskStatus.FAILED,
                 error=exc.error,
             )

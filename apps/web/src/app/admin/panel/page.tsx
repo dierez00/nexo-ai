@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { AdminShell } from "@/components/nexo/admin-shell";
+import { AdminPanelPage } from "./panel-page";
 
 export const metadata: Metadata = {
   title: "Panel admin — Nexo AI",
@@ -8,7 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  // Vista en blanco a propósito: aquí irán las métricas por dominio generadas
-  // desde A2UI.
-  return <AdminShell title="Panel admin">{null}</AdminShell>;
+  return <AdminPanelPage />;
 }

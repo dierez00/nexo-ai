@@ -44,6 +44,7 @@ from nexo_contracts import (
     CandidateFact,
     Channel,
     ChannelFallback,
+    Classification,
     Domain,
     ErrorCode,
     Estimate,
@@ -150,6 +151,7 @@ class MVPDependencies:
     surface_builder: CitizenSurfaceBuilder | None = None
     surface_validator: SurfaceValidator | None = None
     central_catalog: CentralCatalog | None = None
+    strict_model_errors: bool = False
 
 
 @dataclass
@@ -433,12 +435,45 @@ class MVPGraph:
             status=EventStatus.STARTED,
         )
 
+        from nexo_agents.classifier import is_capabilities_query
+
+        if self.deps.central_catalog is not None and is_capabilities_query(
+            run.request.user_message
+        ):
+            classification = Classification(
+                entities={}, confidence=1.0, request_kind="capabilities"
+            )
+            run = run.model_copy(
+                update={
+                    "classification": classification,
+                    "status": RunStatus.PLANNING,
+                    "catalog_version": self.deps.central_catalog.snapshot.version,
+                }
+            )
+            run = await self.emitter.emit(
+                run,
+                EventType.CLASSIFICATION_COMPLETED,
+                actor_type=ActorType.AGENT,
+                actor_name="classifier",
+                status=EventStatus.SUCCEEDED,
+                data={
+                    "intents": [],
+                    "domain": "",
+                    "request_kind": "capabilities",
+                    "used_fallback": False,
+                },
+            )
+            run = await self.emitter.node_completed(run, NODE_CLASSIFY, duration_ms=0)
+            return _graph(await self._persist(run, NODE_CLASSIFY))
+
         ledger = self._ledger(run)
         context = ModelCallContext(run_id=run.run_id, trace_id=run.trace_id, ledger=ledger)
         outcome = await self.deps.classifier.classify(run.request, context)
 
         run = self._charge(run, outcome.invocations, ledger)
         run = await self._emit_model_events(run, outcome.invocations)
+        if self.deps.strict_model_errors and outcome.error is not None:
+            return await self._fail(run, NODE_CLASSIFY, outcome.error)
         classification = outcome.classification
         run = run.model_copy(
             update={
@@ -463,6 +498,7 @@ class MVPGraph:
                 "domain": classification.primary_domain.value
                 if classification.primary_domain
                 else "",
+                "request_kind": classification.request_kind,
                 "used_fallback": outcome.used_fallback,
             },
         )
@@ -477,6 +513,9 @@ class MVPGraph:
         run = state["run"]
         domain = run.domain
         if domain is None:
+            if run.classification is not None and run.classification.request_kind == "capabilities":
+                run = await self.emitter.node_completed(run, NODE_PLAN, duration_ms=0)
+                return _graph(await self._persist(run, NODE_PLAN))
             # Sin dominio no hay a quién delegar. No es un fallo del sistema:
             # es una solicitud fuera de alcance, y se responde como tal.
             run = run.model_copy(
@@ -626,6 +665,8 @@ class MVPGraph:
 
         run = self._charge(run, result.invocations, ledger)
         run = await self._emit_model_events(run, result.invocations)
+        if self.deps.strict_model_errors and result.error is not None:
+            return await self._fail(run, NODE_NAVIGATE, result.error)
         questions = list(run.questions)
         if result.question is not None and result.question not in questions:
             questions.append(result.question)
@@ -823,6 +864,10 @@ class MVPGraph:
             return _graph(skipped)
 
         run = state["run"]
+        if run.classification is not None and run.classification.request_kind == "capabilities":
+            run = await self.emitter.node_completed(run, NODE_BUILD_A2UI, duration_ms=0)
+            return _graph(await self._persist(run, NODE_BUILD_A2UI))
+
         builder = self.deps.surface_builder
         facts = run.verified_facts
         if builder is None or facts is None:
@@ -890,6 +935,22 @@ class MVPGraph:
             return _graph(skipped)
 
         run = state["run"]
+        if run.classification is not None and run.classification.request_kind == "capabilities":
+            central = self.deps.central_catalog
+            if central is None:
+                return await self._fail(
+                    run,
+                    NODE_WRITE_ANSWER,
+                    NormalizedError.from_code(
+                        ErrorCode.CONFIGURATION_INVALID,
+                        "no hay catálogo activo para describir capacidades",
+                    ),
+                )
+            run = await self.emitter.node_started(run, NODE_WRITE_ANSWER)
+            run = run.model_copy(update={"answer": central.capabilities_answer()})
+            run = await self.emitter.node_completed(run, NODE_WRITE_ANSWER, duration_ms=0)
+            return _graph(await self._persist(run, NODE_WRITE_ANSWER))
+
         facts = run.verified_facts
         if facts is None:
             run = await self.emitter.node_completed(run, NODE_WRITE_ANSWER, duration_ms=0)
@@ -912,6 +973,8 @@ class MVPGraph:
         )
         run = self._charge(run, outcome.invocations, ledger)
         run = await self._emit_model_events(run, outcome.invocations)
+        if self.deps.strict_model_errors and outcome.error is not None:
+            return await self._fail(run, NODE_WRITE_ANSWER, outcome.error)
         run = run.model_copy(update={"answer": outcome.answer})
         run = await self.emitter.node_completed(run, NODE_WRITE_ANSWER, duration_ms=0)
         return _graph(await self._persist(run, NODE_WRITE_ANSWER))
@@ -1002,7 +1065,12 @@ class MVPGraph:
             parameters=_default_parameters(tool_name, run),
             requires_confirmation=True,
             consent=False,
-            required_permission=f"{run.domain.value}:write",
+            # Permiso con la granularidad del catálogo de la aplicación
+            # (`{módulo}.{read|write}`), que es el que se concede a un perfil y
+            # el que la API compara al confirmar. La granularidad fina —qué tool
+            # concreta puede escribir este rol en esta institución— la aplica la
+            # matriz del MCP en el momento de ejecutar, no este gate.
+            required_permission=f"{run.domain.value}.write",
             supporting_fact_ids=[fact.fact_id for fact in eligible[:5]],
         )
 
@@ -1038,6 +1106,9 @@ class MVPGraph:
         ve el checklist, luego el costo, luego la confirmación, sin esperar al
         último nodo para tener algo en pantalla (§5.8 `a2ui.generated`).
         """
+        if run.classification is not None and run.classification.request_kind == "capabilities":
+            return run
+
         builder = self.deps.surface_builder
         facts = run.verified_facts
         if builder is None or facts is None:
@@ -1273,28 +1344,12 @@ def _default_parameters(tool_name: str, run: RunState) -> dict[str, JsonValue]:
     """
     if tool_name == "vehiculos.reservar_cita":
         vehicle_ref: JsonValue = "veh_demo"
-        slot_id: JsonValue = "slot_mod_centro_00"
         for proposal in run.proposed_tools:
             if proposal.name == "vehiculos.consultar_adeudo":
                 proposed_ref = proposal.parameters.get("vehiculo_ref")
                 if isinstance(proposed_ref, str):
                     vehicle_ref = proposed_ref
-        for result in run.tool_results:
-            if result.name != "vehiculos.buscar_citas":
-                continue
-            slots = result.data.get("slots")
-            if not isinstance(slots, list):
-                continue
-            available = next(
-                (
-                    item
-                    for item in slots
-                    if isinstance(item, dict) and bool(item.get("disponible", True))
-                ),
-                None,
-            )
-            if available is not None and isinstance(available.get("slot_id"), str):
-                slot_id = available["slot_id"]
+        slot_id = _first_available_slot(run, "vehiculos.buscar_citas") or "slot_mod_centro_00"
         return {"slot_id": slot_id, "vehiculo_ref": vehicle_ref}
 
     if tool_name == "registro_civil.registrar_solicitud":
@@ -1321,7 +1376,34 @@ def _default_parameters(tool_name: str, run: RunState) -> dict[str, JsonValue]:
             value = proposal.parameters.get(field_name)
             if isinstance(value, str):
                 parameters[field_name] = value
+    # La cita en la ventanilla municipal se arrastra igual que la vehicular: si
+    # se consultaron horarios, la escritura reserva el que se mostró primero.
+    slot = _first_available_slot(run, "ayuntamiento.consultar_citas")
+    if slot is not None:
+        parameters["slot_id"] = slot
     return parameters
+
+
+def _first_available_slot(run: RunState, tool_name: str) -> str | None:
+    """`slot_id` del primer horario libre que devolvió esa tool de lectura.
+
+    Se lee del resultado ya obtenido y no se inventa: si la escritura reservara
+    un slot que nunca se le mostró a la persona, la confirmación dejaría de
+    corresponder con lo que autorizó.
+    """
+    for result in run.tool_results:
+        if result.name != tool_name:
+            continue
+        slots = result.data.get("slots")
+        if not isinstance(slots, list):
+            continue
+        for item in slots:
+            if not isinstance(item, dict) or not bool(item.get("disponible", True)):
+                continue
+            candidate = item.get("slot_id")
+            if isinstance(candidate, str):
+                return candidate
+    return None
 
 
 def channel_short_answer(run: RunState) -> str:

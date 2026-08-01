@@ -2,8 +2,8 @@
 
 - **Estado:** accepted — `citizen:v1` congelado
 - **Fecha:** 2026-07-30
-- **Decisor:** Diego
-- **Revisan:** Cris (renderer cerrado); Diego (integración al flujo)
+- **Estado:** accepted
+- **Revisión:** renderer cerrado, validación e integración al flujo
 - **Tarea:** `DIE-F0-006`
 
 ## Contexto
@@ -54,7 +54,7 @@ siguen en `snake_case` y el alias hace la traducción, acotada al paquete
 **A favor**
 
 - Una superficie inválida degrada de forma segura en vez de romper el canal.
-- Cris recibe fixtures JSONL válidos e inválidos con la forma exacta del
+- El renderer recibe fixtures JSONL válidos e inválidos con la forma exacta del
   protocolo, sin traducción a cargo del renderer.
 - El flujo puede integrarse contra una frontera estable; el test de congelación
   detecta drift de catálogo, schemas o fixtures.
