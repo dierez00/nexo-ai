@@ -44,6 +44,7 @@ from nexo_contracts import (
     CandidateFact,
     Channel,
     ChannelFallback,
+    Classification,
     Domain,
     ErrorCode,
     Estimate,
@@ -434,6 +435,37 @@ class MVPGraph:
             status=EventStatus.STARTED,
         )
 
+        from nexo_agents.classifier import is_capabilities_query
+
+        if self.deps.central_catalog is not None and is_capabilities_query(
+            run.request.user_message
+        ):
+            classification = Classification(
+                entities={}, confidence=1.0, request_kind="capabilities"
+            )
+            run = run.model_copy(
+                update={
+                    "classification": classification,
+                    "status": RunStatus.PLANNING,
+                    "catalog_version": self.deps.central_catalog.snapshot.version,
+                }
+            )
+            run = await self.emitter.emit(
+                run,
+                EventType.CLASSIFICATION_COMPLETED,
+                actor_type=ActorType.AGENT,
+                actor_name="classifier",
+                status=EventStatus.SUCCEEDED,
+                data={
+                    "intents": [],
+                    "domain": "",
+                    "request_kind": "capabilities",
+                    "used_fallback": False,
+                },
+            )
+            run = await self.emitter.node_completed(run, NODE_CLASSIFY, duration_ms=0)
+            return _graph(await self._persist(run, NODE_CLASSIFY))
+
         ledger = self._ledger(run)
         context = ModelCallContext(run_id=run.run_id, trace_id=run.trace_id, ledger=ledger)
         outcome = await self.deps.classifier.classify(run.request, context)
@@ -466,6 +498,7 @@ class MVPGraph:
                 "domain": classification.primary_domain.value
                 if classification.primary_domain
                 else "",
+                "request_kind": classification.request_kind,
                 "used_fallback": outcome.used_fallback,
             },
         )
@@ -480,6 +513,9 @@ class MVPGraph:
         run = state["run"]
         domain = run.domain
         if domain is None:
+            if run.classification is not None and run.classification.request_kind == "capabilities":
+                run = await self.emitter.node_completed(run, NODE_PLAN, duration_ms=0)
+                return _graph(await self._persist(run, NODE_PLAN))
             # Sin dominio no hay a quién delegar. No es un fallo del sistema:
             # es una solicitud fuera de alcance, y se responde como tal.
             run = run.model_copy(
@@ -828,6 +864,10 @@ class MVPGraph:
             return _graph(skipped)
 
         run = state["run"]
+        if run.classification is not None and run.classification.request_kind == "capabilities":
+            run = await self.emitter.node_completed(run, NODE_BUILD_A2UI, duration_ms=0)
+            return _graph(await self._persist(run, NODE_BUILD_A2UI))
+
         builder = self.deps.surface_builder
         facts = run.verified_facts
         if builder is None or facts is None:
@@ -895,6 +935,22 @@ class MVPGraph:
             return _graph(skipped)
 
         run = state["run"]
+        if run.classification is not None and run.classification.request_kind == "capabilities":
+            central = self.deps.central_catalog
+            if central is None:
+                return await self._fail(
+                    run,
+                    NODE_WRITE_ANSWER,
+                    NormalizedError.from_code(
+                        ErrorCode.CONFIGURATION_INVALID,
+                        "no hay catálogo activo para describir capacidades",
+                    ),
+                )
+            run = await self.emitter.node_started(run, NODE_WRITE_ANSWER)
+            run = run.model_copy(update={"answer": central.capabilities_answer()})
+            run = await self.emitter.node_completed(run, NODE_WRITE_ANSWER, duration_ms=0)
+            return _graph(await self._persist(run, NODE_WRITE_ANSWER))
+
         facts = run.verified_facts
         if facts is None:
             run = await self.emitter.node_completed(run, NODE_WRITE_ANSWER, duration_ms=0)
@@ -1050,6 +1106,9 @@ class MVPGraph:
         ve el checklist, luego el costo, luego la confirmación, sin esperar al
         último nodo para tener algo en pantalla (§5.8 `a2ui.generated`).
         """
+        if run.classification is not None and run.classification.request_kind == "capabilities":
+            return run
+
         builder = self.deps.surface_builder
         facts = run.verified_facts
         if builder is None or facts is None:
