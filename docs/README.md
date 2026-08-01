@@ -1,35 +1,36 @@
 # Documentación
 
-## Objetivo
+La documentación describe el producto, sus fronteras técnicas, el estado
+actual y la evolución prevista. Los documentos deben reflejar el código y los
+contratos publicados, no planes privados ni asignaciones individuales.
 
-Conservar decisiones duraderas, arquitectura, runbooks, guías y coordinación del equipo.
+## Índice
 
-## Debe contener
+| Sección | Propósito |
+| --- | --- |
+| [`product/`](product/) | Problema, propuesta de valor, alcance y casos de uso |
+| [`architecture/`](architecture/) | Arquitectura, módulos, contratos y flujos |
+| [`adr/`](adr/) | Decisiones técnicas con contexto y consecuencias |
+| [`getting-started/`](getting-started/) | Instalación y desarrollo local |
+| [`roadmap/`](roadmap/) | Estado, fases, capacidades pendientes y notas de implementación |
+| [`runbooks/`](runbooks/) | Operación, despliegue, recuperación e integraciones |
+| [`operations/`](operations/) | Guías operativas futuras y criterios de mantenimiento |
 
-ADR, diagramas, planes individuales, onboarding, seguridad y guion de demo.
-
-## No debe contener
-
-Secretos, instrucciones obsoletas sin marcar ni duplicación sin owner.
+Consulta también la [política de código abierto](operations/open-source.md) y
+la [licencia MIT](../LICENSE).
 
 ## Convenciones
 
-Enlaces relativos; fecha/estado/decisor en ADR; actualizar documentación al cambiar contratos. Nombres descriptivos en `snake_case` salvo ADR numerados.
+- Usar enlaces relativos y nombres descriptivos en `snake_case` o kebab-case.
+- Marcar cada capacidad como implementada, mock, parcial o pendiente.
+- Versionar contratos, catálogos, fixtures y decisiones incompatibles.
+- No documentar secretos, PII real ni asignaciones personales.
+- Actualizar el documento de estado cuando cambien rutas, contratos o fases.
 
-Responsabilidad compartida; Dani coordina documentación de release.
+## Puntos de entrada
 
-## Ejemplos y tareas
-
-`architecture/overview.md`, `adr/0001-modular-monolith.md`, `team/*.md`. Crear ADR principales, onboarding y runbooks.
-
-Runbooks disponibles: [arranque del backend](runbooks/arranque.md) y
-[Twilio WhatsApp Sandbox](runbooks/twilio_whatsapp.md).
-
-Estado consolidado del proyecto (docs vs. código, apartados completados):
-[estado de implementación](estado_implementacion.md).
-
-Dependencias permitidas: puede enlazar cualquier módulo, pero no debe convertirse en una dependencia de ejecución.
-
-## Terminado
-
-Cada decisión no obvia tiene contexto, consecuencias, estado y responsable.
+- [Descripción del producto](product/project-overview.md)
+- [Arquitectura técnica](architecture/technical-architecture.md)
+- [Estado de implementación](roadmap/implementation-status.md)
+- [Roadmap](roadmap/README.md)
+- [Desarrollo local](getting-started/local-development.md)

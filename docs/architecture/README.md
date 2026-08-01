@@ -1,27 +1,14 @@
-# Documentos de arquitectura
+# Arquitectura
 
-## Objetivo
+Esta sección documenta el diseño modular, las interfaces públicas, la
+persistencia y los flujos auditables del sistema.
 
-Desglosar vistas de arquitectura que requieran más detalle que el documento maestro.
+- [Arquitectura técnica](technical-architecture.md)
+- [Fronteras de módulos](module_ownership.md)
+- [Convenciones](conventions.md)
+- [Esquema de base de datos](database_schema.md)
+- [Inventario de adaptadores](institutional_adapters_inventory.md)
+- [Eventos del workflow](workflow-event-mapping-v1.md)
 
-## Contenido permitido
-
-Contexto, contenedores, componentes, secuencias, modelo de datos, seguridad, despliegue y decisiones de escalamiento.
-
-## Fuera de alcance
-
-Roadmaps personales, secretos y documentación de API que pertenezca a `contracts`.
-
-## Convenciones
-
-Diagramas Mermaid versionables, leyenda, fecha y enlace a ADR relacionada. Describir estado actual y objetivo por separado.
-
-Responsable: equipo; Dani/Diego revisan fronteras runtime y Daher persistencia.
-
-## Archivos, tareas y terminado
-
-Dependencias permitidas: contratos, ADR y diagramas del sistema; el runtime no depende de esta carpeta.
-- [database_schema.md](./database_schema.md): Esquema completo de la base de datos (PostgreSQL/Supabase), migraciones, RLS, índices, funciones RPC y diagrama ERD.
-- [institutional_adapters_inventory.md](./institutional_adapters_inventory.md): Inventario de todos los adapters/dobles falsos actuales (tools mock institucionales y proveedores de infraestructura) y qué comportamiento simula cada uno.
-
-Ejemplos: `overview.md`, `database_schema.md`, `security.md`. Crear solo cuando el detalle no quepa en `Nexo_IA_Arquitectura_y_Plan.md`. Terminado cuando coincide con código, contratos y despliegue.
+Cada cambio de contrato o frontera debe actualizar las pruebas, los artefactos
+derivados y el ADR correspondiente.
