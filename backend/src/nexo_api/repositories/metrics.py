@@ -94,3 +94,36 @@ async def collect(tenant_id: int, start: datetime, end: datetime) -> dict[str, A
         "actions": actions,
         "appointments": appointments,
     }
+
+
+async def collect_runs_trend(
+    tenant_id: int,
+    start: datetime,
+    end: datetime,
+) -> list[dict[str, Any]]:
+    """Serie diaria de runs para superficies admin A2UI."""
+    params = {"tenant_id": tenant_id, "start": start, "end": end}
+    async with read_session() as session:
+        rows = (
+            (
+                await session.execute(
+                    text(
+                        "select date_trunc('day', created_at)::date as day, "
+                        "count(*) as total, "
+                        "count(*) filter (where status in ('succeeded', 'partial')) as succeeded "
+                        f"from public.runs where {_WINDOW} group by 1 order by 1"
+                    ),
+                    params,
+                )
+            )
+            .mappings()
+            .all()
+        )
+    return [
+        {
+            "date": row["day"].isoformat(),
+            "total": int(row["total"]),
+            "succeeded": int(row["succeeded"]),
+        }
+        for row in rows
+    ]

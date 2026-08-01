@@ -13,6 +13,7 @@
 
 import { parseJsonl, validateCatalog, validateMessage, validateTree } from "./guard";
 import { applyAtPointer } from "./pointer";
+import { getCatalog } from "./catalog";
 import type {
   A2UIAction,
   A2UIMessage,
@@ -54,6 +55,15 @@ export function processMessages(
   // Sin catálogo coincidente no tiene sentido seguir: cualquier componente
   // sería «desconocido» y el informe sería ilegible.
   if (catalogErrors.length > 0) return failure(catalogErrors);
+  const catalog = getCatalog(first.createSurface.catalogId);
+  if (!catalog) {
+    return failure([
+      {
+        rule: "unknown_catalog",
+        detail: "la superficie declara un catálogo que este cliente no publica",
+      },
+    ]);
+  }
 
   const surfaceId = first.createSurface.surfaceId;
   const catalogId = first.createSurface.catalogId;
@@ -102,7 +112,7 @@ export function processMessages(
     ]);
   }
 
-  const treeErrors = validateTree(components, actionIds);
+  const treeErrors = validateTree(components, actionIds, catalog);
   if (treeErrors.length > 0) return failure(treeErrors);
 
   return {

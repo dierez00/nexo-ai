@@ -10,8 +10,18 @@ No consulta tablas, no autoriza acciones y no decide el plan del run: recibe
 `VerifiedFacts` y acciones ya autorizadas, y devuelve estructura.
 """
 
+from .admin_builder import (
+    SUPPORTED_PROMPTS,
+    AdminAnalyticsData,
+    AdminAnalyticsSurfaceBuilder,
+    classify_prompt,
+)
 from .builder import CitizenSurfaceBuilder, format_money
 from .catalog import (
+    ADMIN_ALLOWED_PROPERTIES,
+    ADMIN_CATALOG,
+    ADMIN_CATALOG_ID,
+    ADMIN_CATALOG_PATH,
     ALLOWED_PROPERTIES,
     ALLOWED_TONES,
     CITIZEN_CATALOG,
@@ -33,12 +43,19 @@ __all__ = [
     "ALLOWED_PROPERTIES",
     "ALLOWED_TONES",
     "ALLOWED_URL_SCHEMES",
+    "ADMIN_ALLOWED_PROPERTIES",
+    "ADMIN_CATALOG",
+    "ADMIN_CATALOG_ID",
+    "ADMIN_CATALOG_PATH",
+    "AdminAnalyticsData",
+    "AdminAnalyticsSurfaceBuilder",
     "CITIZEN_CATALOG",
     "CITIZEN_CATALOG_ID",
     "CITIZEN_CATALOG_PATH",
     "CITIZEN_FREEZE_PATH",
     "CitizenSurfaceBuilder",
     "FrozenCatalogManifest",
+    "SUPPORTED_PROMPTS",
     "SurfaceValidator",
     "build_fallback",
     "load_jsonl",
@@ -47,6 +64,7 @@ __all__ = [
     "surface_from_messages",
     "export_catalog",
     "format_money",
+    "classify_prompt",
     "load_freeze_manifest",
     "load_catalog",
     "render_catalog_json",

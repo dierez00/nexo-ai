@@ -11,12 +11,19 @@ from datetime import UTC, datetime
 import pytest
 
 from nexo_a2ui import (
+    ADMIN_ALLOWED_PROPERTIES,
+    ADMIN_CATALOG,
+    ADMIN_CATALOG_ID,
+    ADMIN_CATALOG_PATH,
     CITIZEN_CATALOG,
     CITIZEN_CATALOG_ID,
     CITIZEN_FREEZE_PATH,
+    AdminAnalyticsData,
+    AdminAnalyticsSurfaceBuilder,
     CitizenSurfaceBuilder,
     SurfaceValidator,
     build_fallback,
+    classify_prompt,
     export_catalog,
     format_money,
     load_catalog,
@@ -186,6 +193,21 @@ def test_only_two_components_are_interactive() -> None:
     assert interactive == {"SlotPicker", "ConfirmButton"}
 
 
+def test_the_published_admin_catalog_matches_the_code() -> None:
+    path = repository_root() / ADMIN_CATALOG_PATH
+
+    assert path.read_text(encoding="utf-8") == render_catalog_json(ADMIN_CATALOG)
+
+
+def test_admin_catalog_is_separate_from_citizen_v1() -> None:
+    assert ADMIN_CATALOG_ID != CITIZEN_CATALOG_ID
+    assert ADMIN_CATALOG.audience == "admin"
+    assert {"MetricCard", "ChartPanel", "DataTable"} <= ADMIN_CATALOG.component_names()
+    assert {"MetricCard", "ChartPanel", "DataTable"}.isdisjoint(
+        CITIZEN_CATALOG.component_names()
+    )
+
+
 @pytest.mark.parametrize("domain", [Domain.VEHICULOS, Domain.AYUNTAMIENTO_EMPRESAS])
 def test_domain_component_references_exist_in_the_citizen_catalog(domain: Domain) -> None:
     manifest = load_domain(repository_root(), domain)
@@ -234,6 +256,48 @@ def test_the_surface_opens_with_create_and_carries_its_data(builder, facts) -> N
     assert kinds[0] is A2UIMessageKind.CREATE_SURFACE
     assert A2UIMessageKind.UPDATE_DATA_MODEL in kinds
     assert A2UIMessageKind.UPDATE_COMPONENTS in kinds
+
+
+def test_admin_analytics_surface_validates() -> None:
+    data = AdminAnalyticsData(
+        window_start=NOW,
+        window_end=NOW,
+        runs_total=8,
+        conversations_total=3,
+        avg_latency_ms=812.4,
+        total_cost_usd=0.1234,
+        runs_by_status={"succeeded": 6, "failed": 2},
+        runs_by_domain={"vehiculos": 5, "salud": 3},
+        actions_by_status={"confirmed": 2},
+        appointments_by_status={"held": 1},
+        runs_trend=[
+            {"date": "2026-07-30", "total": 8, "succeeded": 6},
+        ],
+    )
+    surface = AdminAnalyticsSurfaceBuilder().build(
+        "trámites por dominio en 30 días",
+        data,
+        surface_id="surf_admin_chart",
+    )
+    result = SurfaceValidator(
+        catalog=ADMIN_CATALOG,
+        allowed_properties=dict(ADMIN_ALLOWED_PROPERTIES),
+    ).validate(surface)
+
+    assert result.is_valid, result.errors
+    assert surface.catalog_id == ADMIN_CATALOG_ID
+    tree = next(
+        message.update_components for message in surface.messages if message.update_components
+    )
+    assert {"MetricCard", "ChartPanel", "DataTable"} <= {
+        component.component for component in tree.components
+    }
+
+
+def test_admin_prompt_classifier_is_deterministic() -> None:
+    assert classify_prompt("Muéstrame citas por estado") == "appointments"
+    assert classify_prompt("latencia y costo promedio") == "latency_cost"
+    assert classify_prompt("haz magia") == "unsupported"
 
 
 def test_the_builder_serializes_one_protocol_message_per_jsonl_line(builder, facts) -> None:

@@ -1,4 +1,4 @@
-import type { ActionResult, RunEvent, RunResult } from "@/generated/contracts";
+import type { A2UISurface, ActionResult, RunEvent, RunResult } from "@/generated/contracts";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_NEXO_API_URL ?? "http://localhost:8000";
 const SESSION_KEY = "nexo.auth.v1";
@@ -316,4 +316,15 @@ export async function confirmAction(
   });
 }
 
-export type { ActionResult, RunEvent, RunResult };
+export async function createAdminChartSurface(body: {
+  prompt: string;
+  from?: string;
+  to?: string;
+}): Promise<A2UISurface> {
+  return apiFetch<A2UISurface>("/api/v1/admin/a2ui/charts", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export type { A2UISurface, ActionResult, RunEvent, RunResult };

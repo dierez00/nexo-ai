@@ -30,7 +30,7 @@ from nexo_contracts import (
     CatalogDescriptor,
 )
 
-from .catalog import ALLOWED_PROPERTIES, ALLOWED_TONES
+from .catalog import ADMIN_CATALOG_ID, ALLOWED_PROPERTIES, ALLOWED_TONES
 
 # Esquemas de URL admitidos en cualquier propiedad que parezca un enlace. Todo
 # lo demás —`javascript:`, `data:`, `file:`— se rechaza: son los vectores
@@ -78,7 +78,15 @@ class SurfaceValidator:
             for component in message.update_components.components:
                 errors.extend(self._validate_component(component, known, data_model))
 
-        errors.extend(self._validate_actions(surface, run_action_ids))
+        if self.catalog.catalog_id == ADMIN_CATALOG_ID and surface.actions:
+            errors.append(
+                A2UIValidationError(
+                    rule="admin_surface_must_be_read_only",
+                    detail="una superficie administrativa de analítica no declara acciones",
+                )
+            )
+        elif self.catalog.catalog_id != ADMIN_CATALOG_ID:
+            errors.extend(self._validate_actions(surface, run_action_ids))
         return _result(surface, errors)
 
     # -- componente ---------------------------------------------------------

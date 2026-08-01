@@ -15,6 +15,22 @@
 
 import type { ReactNode } from "react";
 import { CheckCircle2, Circle, ExternalLink } from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { StatusBadge, type Tone } from "@/components/nexo/status-badge";
 import { cn } from "@/lib/utils";
@@ -55,6 +71,12 @@ function records(value: unknown): Record<string, unknown>[] {
     (item): item is Record<string, unknown> =>
       typeof item === "object" && item !== null && !Array.isArray(item),
   );
+}
+
+function record(value: unknown): Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
 }
 
 function number(value: unknown): number | undefined {
@@ -277,6 +299,325 @@ const CostSummary: Adapter = ({ properties }) => {
   );
 };
 
+// --- administración ---------------------------------------------------------
+
+const CHART_COLORS = [
+  "var(--color-chart-1)",
+  "var(--color-chart-2)",
+  "var(--color-chart-3)",
+  "var(--color-chart-4)",
+  "var(--color-chart-5)",
+];
+
+const MetricCard: Adapter = ({ properties }) => {
+  const tone = asTone(properties.tone);
+  return (
+    <section className={cn("rounded-xl border p-4", TONE_TO_SURFACE[tone])}>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {text(properties.label)}
+      </p>
+      <p className="mono mt-3 text-2xl font-semibold">{text(properties.value) || "0"}</p>
+      <div className="mt-2 min-h-4 text-xs text-muted-foreground">
+        {text(properties.delta) || text(properties.caption)}
+      </div>
+    </section>
+  );
+};
+
+function chartType(value: unknown): "line" | "area" | "bar" | "donut" {
+  return value === "line" || value === "area" || value === "donut" ? value : "bar";
+}
+
+function numeric(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function compactNumber(value: number): string {
+  return new Intl.NumberFormat("es-MX", { notation: "compact", maximumFractionDigits: 1 }).format(
+    value,
+  );
+}
+
+const ChartPanel: Adapter = ({ properties }) => {
+  const data = records(properties.data);
+  const xKey = text(properties.xKey) || "label";
+  const yKey = text(properties.yKey) || "total";
+  const kind = chartType(properties.chartType);
+  const series = records(properties.series);
+  const visibleSeries = series.length ? series : [{ key: yKey, label: text(properties.title) }];
+  const dataKeys = visibleSeries.map((item) => text(item.key) || yKey);
+  const primaryKey = dataKeys[0] ?? yKey;
+  const total = data.reduce(
+    (sum, row) => sum + dataKeys.reduce((nested, key) => nested + numeric(row[key]), 0),
+    0,
+  );
+  const peak = data.reduce(
+    (max, row) => Math.max(max, ...dataKeys.map((key) => numeric(row[key]))),
+    0,
+  );
+  const peakRow = data.find((row) => dataKeys.some((key) => numeric(row[key]) === peak));
+
+  return (
+    <section className="overflow-hidden rounded-xl border border-border bg-card shadow-soft">
+      <div className="grid gap-3 border-b border-border bg-muted/35 p-4 md:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            {text(properties.title) || "Gráfica"}
+          </h3>
+          {text(properties.description) ? (
+            <p className="mt-1 text-sm text-muted-foreground">{text(properties.description)}</p>
+          ) : null}
+        </div>
+        <div className="flex flex-wrap items-center gap-2 md:justify-end">
+          <StatusBadge tone="info">{kind}</StatusBadge>
+          <span className="mono rounded-full border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground">
+            {data.length} puntos
+          </span>
+        </div>
+      </div>
+
+      <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-lg border border-border bg-background p-3">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Total visible</p>
+          <p className="mono mt-1 text-xl font-semibold">{compactNumber(total)}</p>
+        </div>
+        <div className="rounded-lg border border-border bg-background p-3">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Pico</p>
+          <p className="mono mt-1 text-xl font-semibold">{compactNumber(peak)}</p>
+        </div>
+        <div className="rounded-lg border border-border bg-background p-3 sm:col-span-2">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Mayor actividad</p>
+          <p className="mt-1 truncate text-sm font-medium">{text(peakRow?.[xKey]) || "Sin datos"}</p>
+        </div>
+      </div>
+
+      <div className="h-80 w-full px-2 pb-4 sm:px-4">
+        {data.length === 0 ? (
+          <div className="grid h-full place-items-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
+            Sin datos para la ventana seleccionada.
+          </div>
+        ) : kind === "donut" ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Tooltip
+                contentStyle={{
+                  background: "var(--color-card)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "0.5rem",
+                  fontSize: 12,
+                  color: "var(--color-foreground)",
+                }}
+              />
+              <Pie
+                data={data}
+                dataKey={primaryKey}
+                nameKey={xKey}
+                innerRadius="52%"
+                outerRadius="78%"
+                paddingAngle={2}
+                label={({ name, percent }) =>
+                  typeof percent === "number" ? `${name} ${(percent * 100).toFixed(0)}%` : name
+                }
+              >
+                {data.map((item, index) => (
+                  <Cell
+                    key={`${text(item[xKey])}-${index}`}
+                    fill={CHART_COLORS[index % CHART_COLORS.length]}
+                  />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            {kind === "line" ? (
+              <LineChart data={data} margin={{ left: -8, right: 12, top: 12, bottom: 0 }}>
+                <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey={xKey}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--color-card)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "0.5rem",
+                    fontSize: 12,
+                    color: "var(--color-foreground)",
+                  }}
+                />
+                {dataKeys.map((key, index) => (
+                  <Line
+                    key={key}
+                    type="monotone"
+                    dataKey={key}
+                    stroke={CHART_COLORS[index % CHART_COLORS.length]}
+                    strokeWidth={2.75}
+                    dot={{ r: 2.5, strokeWidth: 1.5 }}
+                    activeDot={{ r: 5 }}
+                  />
+                ))}
+              </LineChart>
+            ) : kind === "area" ? (
+              <AreaChart data={data} margin={{ left: -8, right: 12, top: 12, bottom: 0 }}>
+                <defs>
+                  {dataKeys.map((key, index) => (
+                    <linearGradient key={key} id={`a2ui-${key}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="0%"
+                        stopColor={CHART_COLORS[index % CHART_COLORS.length]}
+                        stopOpacity={0.42}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor={CHART_COLORS[index % CHART_COLORS.length]}
+                        stopOpacity={0.04}
+                      />
+                    </linearGradient>
+                  ))}
+                </defs>
+                <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey={xKey}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--color-card)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "0.5rem",
+                    fontSize: 12,
+                    color: "var(--color-foreground)",
+                  }}
+                />
+                {dataKeys.map((key, index) => (
+                  <Area
+                    key={key}
+                    type="monotone"
+                    dataKey={key}
+                    stroke={CHART_COLORS[index % CHART_COLORS.length]}
+                    fill={`url(#a2ui-${key})`}
+                    strokeWidth={2.5}
+                  />
+                ))}
+              </AreaChart>
+            ) : (
+              <BarChart data={data} margin={{ left: -8, right: 12, top: 12, bottom: 0 }}>
+                <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey={xKey}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--color-card)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "0.5rem",
+                    fontSize: 12,
+                    color: "var(--color-foreground)",
+                  }}
+                />
+                <Bar dataKey={primaryKey} radius={[7, 7, 0, 0]}>
+                  {data.map((item, index) => (
+                    <Cell
+                      key={`${text(item[xKey])}-${index}`}
+                      fill={CHART_COLORS[index % CHART_COLORS.length]}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            )}
+          </ResponsiveContainer>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-2 border-t border-border px-4 py-3">
+        {visibleSeries.map((item, index) => (
+          <span
+            key={text(item.key) || index}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground"
+          >
+            <span
+              aria-hidden
+              className="size-2 rounded-full"
+              style={{ background: CHART_COLORS[index % CHART_COLORS.length] }}
+            />
+            {text(item.label) || text(item.key) || "Serie"}
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+const DataTable: Adapter = ({ properties }) => {
+  const columns = records(properties.columns);
+  const rows = records(properties.rows);
+  return (
+    <section className="overflow-hidden rounded-xl border border-border bg-card shadow-soft">
+      <div className="border-b border-border p-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          {text(properties.title) || "Datos"}
+        </h3>
+        {text(properties.caption) ? (
+          <p className="mt-1 text-sm text-muted-foreground">{text(properties.caption)}</p>
+        ) : null}
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[32rem] text-left text-sm">
+          <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
+            <tr>
+              {columns.map((column) => (
+                <th key={text(column.key)} className="px-4 py-3 font-medium">
+                  {text(column.label) || text(column.key)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((rowValue, rowIndex) => {
+              const row = record(rowValue);
+              return (
+                <tr key={rowIndex} className="border-t border-border">
+                  {columns.map((column) => {
+                    const key = text(column.key);
+                    return (
+                      <td key={`${rowIndex}-${key}`} className="px-4 py-3 text-muted-foreground">
+                        {text(row[key]) || "0"}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+};
+
 const SourceList: Adapter = ({ properties }) => {
   const sources = records(properties.sources);
   if (properties.sources === undefined) return <Loading label="Fuentes" />;
@@ -385,4 +726,7 @@ export const ADAPTERS: Readonly<Record<string, Adapter>> = Object.freeze({
   SourceList,
   SlotPicker,
   ConfirmButton,
+  MetricCard,
+  ChartPanel,
+  DataTable,
 });

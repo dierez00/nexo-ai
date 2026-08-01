@@ -10,9 +10,10 @@ from nexo_api.api.deps import require_role
 from nexo_api.core.errors import problem_responses
 from nexo_api.schemas.auth import UserProfile
 from nexo_api.schemas.catalog import AdminCatalog
-from nexo_api.schemas.metric import MetricSet
+from nexo_api.schemas.metric import AdminChartRequest, MetricSet
 from nexo_api.services.admin import catalog as catalog_service
 from nexo_api.services.admin import metrics as metrics_service
+from nexo_contracts import A2UISurface
 from nexo_contracts.config import NexoConfig
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
@@ -33,6 +34,24 @@ async def metrics(
     user: UserProfile = Depends(_require_admin),
 ) -> MetricSet:
     return await metrics_service.get_metrics(user, from_, to)
+
+
+@router.post(
+    "/a2ui/charts",
+    response_model=A2UISurface,
+    summary="Generar gráfica administrativa A2UI desde una solicitud determinista",
+    responses=problem_responses(400, 401, 403, 503),
+)
+async def chart_surface(
+    request: AdminChartRequest,
+    user: UserProfile = Depends(_require_admin),
+) -> A2UISurface:
+    return await metrics_service.build_chart_surface(
+        user,
+        request.prompt,
+        request.from_,
+        request.to,
+    )
 
 
 @router.get(
