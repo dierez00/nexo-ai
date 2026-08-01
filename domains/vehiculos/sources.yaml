@@ -33,7 +33,7 @@ sources:
         version: v3
         media_type: text/markdown
         path: data/documents/vehiculos/src_veh_licencias/v3/requisitos.md
-        checksum: sha256:7144d3adf7f191885b1863a68d4fef16966562efd8d5f8f4b5283c954e4ced44
+        checksum: sha256:16f7bbb70e6d5d76f4bf515b0507d7df82e95b77e36ed29e334b864030e1cb4b
 
   # --- Tarifario vigente ---
   - source_id: src_veh_tarifas

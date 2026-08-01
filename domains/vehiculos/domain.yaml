@@ -35,6 +35,25 @@ intents:
     write_tool: vehiculos.reservar_cita
     skill_id: skill_veh_renovacion
 
+  - slug: primera_emision_licencia
+    title: Tramitar licencia de conducir por primera vez
+    description: >-
+      Primera emisión de una licencia de conducir tipo A. Incluye requisitos,
+      costo y módulos que realizan primeras emisiones.
+    keywords:
+      - primera vez
+      - primera emision
+      - primera emisión
+      - primera licencia
+      - licencia por primera vez
+      - sacar licencia
+      - sacar mi licencia
+      - sacar mi licensia
+      - tramitar licencia
+      - tramitar mi licencia
+      - tramitar mi licensia
+      - licensia de conducir
+
   - slug: consultar_adeudo
     title: Consultar adeudo vehicular
     description: >-

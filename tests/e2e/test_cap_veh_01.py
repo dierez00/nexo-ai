@@ -63,6 +63,28 @@ async def fragments() -> dict[str, str]:
     return {result.title: result.fragment_id for result in response.results}
 
 
+@pytest.fixture(scope="module")
+async def first_license_fragments() -> dict[str, str]:
+    """Fragmentos reales para una primera emisión, incluida la falta ortográfica."""
+    corpus = await load_corpus()
+    response = await corpus.retriever(Domain.VEHICULOS).retrieve(
+        RetrievalQuery(
+            query=(
+                "que necesito para tramitar por primera vez mi licensia de conducir. "
+                "Tramitar licencia de conducir por primera vez, requisitos y costo."
+            ),
+            domain=Domain.VEHICULOS,
+            filters=RetrievalFilters(
+                institution_id="inst_demo",
+                status=[SourceStatus.ACTIVE],
+                valid_at=date(2026, 7, 30),
+            ),
+            top_k=10,
+        )
+    )
+    return {result.title: result.fragment_id for result in response.results}
+
+
 def _vehicle_scenarios(fragments: dict[str, str]) -> dict[str, Scenario]:
     requirement = fragments["Documentos que debe presentar la persona solicitante"]
     cost = fragments["Licencia de conducir tipo A"]
@@ -122,6 +144,57 @@ def _vehicle_scenarios(fragments: dict[str, str]) -> dict[str, Scenario]:
         "write_answer": Scenario(
             data=answer_payload(
                 "Necesitas identificación oficial vigente para renovar tu licencia."
+            )
+        ),
+    }
+
+
+def _first_license_scenarios(fragments: dict[str, str]) -> dict[str, Scenario]:
+    requirements = fragments["Primera emisión de licencia tipo A"]
+    cost = fragments["Licencia de conducir tipo A"]
+    return {
+        "classify_request": Scenario(
+            data=classification_payload(
+                [("primera_emision_licencia", "vehiculos")],
+                location="Durango",
+            )
+        ),
+        "navigate_domain": Scenario(
+            data=extraction_payload(
+                [
+                    {
+                        "claim": (
+                            "Para tramitar por primera vez una licencia tipo A se requiere "
+                            "identificación oficial, comprobante de domicilio, CURP, "
+                            "constancia de aprobación del examen de manejo y comprobante de pago."
+                        ),
+                        "category": "requirement",
+                        "value": {
+                            "items": [
+                                "Identificación oficial vigente con fotografía",
+                                "Comprobante de domicilio con antigüedad no mayor a tres meses",
+                                "CURP",
+                                "Constancia de aprobación del examen de manejo",
+                                "Comprobante de pago de derechos del ejercicio en curso",
+                            ]
+                        },
+                        "fragment_ids": [requirements],
+                        "confidence": 0.94,
+                    },
+                    {
+                        "claim": "La primera emisión de licencia tipo A cuesta 980.00 MXN.",
+                        "category": "cost",
+                        "value": {"money": {"amount_minor": 98000, "currency": "MXN"}},
+                        "fragment_ids": [cost],
+                        "confidence": 0.95,
+                    },
+                ]
+            )
+        ),
+        "write_answer": Scenario(
+            data=answer_payload(
+                "Para tramitar tu licencia por primera vez necesitas identificación oficial, "
+                "comprobante de domicilio, CURP, examen de manejo aprobado y pago de derechos."
             )
         ),
     }
@@ -217,6 +290,25 @@ async def test_read_tools_return_debt_modules_and_slots(runtime) -> None:
     assert result.estimate is not None
     assert result.estimate.total_cost is not None
     assert result.estimate.total_cost.amount_minor == 81400
+
+
+async def test_first_time_license_returns_requirements_and_cost(
+    first_license_fragments: dict[str, str],
+) -> None:
+    runtime = await build_runtime(scenarios=_first_license_scenarios(first_license_fragments))
+
+    result = await runtime.graph.invoke(
+        citizen_request("que necesito para tramitar por primera vez mi licensia de conducir")
+    )
+
+    assert result.status is RunStatus.SUCCEEDED
+    assert result.available_actions == []
+    assert result.answer is not None
+    assert "CURP" in result.answer
+    assert result.estimate is not None
+    assert result.estimate.total_cost is not None
+    assert result.estimate.total_cost.amount_minor == 98000
+    assert result.estimate.steps[0].step_id == "primera_emision_licencia"
 
 
 async def test_the_pending_action_is_persisted_with_its_schema_and_version(
