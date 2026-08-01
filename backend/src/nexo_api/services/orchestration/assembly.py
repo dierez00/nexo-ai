@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any, Literal, Protocol, cast
 from nexo_observability.logging import get_logger
 
 from nexo_api.services.orchestration.clock import SystemClock, UuidIdFactory
-from nexo_contracts import ConfigurationError
+from nexo_contracts import AgentName, ConfigurationError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -84,6 +84,16 @@ class GraphAssembly:
         """Cierra pools de proveedor creados por este composition root."""
         for resource in reversed(self.resources):
             await resource.aclose()
+
+
+def _agent_deadline_ms(policies: PoliciesConfig, agent: AgentName, default: int) -> int:
+    budget = policies.agent_budgets.get(agent)
+    return budget.deadline_ms if budget is not None else default
+
+
+def _manifest_with_navigator_deadline(manifest: Any, deadline_ms: int) -> Any:
+    policies = manifest.policies.model_copy(update={"navigator_deadline_ms": deadline_ms})
+    return manifest.model_copy(update={"policies": policies})
 
 
 # -- payloads del modelo falso (mismos shapes que los agentes esperan) ---------
@@ -258,6 +268,13 @@ async def build_graph_deps(*, model_backend: ModelBackend = "auto") -> GraphAsse
     config = load_config(model_profile=resolved_backend)
     clock = SystemClock()
     ids = UuidIdFactory()
+    classifier_deadline_ms = _agent_deadline_ms(
+        config.policies, AgentName.CLASSIFIER, default=3_000
+    )
+    navigator_deadline_ms = _agent_deadline_ms(
+        config.policies, AgentName.DOMAIN_NAVIGATOR, default=8_000
+    )
+    writer_deadline_ms = _agent_deadline_ms(config.policies, AgentName.WRITER, default=6_000)
 
     corpus = await load_corpus(root=root, domains=CORE_DOMAINS)
     manifests = load_domains(root, CORE_DOMAINS)
@@ -302,7 +319,7 @@ async def build_graph_deps(*, model_backend: ModelBackend = "auto") -> GraphAsse
     navigators = {
         domain: DomainNavigator(
             domain=domain,
-            manifest=manifests[domain],
+            manifest=_manifest_with_navigator_deadline(manifests[domain], navigator_deadline_ms),
             gateway=gateway,
             retriever=corpus.retriever(domain),
         )
@@ -322,13 +339,17 @@ async def build_graph_deps(*, model_backend: ModelBackend = "auto") -> GraphAsse
 
     deps = MVPDependencies(
         gateway=gateway,
-        classifier=Classifier(gateway=gateway, manifests=manifests),
+        classifier=Classifier(
+            gateway=gateway,
+            manifests=manifests,
+            deadline_ms=classifier_deadline_ms,
+        ),
         navigators=navigators,
         verifier_factory=lambda now, valid_at: Verifier(
             institution_id=_DEMO_INSTITUTION, now=now, valid_at=valid_at
         ),
         estimators=estimators,
-        writer=Writer(gateway=gateway),
+        writer=Writer(gateway=gateway, deadline_ms=writer_deadline_ms),
         transactional=TransactionalAgent(catalog=catalog, executor=executor),
         catalog=catalog,
         executor=executor,

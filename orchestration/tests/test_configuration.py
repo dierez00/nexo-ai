@@ -212,15 +212,15 @@ def test_gemini_profile_is_pinned_and_has_no_model_fallback() -> None:
         entry for entry in config.model_router.aliases if entry.provider_ref.provider == "gemini"
     ]
 
-    assert {entry.provider_ref.model for entry in online} == {"gemini-3.6-flash"}
+    assert {entry.provider_ref.model for entry in online} == {"gemini-3.5-flash-lite"}
     assert {entry.alias for entry in online} == {
         "general",
         "structured_small",
         "high_accuracy",
         "judge_secondary",
     }
-    assert {entry.capabilities.cost_per_1k_input_usd for entry in online} == {0.0015}
-    assert {entry.capabilities.cost_per_1k_output_usd for entry in online} == {0.0075}
+    assert {entry.capabilities.cost_per_1k_input_usd for entry in online} == {0.0003}
+    assert {entry.capabilities.cost_per_1k_output_usd for entry in online} == {0.0025}
     assert config.policies.outcomes.fallback_on == []
     model_call = next(
         operation for operation in config.policies.operations if operation.operation == "model_call"

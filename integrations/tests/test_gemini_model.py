@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Literal
 
 import httpx
 import pytest
 from google.genai import errors, types
 from nexo_integrations.models import GeminiChatAdapter
+from nexo_integrations.models.gemini import _gemini_response_schema
 from pydantic import Field
 
 from nexo_contracts import ErrorCode, ModelTaskKind, NexoModel
@@ -20,6 +22,16 @@ pytestmark = pytest.mark.unit
 
 class Answer(NexoModel):
     answer: str = Field(max_length=100)
+
+
+class NestedAnswer(NexoModel):
+    status: Literal["ok"]
+    detail: str = Field(default="", min_length=1, max_length=20, pattern=r"^[a-z]+$")
+    tags: list[str] = Field(default_factory=list, min_length=1, max_length=100)
+
+
+class AnswerEnvelope(NexoModel):
+    result: NestedAnswer
 
 
 @dataclass
@@ -63,9 +75,11 @@ def _response(
     *,
     finish_reason: types.FinishReason = types.FinishReason.STOP,
     parsed: NexoModel | None = None,
+    text: str | None = None,
 ) -> object:
     return SimpleNamespace(
         parsed=parsed,
+        text=text,
         candidates=[SimpleNamespace(finish_reason=finish_reason)],
         usage_metadata=SimpleNamespace(
             prompt_token_count=123,
@@ -87,7 +101,7 @@ async def test_structured_request_and_usage_are_projected() -> None:
 
     result = await adapter.generate(
         _request(),
-        model="gemini-3.6-flash",
+        model="gemini-3.5-flash-lite",
         output_contract=Answer,
         max_output_tokens=4096,
         timeout_ms=2750,
@@ -95,13 +109,63 @@ async def test_structured_request_and_usage_are_projected() -> None:
 
     assert result.data == {"answer": "Listo"}
     assert (result.input_tokens, result.output_tokens, result.duration_ms) == (123, 22, 25)
-    assert models.kwargs["model"] == "gemini-3.6-flash"
+    assert models.kwargs["model"] == "gemini-3.5-flash-lite"
     assert models.kwargs["contents"] == _request().prompt
     config = models.kwargs["config"]
-    assert config.response_schema is Answer
+    assert config.response_schema is None
+    assert config.response_json_schema == {
+        "additionalProperties": False,
+        "properties": {"answer": {"title": "Answer", "type": "string"}},
+        "required": ["answer"],
+        "title": "Answer",
+        "type": "object",
+    }
     assert config.response_mime_type == "application/json"
     assert config.max_output_tokens == 4096
-    assert config.http_options.timeout == 2750
+    assert config.http_options.timeout == 10_000
+
+
+async def test_logical_deadline_is_enforced_separately_from_provider_minimum() -> None:
+    class _SlowModels(_Models):
+        async def generate_content(self, **kwargs: Any) -> object:
+            self.kwargs = kwargs
+            await asyncio.sleep(1)
+            assert self.response is not None
+            return self.response
+
+    models = _SlowModels(response=_response(parsed=Answer(answer="Listo")))
+    adapter = GeminiChatAdapter(
+        api_key="test-key",
+        client=_Client(models),  # type: ignore[arg-type]
+    )
+
+    with pytest.raises(ModelPortError) as caught:
+        await adapter.generate(
+            _request(),
+            model="gemini-3.5-flash-lite",
+            output_contract=Answer,
+            max_output_tokens=4096,
+            timeout_ms=1,
+        )
+
+    assert caught.value.error.code is ErrorCode.MODEL_UNAVAILABLE
+    config = models.kwargs["config"]
+    assert config.http_options.timeout == 10_000
+
+
+def test_json_schema_projection_is_recursive_and_preserves_closed_objects() -> None:
+    schema = _gemini_response_schema(AnswerEnvelope)
+
+    nested = schema["$defs"]["NestedAnswer"]
+    assert schema["additionalProperties"] is False
+    assert nested["additionalProperties"] is False
+    assert nested["properties"]["status"]["enum"] == ["ok"]
+    assert nested["properties"]["detail"] == {"title": "Detail", "type": "string"}
+    assert nested["properties"]["tags"] == {
+        "items": {"type": "string"},
+        "title": "Tags",
+        "type": "array",
+    }
 
 
 def _api_error(status: int, **headers: str) -> errors.APIError:
@@ -135,7 +199,7 @@ async def test_sdk_errors_are_normalized_without_provider_bodies(
     with pytest.raises(ModelPortError) as caught:
         await adapter.generate(
             _request(),
-            model="gemini-3.6-flash",
+            model="gemini-3.5-flash-lite",
             output_contract=Answer,
             max_output_tokens=100,
             timeout_ms=1000,
@@ -163,7 +227,7 @@ async def test_incomplete_structured_outputs_preserve_billable_usage(
     with pytest.raises(ModelPortError) as caught:
         await adapter.generate(
             _request(),
-            model="gemini-3.6-flash",
+            model="gemini-3.5-flash-lite",
             output_contract=Answer,
             max_output_tokens=100,
             timeout_ms=1000,
@@ -183,13 +247,42 @@ async def test_missing_parsed_output_is_invalid() -> None:
     with pytest.raises(ModelPortError) as caught:
         await adapter.generate(
             _request(),
-            model="gemini-3.6-flash",
+            model="gemini-3.5-flash-lite",
             output_contract=Answer,
             max_output_tokens=100,
             timeout_ms=1000,
         )
 
     assert caught.value.error.code is ErrorCode.MODEL_OUTPUT_INVALID
+
+
+@pytest.mark.parametrize(
+    ("parsed", "text"),
+    [
+        (None, '{"answer": "Listo"}'),
+        (None, '```json\n{"answer": "Listo"}\n```'),
+        ('{"answer": "Listo"}', None),
+    ],
+)
+async def test_json_strings_are_validated_when_sdk_structured_parse_is_incomplete(
+    parsed: str | None,
+    text: str | None,
+) -> None:
+    adapter = GeminiChatAdapter(
+        api_key="test-key",
+        client=_Client(_Models(response=_response(parsed=parsed, text=text))),  # type: ignore[arg-type]
+        monotonic_ms=lambda: 10,
+    )
+
+    result = await adapter.generate(
+        _request(),
+        model="gemini-3.5-flash-lite",
+        output_contract=Answer,
+        max_output_tokens=100,
+        timeout_ms=1000,
+    )
+
+    assert result.data == {"answer": "Listo"}
 
 
 async def test_client_is_closed() -> None:

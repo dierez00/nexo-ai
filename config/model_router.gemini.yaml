@@ -23,43 +23,43 @@ aliases:
   - alias: general
     provider_ref:
       provider: gemini
-      model: gemini-3.6-flash
+      model: gemini-3.5-flash-lite
       api_key_ref: secret://providers/gemini/api_key
     capabilities:
       supports_structured_output: true
       max_context_tokens: 1000000
       max_output_tokens: 8192
       allows_sensitive_data: false
-      cost_per_1k_input_usd: 0.0015
-      cost_per_1k_output_usd: 0.0075
+      cost_per_1k_input_usd: 0.0003
+      cost_per_1k_output_usd: 0.0025
     enabled: true
 
   - alias: structured_small
     provider_ref:
       provider: gemini
-      model: gemini-3.6-flash
+      model: gemini-3.5-flash-lite
       api_key_ref: secret://providers/gemini/api_key
     capabilities:
       supports_structured_output: true
       max_context_tokens: 1000000
       max_output_tokens: 4096
       allows_sensitive_data: false
-      cost_per_1k_input_usd: 0.0015
-      cost_per_1k_output_usd: 0.0075
+      cost_per_1k_input_usd: 0.0003
+      cost_per_1k_output_usd: 0.0025
     enabled: true
 
   - alias: high_accuracy
     provider_ref:
       provider: gemini
-      model: gemini-3.6-flash
+      model: gemini-3.5-flash-lite
       api_key_ref: secret://providers/gemini/api_key
     capabilities:
       supports_structured_output: true
       max_context_tokens: 1000000
       max_output_tokens: 16384
       allows_sensitive_data: false
-      cost_per_1k_input_usd: 0.0015
-      cost_per_1k_output_usd: 0.0075
+      cost_per_1k_input_usd: 0.0003
+      cost_per_1k_output_usd: 0.0025
     enabled: true
 
   # Alias diferente para respetar el contrato del judge. En esta primera
@@ -67,15 +67,15 @@ aliases:
   - alias: judge_secondary
     provider_ref:
       provider: gemini
-      model: gemini-3.6-flash
+      model: gemini-3.5-flash-lite
       api_key_ref: secret://providers/gemini/api_key
     capabilities:
       supports_structured_output: true
       max_context_tokens: 1000000
       max_output_tokens: 4096
       allows_sensitive_data: false
-      cost_per_1k_input_usd: 0.0015
-      cost_per_1k_output_usd: 0.0075
+      cost_per_1k_input_usd: 0.0003
+      cost_per_1k_output_usd: 0.0025
     enabled: true
 
 offline_alias: offline_fake

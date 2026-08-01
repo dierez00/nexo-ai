@@ -134,6 +134,7 @@ class Writer:
     prompt: Prompt | None = None
     alias: str = "structured_small"
     is_mock: bool = True
+    deadline_ms: int = 6_000
 
     def __post_init__(self) -> None:
         if self.prompt is None:
@@ -182,7 +183,7 @@ class Writer:
             ),
             prompt_version=self.prompt.version,
             variables={"channel": channel.value},
-            deadline_ms=6000,
+            deadline_ms=self.deadline_ms,
         )
 
         try:

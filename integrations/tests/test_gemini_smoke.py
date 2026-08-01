@@ -10,7 +10,16 @@ from nexo_integrations.models import GeminiChatAdapter
 from nexo_contracts import ModelTaskKind, NexoModel
 from nexo_orchestration.ports.model import ChatRequest
 
-pytestmark = pytest.mark.integration
+# google-genai 2.13 crea una subclase interna de ClientSession. aiohttp avisa
+# sobre esa herencia al abrir el cliente; no depende del adapter y no debe
+# impedir que este smoke llegue al proveedor.
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.filterwarnings(
+        "ignore:Inheritance class AiohttpClientSession from ClientSession is "
+        "discouraged:DeprecationWarning"
+    ),
+]
 
 
 class _SmokeAnswer(NexoModel):
@@ -38,9 +47,11 @@ async def test_real_gemini_structured_output() -> None:
                 variables={},
                 deadline_ms=20_000,
             ),
-            model="gemini-3.6-flash",
+            model="gemini-3.5-flash-lite",
             output_contract=_SmokeAnswer,
-            max_output_tokens=128,
+            # Los modelos con razonamiento contabilizan sus thoughts dentro de
+            # la salida; 128 puede agotarse antes de producir el JSON mínimo.
+            max_output_tokens=1024,
             timeout_ms=20_000,
         )
     finally:

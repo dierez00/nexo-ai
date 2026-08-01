@@ -7,6 +7,8 @@ respuesta o detalle de credenciales cruza la frontera de errores.
 
 from __future__ import annotations
 
+import asyncio
+import json
 import time
 from collections.abc import Callable
 from typing import Any, Protocol, cast
@@ -19,6 +21,78 @@ from pydantic import JsonValue, ValidationError
 from nexo_contracts import ErrorCode, NexoModel, NormalizedError
 from nexo_orchestration.models import AdapterResult
 from nexo_orchestration.ports.model import ChatRequest, ModelPortError
+
+# Subconjunto documentado por `GenerateContentConfig.response_json_schema`.
+# Los límites que Gemini no entiende se conservan en el contrato Pydantic y se
+# aplican al validar la respuesta, pero no deben provocar que el proveedor
+# rechace la solicitud antes de inferir.
+_SUPPORTED_JSON_SCHEMA_KEYS = frozenset(
+    {
+        "$id",
+        "$defs",
+        "$ref",
+        "$anchor",
+        "type",
+        "format",
+        "title",
+        "description",
+        "enum",
+        "items",
+        "prefixItems",
+        "minimum",
+        "maximum",
+        "anyOf",
+        "oneOf",
+        "properties",
+        "additionalProperties",
+        "required",
+        "propertyOrdering",
+    }
+)
+
+# La Gemini Developer API rechaza deadlines de transporte menores a 10 s.
+# Nexo conserva su deadline lógico por separado con ``asyncio.timeout`` para
+# que elevar este valor no permita que una invocación exceda su presupuesto.
+_MIN_PROVIDER_TIMEOUT_MS = 10_000
+
+
+def _gemini_response_schema(output_contract: type[NexoModel]) -> dict[str, Any]:
+    """Proyecta el JSON Schema de Pydantic al subconjunto aceptado por Gemini.
+
+    `response_schema` usa el dialecto OpenAPI reducido del SDK y serializa
+    `additionalProperties` como un campo que la Gemini Developer API rechaza.
+    `response_json_schema` sí soporta esa palabra estándar, pero no todas las
+    restricciones que Pydantic publica. En particular, límites altos de arrays
+    (`maxItems=50/100`) hacen que Gemini rechace contratos anidados válidos por
+    complejidad. La validación completa se repite sobre la respuesta en
+    :meth:`generate`, por lo que retirarlas aquí no debilita el contrato interno.
+    """
+
+    def project(schema: JsonValue) -> JsonValue:
+        if isinstance(schema, list):
+            return [project(item) for item in schema]
+        if not isinstance(schema, dict):
+            return schema
+
+        projected: dict[str, JsonValue] = {}
+        for key, value in schema.items():
+            if key not in _SUPPORTED_JSON_SCHEMA_KEYS:
+                continue
+            if key in {"properties", "$defs"}:
+                if isinstance(value, dict):
+                    projected[key] = {name: project(child) for name, child in value.items()}
+            elif key == "additionalProperties" and isinstance(value, dict):
+                projected[key] = project(value)
+            else:
+                projected[key] = project(value)
+
+        # Pydantic representa `Literal` con `const`, que no está en el
+        # subconjunto de Gemini. Un enum unitario expresa la misma restricción.
+        if "const" in schema and "enum" not in projected:
+            projected["enum"] = [schema["const"]]
+        return projected
+
+    return cast(dict[str, Any], project(output_contract.model_json_schema()))
 
 
 class _Usage(Protocol):
@@ -122,6 +196,35 @@ def _finish_reason(response: _Response) -> str | None:
     return raw.value if isinstance(raw, types.FinishReason) else raw
 
 
+def _json_text_payload(raw: str) -> Any:
+    """Carga JSON de respuestas que el SDK no alcanzó a poblar en `parsed`."""
+    text = raw.strip()
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines and lines[0].lstrip().startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+    return json.loads(text)
+
+
+def _structured_payload(response: _Response) -> Any:
+    parsed = response.parsed
+    if isinstance(parsed, str):
+        return _json_text_payload(parsed)
+    if parsed is not None:
+        return parsed
+
+    try:
+        text = getattr(response, "text")
+    except Exception:
+        text = None
+    if isinstance(text, str) and text.strip():
+        return _json_text_payload(text)
+    raise ValueError("salida estructurada ausente")
+
+
 class GeminiChatAdapter:
     """`ChatAdapterPort` asíncrono sobre Gemini generateContent."""
 
@@ -168,16 +271,19 @@ class GeminiChatAdapter:
 
         started_ms = self._monotonic_ms()
         try:
-            response = await self._client.models.generate_content(
-                model=model,
-                contents=request.prompt,
-                config=types.GenerateContentConfig(
-                    http_options=types.HttpOptions(timeout=max(1, timeout_ms)),
-                    max_output_tokens=max_output_tokens,
-                    response_mime_type="application/json",
-                    response_schema=output_contract,
-                ),
-            )
+            async with asyncio.timeout(max(0.001, timeout_ms / 1000)):
+                response = await self._client.models.generate_content(
+                    model=model,
+                    contents=request.prompt,
+                    config=types.GenerateContentConfig(
+                        http_options=types.HttpOptions(
+                            timeout=max(_MIN_PROVIDER_TIMEOUT_MS, timeout_ms)
+                        ),
+                        max_output_tokens=max_output_tokens,
+                        response_mime_type="application/json",
+                        response_json_schema=_gemini_response_schema(output_contract),
+                    ),
+                )
         except Exception as exc:
             duration_ms = max(0, self._monotonic_ms() - started_ms)
             raise ModelPortError(
@@ -200,11 +306,9 @@ class GeminiChatAdapter:
             )
 
         try:
-            parsed = response.parsed
-            if parsed is None:
-                raise ValueError("salida estructurada ausente")
+            parsed = _structured_payload(response)
             validated = output_contract.model_validate(parsed)
-        except (ValidationError, TypeError, ValueError) as exc:
+        except (json.JSONDecodeError, ValidationError, TypeError, ValueError) as exc:
             raise ModelPortError(
                 NormalizedError.from_code(
                     ErrorCode.MODEL_OUTPUT_INVALID,

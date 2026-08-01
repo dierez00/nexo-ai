@@ -1,10 +1,11 @@
 # Políticas del perfil Gemini. No hay fallback de modelo: tras un reintento
 # transitorio agotado, el run termina como failed y conserva su traza.
 
-version: policies-gemini-2026-07-31
+version: policies-gemini-2026-07-31-r3
 
 run_budgets:
-  deadline_ms: 20000
+  # Incluye inferencia y persistencia secuencial de la traza en la base remota.
+  deadline_ms: 90000
   max_cost_usd: 0.20
   max_tokens: 200000
   max_attempts_per_agent: 2
@@ -12,11 +13,11 @@ run_budgets:
 
 agent_budgets:
   classifier:
-    deadline_ms: 3000
+    deadline_ms: 20000
     max_cost_usd: 0.01
     max_attempts_per_agent: 2
   domain_navigator:
-    deadline_ms: 8000
+    deadline_ms: 20000
     max_cost_usd: 0.06
     max_attempts_per_agent: 2
   verifier:
@@ -32,7 +33,7 @@ agent_budgets:
     max_cost_usd: 0.01
     max_attempts_per_agent: 1
   writer:
-    deadline_ms: 6000
+    deadline_ms: 20000
     max_cost_usd: 0.03
     max_attempts_per_agent: 2
 
@@ -60,7 +61,7 @@ operations:
 
   - operation: model_call
     mode: read
-    timeout_ms: 8000
+    timeout_ms: 20000
     retry:
       max_attempts: 2
       retry_on: [RATE_LIMITED, MODEL_UNAVAILABLE, PROVIDER_ERROR]
