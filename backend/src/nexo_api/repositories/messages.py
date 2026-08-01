@@ -38,7 +38,7 @@ async def set_delivery_status(provider_message_id: str, status: str) -> None:
     sql = text("""
         update public.messages
         set metadata = jsonb_set(
-            coalesce(metadata, '{}'::jsonb), '{delivery_status}', to_jsonb(:status::text)
+            coalesce(metadata, '{}'::jsonb), '{delivery_status}', to_jsonb(cast(:status as text))
         )
         where metadata->>'provider_message_id' = :pmid
     """)
